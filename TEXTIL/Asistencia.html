@@ -21,10 +21,13 @@
             <div class="col-4 text-right barra">
                 <ul class="navbar-nav mr-auto">
                     <li>
-                        <a href="#" class="px-3 text-light perfil dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user-circle user"></i></a>
+                        <a href="#" class="px-3 text-light perfil dropdown-toggle" id="navbarDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
+                                class="fas fa-user-circle user"></i></a>
 
                         <div class="dropdown-menu" aria-labelledby="navbar-dropdown">
-                            <a class="dropdown-item menuperfil cerrar" href="#"><i class="fas fa-sign-out-alt m-1"></i>Salir
+                            <a class="dropdown-item menuperfil cerrar" href="#"><i
+                                    class="fas fa-sign-out-alt m-1"></i>Salir
                             </a>
                         </div>
                     </li>
@@ -47,79 +50,82 @@
             <main class="main col">
                 <div class="row justify-content-center align-content-center text-center">
                     <div class="columna col-lg-6">
+
                         <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Registro de Asistencia</title>
+                            <meta charset="UTF-8" />
+                            <meta name="viewport" content="width=device-width, initial-scale=1" />
+                            <title>Registro de Asistencia</title>
 
-</head>
-<body>
-    <div class="container">
-        <h1>Registro de Asistencia de Personal</h1>
-        <form id="formAsistencia">
-            <div class="form-group">
-                <label for="nombre">Código del Empleado</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Ingrese codigo completo" required />
-            </div>
-            
-            <div class="form-group">
-                <label for="fecha">Fecha</label>
-                <input type="date" id="fecha" name="fecha" required />
-            </div>
-            <div class="form-group">
-                <label for="horaEntrada">Hora de Entrada</label>
-                <input type="time" id="horaEntrada" name="horaEntrada" required />
-            </div>
-            <div class="form-group">
-                <label for="horaSalida">Hora de Salida</label>
-                <input type="time" id="horaSalida" name="horaSalida" required />
-            </div>
-            <button type="submit">Registrar Asistencia</button>
-        </form>
+                        </head>
 
-        <section class="registro-asistencia">
-            <h2>Asistencias Registradas</h2>
-            <table id="tablaAsistencia">
-                <thead>
-                    <tr>
-                        <th>Codigo</th>
-                        
-                        <th>Fecha</th>
-                        <th>Hora Entrada</th>
-                        <th>Hora Salida</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Aquí se agregarán las filas con JS -->
-                </tbody>
-<a href="index.html"><button type="submit" >Volver al menu</button></a>
-            </table>
-        </section>
-    </div>
+                        <body>
+                            <div class="container">
+                                <h1>Registro de Asistencia de Personal</h1>
+                                <form id="formAsistencia">
+                                    <div class="form-group">
+                                        <label for="nombre">Código del Empleado</label>
+                                        <input type="text" id="nombre" name="nombre"
+                                            placeholder="Ingrese codigo completo" required />
+                                    </div>
 
-    <script>
-        const form = document.getElementById('formAsistencia');
-        const tablaBody = document.querySelector('#tablaAsistencia tbody');
+                                    <div class="form-group">
+                                        <label for="fecha">Fecha</label>
+                                        <input type="date" id="fecha" name="fecha" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="horaEntrada">Hora de Entrada</label>
+                                        <input type="time" id="horaEntrada" name="horaEntrada" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="horaSalida">Hora de Salida</label>
+                                        <input type="time" id="horaSalida" name="horaSalida" required />
+                                    </div>
+                                    <button type="submit">Registrar Asistencia</button>
+                                </form>
 
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
+                                <section class="registro-asistencia">
+                                    <h2>Asistencias Registradas</h2>
+                                    <table id="tablaAsistencia">
+                                        <thead>
+                                            <tr>
+                                                <th>Codigo</th>
 
-            // Obtener valores
-            const nombre = form.nombre.value.trim();
-            
-            const fecha = form.fecha.value;
-            const horaEntrada = form.horaEntrada.value;
-            const horaSalida = form.horaSalida.value;
+                                                <th>Fecha</th>
+                                                <th>Hora Entrada</th>
+                                                <th>Hora Salida</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Aquí se agregarán las filas con JS -->
+                                        </tbody>
+                                        <a href="index.html"><button type="submit">Volver al menu</button></a>
+                                    </table>
+                                </section>
+                            </div>
 
-            // Validar que horaSalida sea mayor que horaEntrada
-            if (horaSalida <= horaEntrada) {
-                alert('La hora de salida debe ser mayor que la hora de entrada.');
-                return;
-            }
+                            <script>
+                                const form = document.getElementById('formAsistencia');
+                                const tablaBody = document.querySelector('#tablaAsistencia tbody');
 
-            // Crear nueva fila
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
+                                form.addEventListener('submit', function (event) {
+                                    event.preventDefault();
+
+                                    // Obtener valores
+                                    const nombre = form.nombre.value.trim();
+
+                                    const fecha = form.fecha.value;
+                                    const horaEntrada = form.horaEntrada.value;
+                                    const horaSalida = form.horaSalida.value;
+
+                                    // Validar que horaSalida sea mayor que horaEntrada
+                                    if (horaSalida <= horaEntrada) {
+                                        alert('La hora de salida debe ser mayor que la hora de entrada.');
+                                        return;
+                                    }
+
+                                    // Crear nueva fila
+                                    const fila = document.createElement('tr');
+                                    fila.innerHTML = `
                 <td>${nombre}</td>
                 
                 <td>${fecha}</td>
@@ -127,13 +133,13 @@
                 <td>${horaSalida}</td>
             `;
 
-            tablaBody.appendChild(fila);
+                                    tablaBody.appendChild(fila);
 
-            // Limpiar formulario
-            form.reset();
-        });
-    </script>
-</body>
+                                    // Limpiar formulario
+                                    form.reset();
+                                });
+                            </script>
+                        </body>
                     </div>
 
                 </div>
@@ -141,5 +147,3 @@
             </main>
         </div>
     </div>
-
-

@@ -1,0 +1,115 @@
+/* Reset básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    padding: 20px;
+    color: #333;
+}
+
+.container {
+    max-width: 700px;
+    background-color: #fff;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #004080;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+form {
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus {
+    border-color: #004080;
+    outline: none;
+}
+
+button[type="submit"] {
+    background-color: #076b7c;
+    color: white;
+    padding: 12px;
+    width: 100%;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #076b7c;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table thead {
+    background-color: #076b7c;
+    color: white;
+}
+
+table th, table td {
+    padding: 12px 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+    }
+
+    form .form-group {
+        flex-direction: column;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    button[type="submit"] {
+        font-size: 1em;
+    }
+
+    table th, table td {
+        padding: 8px 5px;
+        font-size: 0.9em;
+    }
+}
