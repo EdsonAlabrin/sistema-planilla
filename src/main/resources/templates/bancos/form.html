@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}"> <!-- Extiende tu plantilla base -->
+<head>
+    <title th:text="${pageTitle}"></title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para esta página si son necesarios -->
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2 th:text="${banco.idBanco == null ? 'Crear Nuevo Banco' : 'Editar Banco'}"></h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <form th:action="@{/bancos/guardar}" th:object="${banco}" method="post">
+                <input type="hidden" th:field="*{idBanco}" />
+                <input type="hidden" th:field="*{createdAt}" />
+                <input type="hidden" th:field="*{updatedAt}" />
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i> Datos del Banco
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="nombreBanco" class="form-label">Nombre del Banco:</label>
+                            <input type="text" class="form-control" id="nombreBanco" th:field="*{nombreBanco}" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="codigoBanco" class="form-label">Código del Banco (ej: 002):</label>
+                            <input type="text" class="form-control" id="codigoBanco" th:field="*{codigoBanco}" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save"></i> Guardar Banco</button>
+                    <a th:href="@{/bancos}" class="btn btn-secondary me-2"><i class="fas fa-times"></i> Cancelar</a>
+                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para esta página si son necesarios -->
+    </th:block>
+</body>
+</html>

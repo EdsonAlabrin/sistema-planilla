@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Bonos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+  <div class="container mt-4">
+    <h2>Lista de Bonos</h2>
+    <a th:href="@{/bonos/formulario}" class="btn btn-primary mb-3">Nuevo Bono</a>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Descripción</th>
+          <th>Monto</th>
+          <th>Empleado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody th:each="bono : ${bonos}">
+        <tr>
+          <td th:text="${bono.id}"></td>
+          <td th:text="${bono.descripcion}"></td>
+          <td th:text="${bono.monto}"></td>
+          <td th:text="${bono.empleado.nombre}"></td>
+          <td>
+            <a th:href="@{'/bonos/editar/' + $(bono.id)}" class="btn btn-warning btn-sm">Editar</a>
+            <a th:href="@{'/bonos/eliminar/' + $(bono.id)}" class="btn btn-danger btn-sm"
+              onclick="return confirm('¿Eliminar bono?')">Eliminar</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <a th:href="@{/}" class="btn btn-secondary">Volver</a>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}"> <!-- Declara que esta página usa el layout base.html -->
+<head>
+    <title>Detalles del Puesto</title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para los detalles de puesto -->
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content"> <!-- Todo el contenido de la página irá dentro de este fragmento -->
+        <div class="container mt-5">
+            <h2><i class="fas fa-info-circle"></i> Detalles del Puesto</h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <div class="card">
+                <div class="card-header">
+                    Información del Puesto #<span th:text="${puesto.idPuesto}"></span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nombre del Puesto:</strong> <span th:text="${puesto.nombrePuesto}"></span></p>
+                    <p><strong>Salario Base:</strong> <span th:text="${#numbers.formatCurrency(puesto.salarioBase)}"></span></p>
+                    <p><strong>Jornada Laboral (horas):</strong> <span th:text="${puesto.jornadaLaboralHoras}"></span></p>
+                    <p class="text-muted small"><strong>Fecha Creación:</strong> <span th:text="${#temporals.format(puesto.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+                    <p class="text-muted small"><strong>Última Actualización:</strong> <span th:text="${#temporals.format(puesto.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+                </div>
+                <div class="card-footer">
+                    <a th:href="@{/puestos/listar}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Listado</a>
+                    <a th:href="@{/puestos/editar/{id}(id=${puesto.idPuesto})}" class="btn btn-warning"><i class="fas fa-edit"></i> Editar Puesto</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para los detalles de puesto -->
+    </th:block>
+</body>
+</html>

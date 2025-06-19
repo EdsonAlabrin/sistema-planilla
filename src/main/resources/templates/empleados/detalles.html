@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Detalles del Empleado</title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para los detalles de empleado -->
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2><i class="fas fa-user-circle"></i> Detalles del Empleado</h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <div class="card">
+                <div class="card-header">
+                    Información del Empleado #<span th:text="${empleado.idEmpleado}"></span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Nombres:</strong> <span th:text="${empleado.nombres}"></span></div>
+                        <div class="col-md-6"><strong>Apellidos:</strong> <span th:text="${empleado.apellidos}"></span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Tipo Documento:</strong> <span th:text="${empleado.tipoDocumento}"></span></div>
+                        <div class="col-md-6"><strong>Número Documento:</strong> <span th:text="${empleado.numeroDocumento}"></span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Fecha Nacimiento:</strong> <span th:text="${empleado.fechaNacimiento}"></span></div>
+                        <div class="col-md-6"><strong>Sexo:</strong> <span th:text="${empleado.sexo}"></span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Estado Civil:</strong> <span th:text="${empleado.estadoCivil}"></span></div>
+                        <div class="col-md-6"><strong>Nacionalidad:</strong> <span th:text="${empleado.nacionalidad}"></span></div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Correo:</strong> <span th:text="${empleado.correo}"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Dirección:</strong> <span th:text="${empleado.direccionCompleta}"></span>, <span th:text="${empleado.distrito}"></span>, <span th:text="${empleado.provincia}"></span>, <span th:text="${empleado.departamento}"></span>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Fecha Ingreso:</strong> <span th:text="${#temporals.format(empleado.fechaIngreso, 'dd-MM-yyyy')}"></span></div>
+                        <div class="col-md-6"><strong>Fecha Cese:</strong> <span th:text="${empleado.fechaCese != null ? #temporals.format(empleado.fechaCese, 'dd-MM-yyyy') : 'N/A'}"></span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Estado:</strong>
+                            <span th:if="${empleado.estado}" class="badge bg-success"><i class="fas fa-check-circle"></i> Activo</span>
+                            <span th:unless="${empleado.estado}" class="badge bg-danger"><i class="fas fa-times-circle"></i> Inactivo</span>
+                        </div>
+                        <div class="col-md-6"><strong>Puesto:</strong> <span th:text="${empleado.puesto?.nombrePuesto ?: 'N/A'}"></span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Salario Base Puesto:</strong> <span th:if="${empleado.puesto != null}" th:text="${#numbers.formatCurrency(empleado.puesto.salarioBase)}"></span></div>
+                        <div class="col-md-6"><strong>Régimen Laboral:</strong> <span th:text="${empleado.regimenLaboral}"></span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Sistema Pensiones:</strong> <span th:text="${empleado.sistemaPensiones}"></span></div>
+                        <div class="col-md-6"><strong>Código Pensión:</strong> <span th:text="${empleado.codigoPension ?: 'N/A'}"></span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Nombre AFP:</strong> <span th:text="${empleado.nombreAfp ?: 'N/A'}"></span></div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Banco:</strong> <span th:text="${empleado.banco?.nombreBanco ?: 'N/A'}"></span></div>
+                        <div class="col-md-6"><strong>Número Cuenta Banco:</strong> <span th:text="${empleado.numeroCuentaBanco ?: 'N/A'}"></span></div>
+                    </div>
+                    <div class="row mb-3 text-muted small">
+                        <div class="col-md-6"><strong>Fecha Creación:</strong> <span th:text="${#temporals.format(empleado.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></span></div>
+                        <div class="col-md-6"><strong>Última Actualización:</strong> <span th:text="${#temporals.format(empleado.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></span></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <!-- Botones de navegación -->
+                    <a th:href="@{/empleados/listar}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left"></i> Volver al Listado</a>
+                    <a th:href="@{/empleados/editar/{id}(id=${empleado.idEmpleado})}" class="btn btn-warning me-2"><i class="fas fa-edit"></i> Editar Empleado</a>
+                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para los detalles de empleado -->
+    </th:block>
+</body>
+</html>

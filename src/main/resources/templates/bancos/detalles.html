@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}"> <!-- Extiende tu plantilla base -->
+<head>
+    <title th:text="${pageTitle}"></title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para esta página si son necesarios -->
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2><i class="fas fa-info-circle"></i> Detalles del Banco</h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <div class="card">
+                <div class="card-header">
+                    Información del Banco #<span th:text="${banco.idBanco}"></span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nombre del Banco:</strong> <span th:text="${banco.nombreBanco}"></span></p>
+                    <p><strong>Código del Banco:</strong> <span th:text="${banco.codigoBanco ?: 'N/A'}"></span></p>
+                    <p class="text-muted small"><strong>Fecha Creación:</strong> <span th:text="${#temporals.format(banco.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+                    <p class="text-muted small"><strong>Última Actualización:</strong> <span th:text="${#temporals.format(banco.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+                </div>
+                <div class="card-footer">
+                    <a th:href="@{/bancos/listar}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left"></i> Volver al Listado</a>
+                    <a th:href="@{/bancos/editar/{id}(id=${banco.idBanco})}" class="btn btn-warning me-2"><i class="fas fa-edit"></i> Editar Banco</a>
+                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para esta página si son necesarios -->
+    </th:block>
+</body>
+</html>

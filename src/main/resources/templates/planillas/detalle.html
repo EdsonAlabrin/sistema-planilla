@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title th:text="${pageTitle}"></title>
+    <th:block layout:fragment="page-styles">
+        <style>
+            .table-condensed th, .table-condensed td {
+                padding: 0.3rem;
+                font-size: 0.9em;
+            }
+            .card-header {
+                font-size: 1.1em;
+                font-weight: bold;
+            }
+            .text-end {
+                text-align: right;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2><i class="fas fa-info-circle"></i> Detalles de la Planilla</h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <div class="card">
+                <div class="card-header">
+                    Información de la Planilla #<span th:text="${planilla.idPlanilla}"></span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Período:</strong> <span th:text="${planilla.mes + '/' + planilla.anio}"></span></p>
+                    <p><strong>Tipo de Planilla:</strong> <span th:text="${planilla.tipoPlanilla}"></span></p>
+                    <p><strong>Fecha de Generación:</strong> <span th:text="${#temporals.format(planilla.fechaGenerada, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+                    
+                    <!-- Calcula los totales dinámicamente desde los detalles si los necesitas aquí -->
+                    <p><strong>Total Empleados en Planilla:</strong>
+                        <span th:text="${planilla.detalles != null ? planilla.detalles.size() : 0}"></span>
+                    </p>
+                    <p><strong>Total Ingresos de Planilla:</strong>
+                        <span th:with="totalIngresos=${#aggregates.sum(planilla.detalles?.![sueldoBruto]) ?: 0}"
+                              th:text="'S/ ' + ${#numbers.formatDecimal(totalIngresos, 1, 2)}"></span>
+                    </p>
+                    <p><strong>Total Descuentos de Planilla:</strong>
+                        <span th:with="totalDescuentos=${#aggregates.sum(planilla.detalles?.![totalDescuentos.add(impuestoRenta5ta)]) ?: 0}"
+                              th:text="'S/ ' + ${#numbers.formatDecimal(totalDescuentos, 1, 2)}"></span>
+                    </p>
+                    <p><strong>Total Neto a Pagar de Planilla:</strong>
+                        <span th:with="totalNetoPagar=${#aggregates.sum(planilla.detalles?.![sueldoNeto]) ?: 0}"
+                              th:text="'S/ ' + ${#numbers.formatDecimal(totalNetoPagar, 1, 2)}"></span>
+                    </p>
+
+                    <hr>
+
+                    <h5 class="mt-4">Resumen por Empleado</h5>
+                    <div th:if="${planilla.detalles == null or planilla.detalles.empty}" class="alert alert-warning text-center">
+                        No hay detalles de planilla para este período. Asegúrese de que hayan empleados activos al generar la planilla.
+                    </div>
+
+                    <div th:unless="${planilla.detalles == null or planilla.detalles.empty}">
+                        <div th:each="detalle : ${planilla.detalles}" class="card mb-4 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                Empleado: <span th:text="${detalle.empleado?.nombres + ' ' + detalle.empleado?.apellidos}"></span> (DNI: <span th:text="${detalle.empleado?.numeroDocumento}"></span>)
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">Ingresos</h6>
+                                        <table class="table table-bordered table-condensed">
+                                            <tbody>
+                                                <!-- Sueldo Base calculado si no es un Bono específico -->
+                                                <tr>
+                                                    <td>Sueldo Base</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.sueldoBruto.subtract(detalle.asignacionFamiliar), 1, 2)}"></td>
+                                                </tr>
+                                                <tr th:if="${detalle.asignacionFamiliar != null and detalle.asignacionFamiliar.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                                    <td>Asignación Familiar</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.asignacionFamiliar, 1, 2)}"></td>
+                                                </tr>
+                                                <tr th:each="bono : ${detalle.bonos}">
+                                                    <td th:text="${bono.conceptoPago?.nombreConcepto}"></td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(bono.monto, 1, 2)}"></td>
+                                                </tr>
+                                                <tr class="table-primary fw-bold">
+                                                    <td>Remuneración Bruta</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.sueldoBruto, 1, 2)}"></td>
+                                                </tr>
+                                                <tr class="table-secondary fw-bold">
+                                                    <td>Remuneración Computable</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.remuneracionComputable, 1, 2)}"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-danger">Descuentos</h6>
+                                        <table class="table table-bordered table-condensed">
+                                            <tbody>
+                                                <tr th:if="${detalle.aportePensionEmpleado != null and detalle.aportePensionEmpleado.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                                    <td>Aporte Pensión (<span th:text="${detalle.empleado?.sistemaPensiones}"></span>)</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.aportePensionEmpleado, 1, 2)}"></td>
+                                                </tr>
+                                                <tr th:if="${detalle.impuestoRenta5ta != null and detalle.impuestoRenta5ta.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                                    <td>Impuesto Renta 5ta</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.impuestoRenta5ta, 1, 2)}"></td>
+                                                </tr>
+                                                <tr th:each="descuento : ${detalle.descuentos}">
+                                                    <td th:text="${descuento.conceptoPago?.nombreConcepto}"></td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(descuento.monto, 1, 2)}"></td>
+                                                </tr>
+                                                <tr class="table-danger fw-bold">
+                                                    <td>Total Descuentos</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.totalDescuentos.add(detalle.impuestoRenta5ta), 1, 2)}"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <h6 class="text-success mt-3">Aportes Empleador</h6>
+                                        <table class="table table-bordered table-condensed">
+                                            <tbody>
+                                                <tr th:if="${detalle.aporteEssaludEmpleador != null and detalle.aporteEssaludEmpleador.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                                    <td>EsSalud (9%)</td>
+                                                    <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.aporteEssaludEmpleador, 1, 2)}"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="alert alert-success mt-3">
+                                    <h5 class="mb-0">Sueldo Neto a Pagar: <span class="float-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.sueldoNeto, 1, 2)}"></span></h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a th:href="@{/planillas}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left"></i> Volver al Listado</a>
+                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

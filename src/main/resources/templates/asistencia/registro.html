@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Asistencia</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <!-- Bootstrap + Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Estilos en línea */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f7f9fc 0%, #2c3e50 100%);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .asistencia-card {
+            max-width: 420px;
+            border: none;
+            border-radius: 1rem;
+            animation: fadeIn 0.7s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(90deg, #416fcc 0%, #031e38 100%);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(90deg, #0d6efd 0%, #75c7d8 100%);
+            border: none;
+            color: black;
+        }
+
+        .btn-gradient:hover {
+            filter: brightness(1.05);
+        }
+
+        .clock {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #0d6efd;
+            text-align: center;
+            user-select: none;
+        }
+
+        .btn-back {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Botón volver al inicio -->
+    <a th:href="@{/}" class="btn btn-outline-secondary btn-back">
+        <i class="fas fa-arrow-left"></i> Inicio
+    </a>
+
+    <!-- Contenedor principal -->
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card asistencia-card shadow-lg">
+            <div class="card-header text-white text-center bg-gradient-primary py-3">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-check me-2"></i>
+                    Registro de Asistencia
+                </h4>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Reloj en vivo -->
+                <div id="clock" class="clock mb-4" aria-live="polite" aria-atomic="true">00:00:00</div>
+
+                <!-- Formulario -->
+                <form th:action="@{/asistencia/marcar}" method="post" onsubmit="return validarDNI()">
+                    <div class="input-group mb-4">
+                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                        <input type="text" name="dni" id="dniInput" placeholder="Ingrese su DNI" class="form-control"
+                            pattern="[0-9]{8}" title="Debe ingresar 8 dígitos numéricos" required autofocus />
+                    </div>
+
+                    <input type="hidden" name="horaRegistro" id="horaRegistro" th:value="${horaActual}" />
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-gradient btn-lg">
+                            <i class="fas fa-clock me-1"></i> Marcar
+                        </button>
+                    </div>
+
+                    <!-- Mensajes -->
+                    <div th:if="${mensaje}" class="alert mt-4" th:classappend="' alert-' + ${tipo}">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span th:text="${mensaje}"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Bootstrap + reloj -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const clockEl = document.getElementById('clock');
+            const inputHora = document.getElementById('horaRegistro');
+
+            const updateClock = () => {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                const timeString = `${h}:${m}:${s}`;
+                clockEl.textContent = timeString;
+                inputHora.value = timeString;
+            };
+
+            updateClock(); // inicial
+            setInterval(updateClock, 1000);
+        });
+        // Validación del DNI
+        function validarDNI() {
+        const dni = document.getElementById('dniInput').value;
+        if (!/^\d{8}$/.test(dni)) {
+            alert('El DNI debe tener exactamente 8 dígitos numéricos');
+            return false;
+        }
+        return true;
+    }
+    </script>
+</body>
+
+</html>

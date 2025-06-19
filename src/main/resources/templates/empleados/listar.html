@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title th:text="${pageTitle} ?: 'Listado de Empleados'"></title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2><i class="fas fa-users"></i> Listado de Empleados</h2>
+            <hr>
+            <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
+            <a th:href="@{/empleados/nuevo}" class="btn btn-primary mb-3"><i class="fas fa-user-plus"></i> Registrar Nuevo Empleado</a>
+
+            <div th:if="${empleados.empty}" class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> No hay empleados registrados. ¡Registra uno ahora!
+            </div>
+
+            <div th:unless="${empleados.empty}">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover align-middle">
+                        <thead class="bg-dark text-white">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>DNI</th>
+                                <th>Puesto</th>
+                                <th>Reg. Laboral</th>
+                                <th>Sistema Pensión</th>
+                                <th>Hijos</th>
+                                <th>Banco</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="empleado : ${empleados}">
+                                <td th:text="${empleado.idEmpleado}"></td>
+                                <td th:text="${empleado.nombres + ' ' + empleado.apellidos}"></td>
+                                <td th:text="${empleado.numeroDocumento}"></td>
+                                <!-- Acceso seguro a nombrePuesto y nombreBanco -->
+                                <td th:text="${empleado.puesto != null ? empleado.puesto.nombrePuesto : 'N/A'}"></td>
+                                <td th:text="${empleado.regimenLaboral}"></td>
+                                <td th:text="${empleado.sistemaPensiones}"></td>
+                                <td th:text="${empleado.hijos}"></td>
+                                <td th:text="${empleado.banco != null ? empleado.banco.nombreBanco : 'N/A'}"></td>
+                                <td>
+                                    <span th:classappend="${empleado.estado ? 'badge bg-success' : 'badge bg-danger'}" th:text="${empleado.estado ? 'Activo' : 'Inactivo'}"></span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/empleados/detalles/{id}(id=${empleado.idEmpleado})}" class="btn btn-info btn-sm me-1" title="Ver Detalles"><i class="fas fa-eye"></i></a>
+                                    <a th:href="@{/empleados/editar/{id}(id=${empleado.idEmpleado})}" class="btn btn-warning btn-sm me-1" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <span th:if="${empleado.estado}">
+                                        <a th:href="@{/empleados/desactivar/{id}(id=${empleado.idEmpleado})}" class="btn btn-danger btn-sm"
+                                           onclick="return confirm('¿Estás seguro de que quieres DESACTIVAR a este empleado?');" title="Desactivar"><i class="fas fa-toggle-off"></i></a>
+                                    </span>
+                                    <span th:unless="${empleado.estado}">
+                                        <a th:href="@{/empleados/activar/{id}(id=${empleado.idEmpleado})}" class="btn btn-success btn-sm"
+                                           onclick="return confirm('¿Estás seguro de que quieres ACTIVAR a este empleado?');" title="Activar"><i class="fas fa-toggle-on"></i></a>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}"> <!-- Extiende tu plantilla base -->
+<head>
+    <title th:text="${pageTitle}"></title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para esta página si son necesarios -->
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2 th:text="${conceptoPago.idConcepto == null ? 'Crear Nuevo Concepto de Pago' : 'Editar Concepto de Pago'}"></h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <form th:action="@{/conceptos/guardar}" th:object="${conceptoPago}" method="post">
+                <input type="hidden" th:field="*{idConcepto}" />
+                <input type="hidden" th:field="*{createdAt}" />
+                <input type="hidden" th:field="*{updatedAt}" />
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i> Datos del Concepto de Pago
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="nombreConcepto" class="form-label">Nombre del Concepto:</label>
+                            <input type="text" class="form-control" id="nombreConcepto" th:field="*{nombreConcepto}" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="tipo" class="form-label">Tipo de Concepto:</label>
+                            <select class="form-select" id="tipo" th:field="*{tipo}" required>
+                                <option value="">Seleccione el tipo</option>
+                                <option th:each="tipo : ${tiposConcepto}" th:value="${tipo}" th:text="${tipo.name().replace('_', ' ')}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="codigoSunat" class="form-label">Código SUNAT (opcional):</label>
+                            <input type="text" class="form-control" id="codigoSunat" th:field="*{codigoSunat}" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción (opcional):</label>
+                            <textarea class="form-control" id="descripcion" th:field="*{descripcion}" rows="3"></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="esRemunerativo" th:field="*{esRemunerativo}" />
+                            <label class="form-check-label" for="esRemunerativo">¿Es Remunerativo?</label>
+                            <small class="form-text text-muted d-block">Afecta al cálculo de beneficios sociales (CTS, Gratificaciones).</small>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="esObligatorio" th:field="*{esObligatorio}" />
+                            <label class="form-check-label" for="esObligatorio">¿Es Obligatorio?</label>
+                            <small class="form-text text-muted d-block">Indica si es un aporte/descuento de ley (ej. ONP, AFP, EsSalud).</small>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="aplicaMontoFijo" th:field="*{aplicaMontoFijo}" />
+                            <label class="form-check-label" for="aplicaMontoFijo">¿Aplica Monto Fijo?</label>
+                            <small class="form-text text-muted d-block">Marcar si el valor es un monto fijo. Si no, se considera un porcentaje (ej. 0.13 para 13%).</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="valor" class="form-label">Valor (Monto Fijo o Porcentaje Decimal):</label>
+                            <input type="number" step="0.01" class="form-control" id="valor" th:field="*{valor}" />
+                            <small class="form-text text-muted">Ej: 100.00 para S/100.00 (monto fijo), o 0.13 para 13% (porcentaje).</small>
+                        </div>
+
+                         <!-- Campos para indicar si afecta a diferentes aportes/descuentos -->
+                        <h5 class="mt-4 mb-3">Afectaciones:</h5>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="afectoIR" th:field="*{afectoIR}" />
+                            <label class="form-check-label" for="afectoIR">¿Afecta a Impuesto a la Renta?</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="afectoONP" th:field="*{afectoONP}" />
+                            <label class="form-check-label" for="afectoONP">¿Afecta a ONP?</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="afectoAFP" th:field="*{afectoAFP}" />
+                            <label class="form-check-label" for="afectoAFP">¿Afecta a AFP?</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="afectoEssalud" th:field="*{afectoEssalud}" />
+                            <label class="form-check-label" for="afectoEssalud">¿Afecta a Essalud?</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save"></i> Guardar Concepto</button>
+                    <a th:href="@{/conceptos}" class="btn btn-secondary me-2"><i class="fas fa-times"></i> Cancelar</a>
+                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para esta página si son necesarios -->
+    </th:block>
+</body>
+</html>

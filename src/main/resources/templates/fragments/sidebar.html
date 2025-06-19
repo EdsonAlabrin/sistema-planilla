@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <!-- Los enlaces a CSS y scripts de layout irán en la plantilla base, no aquí directamente -->
+</head>
+
+<body>
+
+    <nav class="sidebar" th:fragment="sidebar-menu">
+        <h3>🧵 TextiLima</h3>
+
+        <a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a>
+
+        <a th:href="@{/empleados/listar}"><i class="fas fa-users"></i> Empleados</a>
+        <!-- Usar /empleados/listar según tus controladores -->
+
+        <a th:href="@{/puestos/listar}"><i class="fas fa-briefcase"></i> Puestos</a>
+        <!-- Usar /puestos/listar según tus controladores -->
+        <a th:href="@{/bancos/listar}"><i class="fas fa-university"></i> Bancos</a> <!-- Enlace a Bancos -->
+        <a th:href="@{/conceptos}"><i class="fas fa-tags"></i> Conceptos de Pago</a>
+        <a th:href="@{/planillas}"><i class="fas fa-file-invoice"></i> Planillas</a>
+
+        <!-- Los siguientes enlaces se han comentado/eliminado temporalmente hasta que se implementen sus controladores y vistas -->
+        <!-- <a th:href="@{/descripcion}"><i class="fas fa-info-circle"></i> Nosotros</a> -->
+        <!-- <a th:href="@{/asistencia}"><i class="fas fa-calendar-check"></i> Asistencia</a> -->
+        <!-- <a th:href="@{/boletas}"><i class="fas fa-receipt"></i> Boletas</a> -->
+        <!-- <a th:href="@{/bonos}"><i class="fas fa-gift"></i> Bonos</a> -->
+        <!-- <a th:href="@{/descuentos}"><i class="fas fa-percent"></i> Descuentos</a> -->
+        <!-- <a th:href="@{/usuarios}"><i class="fas fa-user-cog"></i> Usuarios</a> -->
+    </nav>
+
+</body>
+
+</html>

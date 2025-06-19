@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title th:text="${pageTitle}"></title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2 th:text="${pageTitle}"></h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <form th:action="@{/empleados/guardar}" th:object="${empleado}" method="post">
+                <input type="hidden" th:field="*{idEmpleado}" />
+                <input type="hidden" th:field="*{createdAt}" />
+                <input type="hidden" th:field="*{updatedAt}" />
+
+                <!-- Datos Personales -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <i class="fas fa-id-card"></i> Datos Personales
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombres" class="form-label">Nombres:</label>
+                                <input type="text" class="form-control" id="nombres" th:field="*{nombres}" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="apellidos" class="form-label">Apellidos:</label>
+                                <input type="text" class="form-control" id="apellidos" th:field="*{apellidos}" required />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="tipoDocumento" class="form-label">Tipo Documento:</label>
+                                <select class="form-select" id="tipoDocumento" th:field="*{tipoDocumento}" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="DNI">DNI</option>
+                                    <option value="CE">Carnet de Extranjería</option>
+                                    <option value="PASAPORTE">Pasaporte</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="numeroDocumento" class="form-label">Número Documento:</label>
+                                <input type="text" class="form-control" id="numeroDocumento" th:field="*{numeroDocumento}" required />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="fechaNacimiento" class="form-label">Fecha Nacimiento:</label>
+                                <input type="date" class="form-control" id="fechaNacimiento" th:field="*{fechaNacimiento}" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="sexo" class="form-label">Sexo:</label>
+                                <select class="form-select" id="sexo" th:field="*{sexo}">
+                                    <option value="">Seleccione...</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="estadoCivil" class="form-label">Estado Civil:</label>
+                                <input type="text" class="form-control" id="estadoCivil" th:field="*{estadoCivil}" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="nacionalidad" class="form-label">Nacionalidad:</label>
+                                <input type="text" class="form-control" id="nacionalidad" th:field="*{nacionalidad}" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="correo" class="form-label">Correo Electrónico:</label>
+                            <input type="email" class="form-control" id="correo" th:field="*{correo}" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos de Dirección -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <i class="fas fa-map-marker-alt"></i> Datos de Dirección
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="direccionCompleta" class="form-label">Dirección Completa:</label>
+                            <input type="text" class="form-control" id="direccionCompleta" th:field="*{direccionCompleta}" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="distrito" class="form-label">Distrito:</label>
+                                <input type="text" class="form-control" id="distrito" th:field="*{distrito}" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="provincia" class="form-label">Provincia:</label>
+                                <input type="text" class="form-control" id="provincia" th:field="*{provincia}" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="departamento" class="form-label">Departamento:</label>
+                                <input type="text" class="form-control" id="departamento" th:field="*{departamento}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos Laborales y Pensiones -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <i class="fas fa-briefcase"></i> Datos Laborales y Pensiones
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fechaIngreso" class="form-label">Fecha de Ingreso:</label>
+                                <input type="date" class="form-control" id="fechaIngreso" th:field="*{fechaIngreso}" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="puesto" class="form-label">Puesto:</label>
+                                <select class="form-select" id="puesto" th:field="*{puesto.idPuesto}" required>
+                                    <option value="">Seleccione un puesto</option>
+                                    <option th:each="p : ${puestos}" th:value="${p.idPuesto}" th:text="${p.nombrePuesto}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="regimenLaboral" class="form-label">Régimen Laboral:</label>
+                                <input type="text" class="form-control" id="regimenLaboral" th:field="*{regimenLaboral}" placeholder="Ej. Régimen General" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="estado" class="form-label">Estado:</label>
+                                <select class="form-select" id="estado" th:field="*{estado}" required>
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="fechaCese" class="form-label">Fecha de Cese (si inactivo):</label>
+                                <input type="date" class="form-control" id="fechaCese" th:field="*{fechaCese}" />
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hijos" class="form-label">Número de Hijos:</label>
+                            <input type="number" class="form-control" id="hijos" th:field="*{hijos}" min="0" value="0" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sistemaPensiones" class="form-label">Sistema de Pensiones:</label>
+                                <select class="form-select" id="sistemaPensiones" th:field="*{sistemaPensiones}">
+                                    <option value="">Seleccione...</option>
+                                    <!-- Iterar sobre los valores del enum SistemaPensiones -->
+                                    <option th:each="sp : ${T(com.example.bd_textilima.model.Empleado.SistemaPensiones).values()}" th:value="${sp}" th:text="${sp}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="codigoPension" class="form-label">Código de Pensión (CUSPP/ONP):</label>
+                                <input type="text" class="form-control" id="codigoPension" th:field="*{codigoPension}" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nombreAfp" class="form-label">Nombre de AFP (si aplica):</label>
+                            <input type="text" class="form-control" id="nombreAfp" th:field="*{nombreAfp}" placeholder="Ej. Prima AFP" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos Bancarios -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <i class="fas fa-university"></i> Datos Bancarios
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="banco" class="form-label">Banco:</label>
+                            <select class="form-select" id="banco" th:field="*{banco.idBanco}">
+                                <option value="">Seleccione un banco (opcional)</option>
+                                <!-- Iterar sobre los bancos disponibles -->
+                                <option th:each="b : ${bancos}" th:value="${b.idBanco}" th:text="${b.nombreBanco}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="numeroCuentaBanco" class="form-label">Número de Cuenta Bancaria:</label>
+                            <input type="text" class="form-control" id="numeroCuentaBanco" th:field="*{numeroCuentaBanco}" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="card-footer d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success me-2"><i class="fas fa-save"></i> Guardar Empleado</button>
+                    <a th:href="@{/empleados/listar}" class="btn btn-secondary me-2"><i class="fas fa-times"></i> Cancelar</a>
+                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

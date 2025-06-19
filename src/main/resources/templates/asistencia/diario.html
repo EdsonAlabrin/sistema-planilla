@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Diario de Asistencias</title>
+    <link th:href="@{/webjars/bootstrap/5.3.0/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/webjars/font-awesome/6.4.0/css/all.min.css}" rel="stylesheet">
+    <style>
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        .badge-presente {
+            background-color: #28a745;
+        }
+        .badge-tardanza {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .badge-ausente {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-day me-2"></i>
+                        Reporte Diario de Asistencias
+                    </h4>
+                    <form method="get" class="d-flex">
+                        <input type="date" name="fecha" th:value="${#temporals.format(fechaConsulta, 'yyyy-MM-dd')}" 
+                               class="form-control me-2" style="width: 180px;">
+                        <button type="submit" class="btn btn-light">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div class="alert alert-info" th:if="${#lists.isEmpty(asistencias)}">
+                    No se encontraron registros para esta fecha
+                </div>
+                
+                <div class="table-responsive" th:unless="${#lists.isEmpty(asistencias)}">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Empleado</th>
+                                <th>DNI</th>
+                                <th>Entrada</th>
+                                <th>Salida</th>
+                                <th>Estado</th>
+                                <th>Horas Trabajadas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="asist, stat : ${asistencias}">
+                                <td th:text="${stat.count}"></td>
+                                <td>
+                                    <span th:text="${asist.empleado.apellidos + ', ' + asist.empleado.nombres}"></span>
+                                </td>
+                                <td th:text="${asist.empleado.dni}"></td>
+                                <td th:text="${#temporals.format(asist.horaEntrada, 'HH:mm:ss')}"></td>
+                                <td>
+                                    <span th:if="${asist.horaSalida != null}" 
+                                          th:text="${#temporals.format(asist.horaSalida, 'HH:mm:ss')}"></span>
+                                    <span th:unless="${asist.horaSalida != null}" class="text-muted">--:--:--</span>
+                                </td>
+                                <td>
+                                    <span th:switch="${asist.estado}" class="badge rounded-pill">
+                                        <span th:case="PRESENTE" class="badge-presente">Presente</span>
+                                        <span th:case="TARDANZA" class="badge-tardanza">Tardanza</span>
+                                        <span th:case="AUSENTE" class="badge-ausente">Ausente</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:if="${asist.horaSalida != null}">
+                                        <span th:text="${#temporals.format(
+                                            #temporals.createTime(
+                                                asist.horaSalida.getHour() - asist.horaEntrada.getHour(),
+                                                asist.horaSalida.getMinute() - asist.horaEntrada.getMinute(),
+                                                asist.horaSalida.getSecond() - asist.horaEntrada.getSecond()
+                                            ), 'HH:mm:ss'
+                                        )}"></span>
+                                    </span>
+                                    <span th:unless="${asist.horaSalida != null}" class="text-muted">--:--:--</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <div class="text-muted">
+                        <span th:text="'Mostrando ' + ${#lists.size(asistencias)} + ' registros'"></span>
+                    </div>
+                    <div>
+                        <a th:href="@{/asistencias/diario?fecha={fecha}(fecha=${#temporals.format(fechaConsulta.minusDays(1), 'yyyy-MM-dd')})" 
+                           class="btn btn-outline-primary me-2">
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </a>
+                        <a th:href="@{/asistencias/diario?fecha={fecha}(fecha=${#temporals.format(fechaConsulta.plusDays(1), 'yyyy-MM-dd')})" 
+                           class="btn btn-outline-primary">
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer text-muted small">
+                <div class="d-flex justify-content-between">
+                    <span>Generado el <span th:text="${#temporals.format(fechaActual, 'dd/MM/yyyy HH:mm')}"></span></span>
+                    <span>Total registros: <span th:text="${#lists.size(asistencias)}"></span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/webjars/font-awesome/6.4.0/js/all.min.js}"></script>
+</body>
+</html>

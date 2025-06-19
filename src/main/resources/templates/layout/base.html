@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Título dinámico: Usa el título de la página específica, o un fallback -->
+    <title layout:title-pattern="$LAYOUT_TITLE | $CONTENT_TITLE">TextiLima</title>
+
+    <!-- Bootstrap CSS (via WebJars) - Versión 5.3.0 recomendada para consistencia -->
+    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para iconos (via CDN - más fácil de mantener actualizado) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Tus estilos globales personalizados -->
+    <link rel="stylesheet" th:href="@{/estilos/global-layout.css}">
+    <!-- Tus estilos específicos para el menú lateral (Asegúrate de que este archivo exista y tenga el CSS mejorado) -->
+    <link rel="stylesheet" th:href="@{/estilos/sidebar-menu.css}">
+
+    <!-- Fragmento para estilos específicos de cada página -->
+    <th:block layout:fragment="page-styles"></th:block>
+</head>
+<body>
+    <!-- Barra lateral (Fragmento de Thymeleaf) - ¡CORRECCIÓN EN EL NOMBRE DEL FRAGMENTO! -->
+    <div th:replace="~{fragments/sidebar :: sidebar-menu}"></div>
+
+    <!-- Contenido principal (donde se inyectarán las vistas específicas) -->
+    <div class="main-content">
+        <div layout:fragment="content">
+            <!-- El contenido específico de cada vista va aquí -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS y jQuery (via WebJars, asegúrate de que jQuery esté antes de Bootstrap si lo necesitas) -->
+    <script src="/webjars/jquery/3.7.0/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Tu JavaScript global (para el toggle de submenú) -->
+    <script th:src="@{/js/sidebar-menu.js}"></script>
+
+    <!-- Fragmento para scripts específicos de cada página -->
+    <th:block layout:fragment="page-scripts"></th:block>
+</body>
+</html>

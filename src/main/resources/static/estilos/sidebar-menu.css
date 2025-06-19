@@ -1,0 +1,176 @@
+/* src/main/resources/static/estilos/sidebar-menu.css */
+
+/* Contenedor principal de la barra lateral */
+.sidebar {
+    width: 250px;
+    height: 100vh; /* Ocupa la altura completa de la vista */
+    position: fixed; /* Fija la barra lateral */
+    top: 0;
+    left: 0;
+    background: linear-gradient(to bottom, #2c3e50, #34495e); /* Degradado de azul oscuro a gris azulado */
+    color: #ecf0f1; /* Color de texto general */
+    padding-top: 20px;
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada para profundidad */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Permite desplazamiento si el contenido es largo */
+    font-family: 'Inter', sans-serif; /* Consistencia con la fuente Inter */
+    border-right: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil a la derecha */
+}
+
+/* Título del sidebar */
+.sidebar h3 {
+    text-align: center;
+    font-weight: 800; /* Más audaz */
+    margin-bottom: 30px; /* Más espacio */
+    letter-spacing: 2px;
+    user-select: none;
+    color: #ecf0f1;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Sombra de texto sutil */
+    font-size: 1.6rem; /* Tamaño de fuente un poco más grande */
+}
+
+/* Estilos para botones y enlaces del sidebar */
+.sidebar button,
+.sidebar a {
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    text-align: left;
+    padding: 15px 25px; /* Más padding para botones y enlaces */
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; /* Añadir transformación */
+    font-weight: 500;
+    user-select: none;
+    text-decoration: none;
+    position: relative; /* Para el efecto de borde */
+    overflow: hidden; /* Oculta el overflow del pseudo-elemento */
+}
+
+/* Efecto de hover mejorado */
+.sidebar button:hover,
+.sidebar a:hover {
+    background-color: #1abc9c; /* Verde turquesa para hover */
+    color: white;
+    transform: translateX(5px); /* Pequeño desplazamiento hacia la derecha en hover */
+}
+
+/* Línea animada en hover */
+.sidebar button::before,
+.sidebar a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 5px;
+    height: 100%;
+    background-color: #2ecc71; /* Verde brillante */
+    transition: left 0.3s ease-in-out;
+}
+
+.sidebar button:hover::before,
+.sidebar a:hover::before {
+    left: 0; /* Desliza la línea verde desde la izquierda */
+}
+
+/* Estilo para el enlace activo */
+.sidebar a.active-link {
+    background-color: #16a085; /* Tono de verde más oscuro para el elemento activo */
+    color: white;
+    font-weight: 700;
+    border-left: 5px solid #2ecc71; /* Borde izquierdo para indicar activo */
+}
+.sidebar a.active-link::before {
+    left: 0; /* Asegura que la línea verde esté presente si está activo */
+}
+
+
+/* Iconos */
+.sidebar i {
+    margin-right: 15px;
+    min-width: 22px;
+    font-size: 1.2rem; /* Iconos ligeramente más grandes */
+    color: rgba(255, 255, 255, 0.8); /* Tono más claro */
+}
+
+.sidebar button:hover i,
+.sidebar a:hover i,
+.sidebar a.active-link i {
+    color: white; /* Iconos blancos en hover o activo */
+}
+
+/* Submenú */
+.submenu {
+    display: none;
+    flex-direction: column;
+    background-color: rgba(44, 62, 80, 0.7); /* Un tono más oscuro y semi-transparente */
+    padding-left: 20px; /* Indentación del submenú */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.submenu a {
+    padding: 10px 40px; /* Más padding para indentación */
+    font-size: 0.95rem; /* Tamaño de fuente ligeramente mayor */
+    font-weight: 400;
+    color: #b0bec5;
+}
+
+.submenu a:hover {
+    background-color: #138d75; /* Tono de verde más oscuro para hover de sub-ítems */
+    color: white;
+    transform: translateX(3px); /* Menor desplazamiento para sub-ítems */
+}
+
+.submenu a::before {
+    background-color: #27ae60; /* Otro tono de verde para la línea del submenú */
+    width: 3px; /* Línea más delgada */
+}
+
+/* Botón de alternancia de submenú (flecha) */
+.submenu-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.submenu-toggle i.fa-chevron-down {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    margin-right: 0;
+}
+
+.submenu-toggle.active i.fa-chevron-down {
+    transform: rotate(180deg); /* Rota la flecha cuando el submenú está activo */
+}
+
+/* Estilo para el contenido principal para dejar espacio al sidebar */
+.main-content {
+    margin-left: 250px; /* Empuja el contenido principal a la derecha del sidebar */
+    padding: 20px; /* Padding general para el contenido */
+    transition: margin-left 0.3s ease; /* Suaviza la transición si el sidebar fuera contraíble */
+}
+
+/* Pequeñas mejoras de responsividad (ajuste para pantallas más pequeñas si el sidebar no es contraíble) */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative; /* No fixed en pantallas pequeñas si no se usa js para ocultarlo */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        padding-bottom: 20px;
+    }
+
+    .main-content {
+        margin-left: 0; /* No empujar contenido en móviles */
+    }
+
+    .sidebar h3 {
+        padding: 10px 0;
+        margin-bottom: 15px;
+    }
+}
