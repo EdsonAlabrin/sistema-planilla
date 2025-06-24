@@ -77,7 +77,7 @@ public class PlanillaController {
         if (planillaOptional.isPresent()) {
             model.addAttribute("planilla", planillaOptional.get());
             model.addAttribute("pageTitle", "Detalles de la Planilla");
-            return "planillas/detalles"; // Vista: src/main/resources/templates/planillas/details.html
+            return "planillas/detalle"; // Vista: src/main/resources/templates/planillas/details.html
         } else {
             ra.addFlashAttribute("errorMessage", "Planilla no encontrada con ID: " + id);
             return "redirect:/planillas";

@@ -1,188 +1,194 @@
 package com.textilima.textilima.service.impl;
 
+import com.textilima.textilima.entities.Banco;
 import com.textilima.textilima.entities.Empleado; // Importa la entidad Empleado
 import com.textilima.textilima.entities.Puesto; // Importa la entidad Puesto, ya que Empleado tiene una relación con Puesto
+import com.textilima.textilima.repository.BancoRepository;
 import com.textilima.textilima.repository.EmpleadoRepository; // Importa el repositorio de Empleado
 import com.textilima.textilima.repository.PuestoRepository; // Importa el repositorio de Puesto
 import com.textilima.textilima.service.EmpleadoService; // Importa la interfaz de servicio de Empleado
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime; // Para las fechas de creación/actualización
 import java.util.List;
+import java.util.Optional;
 
 // Anotación que marca esta clase como un componente de servicio de Spring
 @Service
 public class EmpleadoServiceImpl implements EmpleadoService {
+    
     private final EmpleadoRepository empleadoRepository;
-    private final PuestoRepository puestoRepository; // Necesario para gestionar la relación con Puesto
+    private final PuestoRepository puestoRepository;
+    private final BancoRepository bancoRepository;
 
-    // Inyección de dependencias a través del constructor
-    public EmpleadoServiceImpl(EmpleadoRepository empleadoRepository, PuestoRepository puestoRepository) {
+    @Autowired
+    public EmpleadoServiceImpl(EmpleadoRepository empleadoRepository, PuestoRepository puestoRepository, BancoRepository bancoRepository) {
         this.empleadoRepository = empleadoRepository;
         this.puestoRepository = puestoRepository;
+        this.bancoRepository = bancoRepository;
     }
 
-    /**
-     * Crea un nuevo empleado en la base de datos.
-     * @param empleado El objeto Empleado a guardar.
-     * @return El empleado guardado.
-     */
     @Override
-    @Transactional // La operación modifica la base de datos
+    @Transactional(readOnly = true)
+    public List<Empleado> listarTodosLosEmpleados() {
+        List<Empleado> empleados = empleadoRepository.findAll();
+        empleados.forEach(empleado -> {
+            if (empleado.getPuesto() != null) {
+                empleado.getPuesto().getNombrePuesto();
+            }
+            if (empleado.getBanco() != null) {
+                empleado.getBanco().getNombreBanco();
+            }
+            if (empleado.getNumeroHijos() == null) {
+                empleado.setNumeroHijos(0);
+            }
+        });
+        return empleados;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Empleado obtenerEmpleadoPorId(Integer id) {
+        Optional<Empleado> empleadoOptional = empleadoRepository.findById(id);
+        
+        empleadoOptional.ifPresent(empleado -> {
+            if (empleado.getPuesto() != null) {
+                empleado.getPuesto().getNombrePuesto();
+            }
+            if (empleado.getBanco() != null) {
+                empleado.getBanco().getNombreBanco();
+            }
+            if (empleado.getNumeroHijos() == null) {
+                empleado.setNumeroHijos(0);
+            }
+        });
+        
+        return empleadoOptional.orElse(null);
+    }
+
+    @Override
+    @Transactional
     public Empleado crearEmpleado(Empleado empleado) {
-        // Validar si el puesto existe antes de guardar el empleado
         if (empleado.getPuesto() != null && empleado.getPuesto().getIdPuesto() != null) {
             Puesto puesto = puestoRepository.findById(empleado.getPuesto().getIdPuesto())
-                            .orElseThrow(() -> new RuntimeException("Puesto no encontrado con ID: " + empleado.getPuesto().getIdPuesto()));
+                                .orElseThrow(() -> new IllegalArgumentException("Puesto no encontrado"));
             empleado.setPuesto(puesto);
         } else {
-            throw new IllegalArgumentException("El empleado debe tener un puesto asignado con un ID válido.");
+            throw new IllegalArgumentException("El empleado debe tener un puesto asignado.");
         }
 
-        // Antes de guardar, asegúrate que las fechas created_at y updated_at se seteen si es una nueva creación
-        if (empleado.getCreatedAt() == null) {
-            empleado.setCreatedAt(LocalDateTime.now());
+        if (empleado.getBanco() != null && empleado.getBanco().getIdBanco() != null) {
+            Banco banco = bancoRepository.findById(empleado.getBanco().getIdBanco())
+                                .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
+            empleado.setBanco(banco);
+        } else {
+            empleado.setBanco(null);
         }
-        empleado.setUpdatedAt(LocalDateTime.now()); // Siempre actualizar updated_at
 
+        if (empleado.getNumeroHijos() == null) {
+            empleado.setNumeroHijos(0);
+        }
+        
+        empleado.setEstado(true);
+        empleado.setCreatedAt(LocalDateTime.now());
+        empleado.setUpdatedAt(LocalDateTime.now());
         return empleadoRepository.save(empleado);
     }
 
-    /**
-     * Actualiza la información de un empleado existente.
-     * @param idEmpleado El ID del empleado a actualizar.
-     * @param empleado Los nuevos datos del empleado.
-     * @return El empleado actualizado.
-     */
     @Override
-    @Transactional // La operación modifica la base de datos
-    public Empleado actualizarEmpleado(Integer idEmpleado, Empleado empleado) {
-        return empleadoRepository.findById(idEmpleado)
-                .map(empleadoExistente -> {
-                    // Actualizar campos del empleado existente con los nuevos datos
-                    empleadoExistente.setNombres(empleado.getNombres());
-                    empleadoExistente.setApellidos(empleado.getApellidos());
-                    empleadoExistente.setTipoDocumento(empleado.getTipoDocumento());
-                    empleadoExistente.setNumeroDocumento(empleado.getNumeroDocumento());
-                    empleadoExistente.setFechaNacimiento(empleado.getFechaNacimiento());
-                    empleadoExistente.setSexo(empleado.getSexo());
-                    empleadoExistente.setEstadoCivil(empleado.getEstadoCivil());
-                    empleadoExistente.setNacionalidad(empleado.getNacionalidad());
-                    empleadoExistente.setCorreo(empleado.getCorreo());
-                    empleadoExistente.setDireccionCompleta(empleado.getDireccionCompleta());
-                    empleadoExistente.setDistrito(empleado.getDistrito());
-                    empleadoExistente.setProvincia(empleado.getProvincia());
-                    empleadoExistente.setDepartamento(empleado.getDepartamento());
-                    empleadoExistente.setFechaIngreso(empleado.getFechaIngreso());
-                    empleadoExistente.setFechaCese(empleado.getFechaCese()); // Puede ser null
-                    empleadoExistente.setEstado(empleado.getEstado());
+    @Transactional
+    public Empleado actualizarEmpleado(Integer id, Empleado empleadoDetalles) {
+        Empleado empleadoExistente = empleadoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + id));
 
-                    // Actualizar puesto (validar si el puesto existe)
-                    if (empleado.getPuesto() != null && empleado.getPuesto().getIdPuesto() != null) {
-                        Puesto puesto = puestoRepository.findById(empleado.getPuesto().getIdPuesto())
-                                .orElseThrow(() -> new RuntimeException("Puesto no encontrado con ID: " + empleado.getPuesto().getIdPuesto()));
-                        empleadoExistente.setPuesto(puesto);
-                    } else {
-                        throw new IllegalArgumentException("El empleado debe tener un puesto asignado con un ID válido para la actualización.");
-                    }
+        empleadoExistente.setNombres(empleadoDetalles.getNombres());
+        empleadoExistente.setApellidos(empleadoDetalles.getApellidos());
+        empleadoExistente.setTipoDocumento(empleadoDetalles.getTipoDocumento());
+        empleadoExistente.setNumeroDocumento(empleadoDetalles.getNumeroDocumento());
+        empleadoExistente.setFechaNacimiento(empleadoDetalles.getFechaNacimiento());
+        empleadoExistente.setSexo(empleadoDetalles.getSexo());
+        empleadoExistente.setEstadoCivil(empleadoDetalles.getEstadoCivil());
+        empleadoExistente.setNacionalidad(empleadoDetalles.getNacionalidad());
+        empleadoExistente.setCorreo(empleadoDetalles.getCorreo());
+        empleadoExistente.setDireccionCompleta(empleadoDetalles.getDireccionCompleta());
+        empleadoExistente.setDistrito(empleadoDetalles.getDistrito());
+        empleadoExistente.setProvincia(empleadoDetalles.getProvincia());
+        empleadoExistente.setDepartamento(empleadoDetalles.getDepartamento());
+        empleadoExistente.setFechaIngreso(empleadoDetalles.getFechaIngreso());
+        empleadoExistente.setEstado(empleadoDetalles.getEstado());
+        empleadoExistente.setFechaCese(empleadoDetalles.getFechaCese());
+        empleadoExistente.setRegimenLaboral(empleadoDetalles.getRegimenLaboral());
+        empleadoExistente.setNumeroHijos(empleadoDetalles.getNumeroHijos() != null ? empleadoDetalles.getNumeroHijos() : 0); // Corregido: usar getNumeroHijos
+        empleadoExistente.setSistemaPensiones(empleadoDetalles.getSistemaPensiones());
+        empleadoExistente.setCodigoPension(empleadoDetalles.getCodigoPension());
+        empleadoExistente.setNombreAfp(empleadoDetalles.getNombreAfp());
+        empleadoExistente.setNumeroCuentaBanco(empleadoDetalles.getNumeroCuentaBanco());
 
-                    // Actualizar banco (puede ser null)
-                    empleadoExistente.setBanco(empleado.getBanco()); // Asegúrate que la entidad Banco se gestiona correctamente
-                    empleadoExistente.setNumeroCuentaBanco(empleado.getNumeroCuentaBanco());
+        if (empleadoDetalles.getPuesto() != null && empleadoDetalles.getPuesto().getIdPuesto() != null) {
+            Puesto puesto = puestoRepository.findById(empleadoDetalles.getPuesto().getIdPuesto())
+                                .orElseThrow(() -> new IllegalArgumentException("Puesto no encontrado"));
+            empleadoExistente.setPuesto(puesto);
+        } else {
+            throw new IllegalArgumentException("El empleado debe tener un puesto asignado.");
+        }
 
-                    empleadoExistente.setRegimenLaboral(empleado.getRegimenLaboral());
-                    empleadoExistente.setSistemaPensiones(empleado.getSistemaPensiones());
-                    empleadoExistente.setCodigoPension(empleado.getCodigoPension());
-                    empleadoExistente.setNombreAfp(empleado.getNombreAfp());
+        if (empleadoDetalles.getBanco() != null && empleadoDetalles.getBanco().getIdBanco() != null) {
+            Banco banco = bancoRepository.findById(empleadoDetalles.getBanco().getIdBanco())
+                                .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
+            empleadoExistente.setBanco(banco);
+        } else {
+            empleadoExistente.setBanco(null);
+        }
 
-                    empleadoExistente.setUpdatedAt(LocalDateTime.now()); // Actualizar fecha de modificación
-                    return empleadoRepository.save(empleadoExistente);
-                })
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + idEmpleado));
+        empleadoExistente.setUpdatedAt(LocalDateTime.now());
+        return empleadoRepository.save(empleadoExistente);
     }
 
-    /**
-     * Obtiene un empleado por su ID.
-     * @param idEmpleado El ID del empleado.
-     * @return El empleado si existe.
-     */
     @Override
-    @Transactional(readOnly = true) // La operación es solo de lectura
-    public Empleado obtenerEmpleadoPorId(Integer idEmpleado) {
-        return empleadoRepository.findById(idEmpleado).orElse(null);
+    @Transactional
+    public void desactivarEmpleado(Integer id) {
+        Empleado empleado = empleadoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + id));
+        empleado.setEstado(false);
+        empleado.setFechaCese(java.time.LocalDate.now());
+        empleado.setUpdatedAt(LocalDateTime.now());
+        empleadoRepository.save(empleado);
     }
 
-    /**
-     * Obtiene un empleado por su número de documento (DNI).
-     * @param dni El número de documento del empleado.
-     * @return El empleado si existe.
-     */
     @Override
-    @Transactional(readOnly = true) // La operación es solo de lectura
-    public Empleado obtenerEmpleadoPorDni(String dni) {
-        return empleadoRepository.findByNumeroDocumento(dni).orElse(null);
+    @Transactional
+    public void activarEmpleado(Integer id) {
+        Empleado empleado = empleadoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + id));
+        empleado.setEstado(true);
+        empleado.setFechaCese(null);
+        empleado.setUpdatedAt(LocalDateTime.now());
+        empleadoRepository.save(empleado);
     }
 
-    /**
-     * Lista todos los empleados en la base de datos.
-     * @return Una lista de todos los empleados.
-     */
-    @Override
-    @Transactional(readOnly = true) // La operación es solo de lectura
-    public List<Empleado> listarTodosLosEmpleados() {
-        return empleadoRepository.findAll();
-    }
+    // --- MÉTODOS FALTANTES A IMPLEMENTAR ---
 
-    /**
-     * Lista los empleados que están activos (estado = true).
-     * @return Una lista de empleados activos.
-     */
     @Override
-    @Transactional(readOnly = true) // La operación es solo de lectura
+    @Transactional(readOnly = true)
     public List<Empleado> listarEmpleadosActivos() {
-        return empleadoRepository.findByEstado(true);
+        return empleadoRepository.findByEstado(true); // Asumiendo que tienes este método en EmpleadoRepository
     }
 
-    /**
-     * Busca empleados por nombre o apellido (no sensible a mayúsculas/minúsculas).
-     * @param busqueda La cadena de búsqueda.
-     * @return Una lista de empleados que coinciden con la búsqueda.
-     */
     @Override
-    @Transactional(readOnly = true) // La operación es solo de lectura
-    public List<Empleado> buscarPorNombreOApellido(String busqueda) {
-        return empleadoRepository.findByNombresContainingIgnoreCaseOrApellidosContainingIgnoreCase(busqueda, busqueda);
+    @Transactional(readOnly = true)
+    public List<Empleado> buscarPorNombreOApellido(String query) {
+        // Implementación de búsqueda por nombre o apellido (case-insensitive)
+        return empleadoRepository.findByNombresContainingIgnoreCaseOrApellidosContainingIgnoreCase(query, query); // Asumiendo este método en EmpleadoRepository
     }
 
-    /**
-     * Desactiva un empleado cambiando su estado a falso y registrando la fecha de cese.
-     * @param idEmpleado El ID del empleado a desactivar.
-     */
     @Override
-    @Transactional // La operación modifica la base de datos
-    public void desactivarEmpleado(Integer idEmpleado) {
-        empleadoRepository.findById(idEmpleado).ifPresent(empleado -> {
-            empleado.setEstado(false);
-            empleado.setFechaCese(LocalDate.now()); // Establecer fecha de cese
-            empleado.setUpdatedAt(LocalDateTime.now());
-            empleadoRepository.save(empleado);
-        });
-    }
-
-    /**
-     * Activa un empleado cambiando su estado a verdadero y eliminando la fecha de cese.
-     * @param idEmpleado El ID del empleado a activar.
-     */
-    @Override
-    @Transactional // La operación modifica la base de datos
-    public void activarEmpleado(Integer idEmpleado) {
-        empleadoRepository.findById(idEmpleado).ifPresent(empleado -> {
-            empleado.setEstado(true);
-            empleado.setFechaCese(null); // Eliminar fecha de cese
-            empleado.setUpdatedAt(LocalDateTime.now());
-            empleadoRepository.save(empleado);
-        });
+    @Transactional(readOnly = true)
+    public Empleado obtenerEmpleadoPorDni(String dni) {
+        // Implementación de búsqueda por número de documento (DNI)
+        return empleadoRepository.findByNumeroDocumento(dni).orElse(null); // Asumiendo este método en EmpleadoRepository
     }
 }

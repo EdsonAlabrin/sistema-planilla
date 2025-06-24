@@ -73,7 +73,7 @@ public class PuestoController {
             return "redirect:/puestos/editar";
         }
         model.addAttribute("puesto", puesto);
-        return "puestos/registro";
+        return "puestos/form";
     }
 
     // Elimina un puesto

@@ -7,6 +7,7 @@
 :root {
     --primary-blue: #007bff; /* Azul primario de Bootstrap */
     --primary-dark-blue: #0056b3;
+    --primary-light: #51aeff; /* Agregado: un azul más claro para degradados */
     --secondary-gray: #6c757d;
     --dark-bg: #2c3e50; /* Azul oscuro para fondos y texto principal */
     --light-bg: #ecf0f1; /* Fondo muy claro para el contenido */
@@ -19,6 +20,7 @@
     --shadow-medium: rgba(0, 0, 0, 0.15);
     --shadow-strong: rgba(0, 0, 0, 0.25);
     --border-light: rgba(0, 0, 0, 0.1);
+    --border-color: #dee2e6; /* Agregado: gris claro para bordes generales */
 }
 
 /* Estilos globales para el cuerpo del documento */
@@ -190,7 +192,7 @@ hr {
 }
 
 .table tbody tr:nth-child(even) {
-    background-color: var(--background-light);
+    background-color: var(--light-bg); /* Usar variable para fondo claro */
 }
 
 .table tbody tr:hover {
@@ -472,4 +474,78 @@ hr {
         padding: 10px 12px;
         font-size: 0.95rem;
     }
+}
+/* Estilos para el modal de confirmación personalizado */
+.custom-modal {
+    display: none; /* Oculto por defecto */
+    position: fixed; /* Permanece en su lugar al hacer scroll */
+    z-index: 1050; /* Por encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Alto completo */
+    overflow: auto; /* Permite scroll si el contenido es grande */
+    background-color: rgba(0,0,0,0.4); /* Fondo semi-transparente */
+    display: flex; /* Usamos flexbox para centrar el contenido */
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-modal-content {
+    background-color: var(--white-bg); /* Usar variable global */
+    margin: auto; /* Centra el modal */
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra para el modal */
+    width: 90%; /* Ancho responsivo */
+    max-width: 400px; /* Ancho máximo */
+    text-align: center;
+    position: relative;
+}
+
+.custom-modal-header {
+    border-bottom: 1px solid var(--border-color); /* Usar variable global */
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: var(--dark-text); /* Usar variable global */
+    font-weight: 600;
+}
+
+.custom-modal-body {
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    color: #555;
+}
+
+.custom-modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Espacio entre los botones del footer */
+}
+
+.custom-modal-footer .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-modal-footer .btn-confirm {
+    background-color: var(--accent-red); /* Usar variable global */
+    color: white;
+    border: none;
+}
+.custom-modal-footer .btn-confirm:hover {
+    background-color: #c82333; /* Color específico de hover para el botón de confirmar */
+}
+
+.custom-modal-footer .btn-cancel {
+    background-color: var(--secondary-gray); /* Usar variable global */
+    color: var(--white-text); /* Usar variable global */
+    border: 1px solid var(--secondary-gray); /* Usar variable global */
+}
+.custom-modal-footer .btn-cancel:hover {
+    background-color: #5a6268; /* Color específico de hover para cancelar */
 }

@@ -3,16 +3,22 @@ package com.textilima.textilima.entities;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode; // Necesario para @EqualsAndHashCode.Exclude
 import lombok.NoArgsConstructor;
+import lombok.ToString;        // Necesario para @ToString.Exclude
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet; // Si usas Set para colecciones
+import java.util.Set; 
 
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@EqualsAndHashCode(exclude = {"historialPuestos", "usuarios", "puesto", "banco"})
+@ToString(exclude = {"historialPuestos", "usuarios", "puesto", "banco"})
 @Table(name = "empleados")
 public class Empleado {
    @Id
@@ -34,13 +40,14 @@ public class Empleado {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 1)
-    private String sexo;
+    private Sexo sexo; // Enum para sexo
 
-    @Column(name = "estado_civil", length = 50)
+    @Column(name = "estado_civil", length = 20)
     private String estadoCivil;
 
-    @Column(length = 100)
+    @Column(length = 50)
     private String nacionalidad;
 
     @Column(length = 100)
@@ -61,38 +68,48 @@ public class Empleado {
     @Column(name = "fecha_ingreso", nullable = false)
     private LocalDate fechaIngreso;
 
+    @Column(nullable = false)
+    private Boolean estado; // True = activo, False = inactivo
+
     @Column(name = "fecha_cese")
     private LocalDate fechaCese;
 
-    @Column(nullable = false)
-    private Boolean estado;
-
-    @Column(name = "regimen_laboral", length = 50)
-    private String regimenLaboral;
-
+    // ¡¡¡CAMPO 'numeroHijos' CON NOMBRE CORRECTO!!!
     @Column(name = "numero_hijos")
-    private Integer hijos; // Campo para el número de hijos
+    private Integer numeroHijos; // Este nombre de campo generará getNumeroHijos()
 
     @Enumerated(EnumType.STRING)
     @Column(name = "sistema_pensiones", length = 10)
-    private SistemaPensiones sistemaPensiones; // ONP, AFP
+    private SistemaPensiones sistemaPensiones; // Enum para sistema de pensiones
 
     @Column(name = "codigo_pension", length = 50)
     private String codigoPension;
 
-    @Column(name = "nombre_afp", length = 100)
+    @Column(name = "nombre_afp", length = 50)
     private String nombreAfp;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_banco")
-    private Banco banco; // Relación con Banco
 
     @Column(name = "numero_cuenta_banco", length = 50)
     private String numeroCuentaBanco;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "regimen_laboral", nullable = false, length = 50)
+    private String regimenLaboral;
+
+    // Relaciones ManyToOne
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_puesto", nullable = false)
-    private Puesto puesto; // Relación con Puesto
+    private Puesto puesto;
+
+    @ManyToOne(fetch = FetchType.LAZY) // Banco puede ser opcional
+    @JoinColumn(name = "id_banco")
+    private Banco banco;
+
+    // Relaciones OneToMany (si existieran, para evitar StackOverflowError)
+    @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<HistorialPuesto> historialPuestos = new HashSet<>();
+
+    // Si también tienes una relación OneToOne o OneToMany con Usuario (si un empleado es también un usuario)
+    @OneToOne(mappedBy = "empleado", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Usuario usuario; // Si la relación es OneToOne
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -109,6 +126,11 @@ public class Empleado {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    // Enumeraciones anidadas
+    public enum Sexo {
+        M, F
     }
 
     public enum SistemaPensiones {

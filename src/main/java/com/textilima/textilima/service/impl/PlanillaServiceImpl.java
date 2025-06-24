@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -37,14 +36,13 @@ import java.util.stream.Collectors;
 @Service
 public class PlanillaServiceImpl implements PlanillaService {
 
-    private final EmpleadoService empleadoService;
+       private final EmpleadoService empleadoService;
     private final PlanillaRepository planillaRepository;
     private final DetallePlanillaRepository detallePlanillaRepository;
     private final ConceptoPagoService conceptoPagoService;
     private final BonoRepository bonoRepository;
     private final DescuentoRepository descuentoRepository;
 
-    // Valores constantes para cálculos (todos como BigDecimal)
     private static final BigDecimal RMV = BigDecimal.valueOf(1025.00);
     private static final BigDecimal ONP_TASA = BigDecimal.valueOf(0.13);
     private static final BigDecimal AFP_TASA_FONDO_AVG = BigDecimal.valueOf(0.10);
@@ -92,14 +90,13 @@ public class PlanillaServiceImpl implements PlanillaService {
         
         List<DetallePlanilla> detallesPlanillaList = new ArrayList<>();
 
-        // REFERENCIAS A TipoConcepto CALIFICADAS COMPLETAMENTE
         ConceptoPago conceptoSueldo = getOrCreateConcepto("Sueldo Base", "0101", ConceptoPago.TipoConcepto.INGRESO, true, false, true, BigDecimal.ZERO, true, true, true, true, null);
         ConceptoPago conceptoAsignacionFamiliar = getOrCreateConcepto("Asignación Familiar", "0105", ConceptoPago.TipoConcepto.INGRESO, true, false, true, BigDecimal.ZERO, true, true, true, true, null);
-        ConceptoPago conceptoONP = getOrCreateConcepto("Aporte ONP", "0601", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, true, BigDecimal.ZERO, false, true, false, false, null);
-        ConceptoPago conceptoAFP_Fondo = getOrCreateConcepto("Aporte AFP Fondo", "0605", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, true, BigDecimal.ZERO, false, false, true, false, null);
-        ConceptoPago conceptoAFP_Comision = getOrCreateConcepto("Aporte AFP Comisión", "0607", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, true, BigDecimal.ZERO, false, false, true, false, null);
-        ConceptoPago conceptoAFP_Prima = getOrCreateConcepto("Aporte AFP Prima Seguro", "0606", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, true, BigDecimal.ZERO, false, false, true, false, null);
-        ConceptoPago conceptoEsSalud = getOrCreateConcepto("Aporte EsSalud", "0801", ConceptoPago.TipoConcepto.APORTE_EMPLEADOR, false, true, true, BigDecimal.ZERO, false, false, false, true, null);
+        ConceptoPago conceptoONP = getOrCreateConcepto("Aporte ONP", "0601", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, false, BigDecimal.ZERO, false, true, false, false, null);
+        ConceptoPago conceptoAFP_Fondo = getOrCreateConcepto("Aporte AFP Fondo", "0605", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, false, BigDecimal.ZERO, false, false, true, false, null);
+        ConceptoPago conceptoAFP_Comision = getOrCreateConcepto("Aporte AFP Comisión", "0607", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, false, BigDecimal.ZERO, false, false, true, false, null);
+        ConceptoPago conceptoAFP_Prima = getOrCreateConcepto("Aporte AFP Prima Seguro", "0606", ConceptoPago.TipoConcepto.APORTE_EMPLEADO, false, true, false, BigDecimal.ZERO, false, false, true, false, null);
+        ConceptoPago conceptoEsSalud = getOrCreateConcepto("Aporte EsSalud", "0801", ConceptoPago.TipoConcepto.APORTE_EMPLEADOR, false, true, false, BigDecimal.ZERO, false, false, false, true, null);
 
 
         for (Empleado empleado : empleadosActivos) {
@@ -118,8 +115,8 @@ public class PlanillaServiceImpl implements PlanillaService {
             BigDecimal sueldoNeto = BigDecimal.ZERO.setScale(DECIMAL_SCALE, ROUNDING_MODE);
             BigDecimal aporteEssaludEmpleador = BigDecimal.ZERO.setScale(DECIMAL_SCALE, ROUNDING_MODE);
 
-            List<Bono> bonosAplicados = new ArrayList<>();
-            List<Descuento> descuentosAplicados = new ArrayList<>();
+            List<Bono> bonosParaGuardar = new ArrayList<>();
+            List<Descuento> descuentosParaGuardar = new ArrayList<>();
 
 
             BigDecimal salarioBasePuesto = empleado.getPuesto().getSalarioBase() != null ? empleado.getPuesto().getSalarioBase() : BigDecimal.ZERO;
@@ -130,10 +127,10 @@ public class PlanillaServiceImpl implements PlanillaService {
             Bono sueldoBono = new Bono();
             sueldoBono.setConceptoPago(conceptoSueldo);
             sueldoBono.setMonto(salarioBasePuesto);
-            bonosAplicados.add(sueldoBono);
+            bonosParaGuardar.add(sueldoBono);
             
             if ("Regimen General".equalsIgnoreCase(empleado.getRegimenLaboral()) && 
-                empleado.getHijos() != null && empleado.getHijos() > 0 && 
+                empleado.getNumeroHijos() != null && empleado.getNumeroHijos() > 0 && 
                 salarioBasePuesto.compareTo(RMV) >= 0) {
                 
                 asignacionFamiliar = ASIGNACION_FAMILIAR_VALOR; 
@@ -143,7 +140,7 @@ public class PlanillaServiceImpl implements PlanillaService {
                 Bono afBono = new Bono();
                 afBono.setConceptoPago(conceptoAsignacionFamiliar);
                 afBono.setMonto(asignacionFamiliar);
-                bonosAplicados.add(afBono);
+                bonosParaGuardar.add(afBono);
             }
 
             if (empleado.getSistemaPensiones() == Empleado.SistemaPensiones.ONP) {
@@ -152,7 +149,7 @@ public class PlanillaServiceImpl implements PlanillaService {
                 Descuento onpDescuento = new Descuento();
                 onpDescuento.setConceptoPago(conceptoONP);
                 onpDescuento.setMonto(aportePensionEmpleado);
-                descuentosAplicados.add(onpDescuento);
+                descuentosParaGuardar.add(onpDescuento);
 
             } else if (empleado.getSistemaPensiones() == Empleado.SistemaPensiones.AFP) {
                 BigDecimal fondo = remuneracionComputable.multiply(AFP_TASA_FONDO_AVG).setScale(DECIMAL_SCALE, ROUNDING_MODE);
@@ -164,27 +161,27 @@ public class PlanillaServiceImpl implements PlanillaService {
                 Descuento afpFondoDesc = new Descuento();
                 afpFondoDesc.setConceptoPago(conceptoAFP_Fondo);
                 afpFondoDesc.setMonto(fondo);
-                descuentosAplicados.add(afpFondoDesc);
+                descuentosParaGuardar.add(afpFondoDesc);
 
                 Descuento afpComisionDesc = new Descuento();
                 afpComisionDesc.setConceptoPago(conceptoAFP_Comision);
                 afpComisionDesc.setMonto(comision);
-                descuentosAplicados.add(afpComisionDesc);
+                descuentosParaGuardar.add(afpComisionDesc);
 
                 Descuento afpPrimaDesc = new Descuento();
                 afpPrimaDesc.setConceptoPago(conceptoAFP_Prima);
                 afpPrimaDesc.setMonto(primaSeguro);
-                descuentosAplicados.add(afpPrimaDesc);
+                descuentosParaGuardar.add(afpPrimaDesc);
             }
             
             impuestoRenta5ta = BigDecimal.ZERO.setScale(DECIMAL_SCALE, ROUNDING_MODE);
             
-            totalBonosAcumulado = bonosAplicados.stream()
+            totalBonosAcumulado = bonosParaGuardar.stream()
                                     .map(Bono::getMonto)
                                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                                     .setScale(DECIMAL_SCALE, ROUNDING_MODE);
 
-            totalDescuentosAcumulado = descuentosAplicados.stream()
+            totalDescuentosAcumulado = descuentosParaGuardar.stream()
                                         .map(Descuento::getMonto)
                                         .reduce(BigDecimal.ZERO, BigDecimal::add)
                                         .setScale(DECIMAL_SCALE, ROUNDING_MODE);
@@ -208,13 +205,15 @@ public class PlanillaServiceImpl implements PlanillaService {
 
             detallePlanillaRepository.save(detalle);
 
-            for (Bono bono : bonosAplicados) {
+            for (Bono bono : bonosParaGuardar) {
                 bono.setDetallePlanilla(detalle);
                 bonoRepository.save(bono);
+                detalle.getBonos().add(bono);
             }
-            for (Descuento descuento : descuentosAplicados) {
+            for (Descuento descuento : descuentosParaGuardar) {
                 descuento.setDetallePlanilla(detalle);
                 descuentoRepository.save(descuento);
+                detalle.getDescuentos().add(descuento);
             }
 
             detallesPlanillaList.add(detalle);
@@ -222,8 +221,6 @@ public class PlanillaServiceImpl implements PlanillaService {
 
         planilla.setDetalles(detallesPlanillaList);
         
-        planillaRepository.save(planilla);
-
         return planilla;
     }
 
@@ -234,8 +231,17 @@ public class PlanillaServiceImpl implements PlanillaService {
         planillas.forEach(p -> {
             if (p.getDetalles() != null) {
                 p.getDetalles().forEach(detalle -> {
+                    // Forzar carga de Planilla y Empleado (ya deberían estar cargados por la transacción)
+                    if (detalle.getPlanilla() != null) detalle.getPlanilla().getIdPlanilla(); // Acceso básico
+                    if (detalle.getEmpleado() != null) {
+                        detalle.getEmpleado().getNombres(); // Forzar carga del Empleado
+                        // ¡¡¡CRÍTICO!!! Forzar carga de numeroHijos
+                        detalle.getEmpleado().getNumeroHijos(); 
+                        detalle.getEmpleado().getPuesto().getNombrePuesto(); // Forzar carga del Puesto
+                    }
                     if (detalle.getConceptoPago() != null) detalle.getConceptoPago().getNombreConcepto();
-                    if (detalle.getEmpleado() != null) detalle.getEmpleado().getNombres();
+                    
+                    // Forzar carga de las colecciones de bonos y descuentos
                     if (detalle.getBonos() != null) detalle.getBonos().size();
                     if (detalle.getDescuentos() != null) detalle.getDescuentos().size();
                 });
@@ -246,13 +252,22 @@ public class PlanillaServiceImpl implements PlanillaService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Planilla> getPlanillaById(Integer idPlanilla) {
-        Optional<Planilla> planillaOptional = planillaRepository.findById(idPlanilla);
+    public Optional<Planilla> getPlanillaById(Integer id) {
+        Optional<Planilla> planillaOptional = planillaRepository.findById(id);
         planillaOptional.ifPresent(p -> {
             if (p.getDetalles() != null) {
                 p.getDetalles().forEach(detalle -> {
+                    // Forzar carga de Planilla y Empleado
+                    if (detalle.getPlanilla() != null) detalle.getPlanilla().getIdPlanilla();
+                    if (detalle.getEmpleado() != null) {
+                        detalle.getEmpleado().getNombres();
+                        // ¡¡¡CRÍTICO!!! Forzar carga de numeroHijos
+                        detalle.getEmpleado().getNumeroHijos(); 
+                        detalle.getEmpleado().getPuesto().getNombrePuesto(); // Forzar carga del Puesto
+                    }
                     if (detalle.getConceptoPago() != null) detalle.getConceptoPago().getNombreConcepto();
-                    if (detalle.getEmpleado() != null) detalle.getEmpleado().getNombres();
+
+                    // Forzar carga de las colecciones de bonos y descuentos
                     if (detalle.getBonos() != null) detalle.getBonos().size();
                     if (detalle.getDescuentos() != null) detalle.getDescuentos().size();
                 });

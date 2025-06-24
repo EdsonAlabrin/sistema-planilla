@@ -4,13 +4,15 @@ import java.util.List;
 import com.textilima.textilima.entities.Empleado;
 
 public interface EmpleadoService {
+   List<Empleado> listarTodosLosEmpleados();
+    Empleado obtenerEmpleadoPorId(Integer id);
     Empleado crearEmpleado(Empleado empleado);
-    Empleado actualizarEmpleado(Integer idEmpleado, Empleado empleado);
-    Empleado obtenerEmpleadoPorId(Integer idEmpleado);
-    Empleado obtenerEmpleadoPorDni(String dni);
-    List<Empleado> listarTodosLosEmpleados();
-    List<Empleado> listarEmpleadosActivos();
-    List<Empleado> buscarPorNombreOApellido(String busqueda);
-    void desactivarEmpleado(Integer idEmpleado);
-    void activarEmpleado(Integer idEmpleado);
+    Empleado actualizarEmpleado(Integer id, Empleado empleadoDetalles);
+    void desactivarEmpleado(Integer id);
+    void activarEmpleado(Integer id);
+    
+    // Métodos que deben ser implementados
+    List<Empleado> listarEmpleadosActivos(); // Agregado/confirmado
+    List<Empleado> buscarPorNombreOApellido(String query); // Agregado/confirmado
+    Empleado obtenerEmpleadoPorDni(String dni); // Agregado/confirmado
 }

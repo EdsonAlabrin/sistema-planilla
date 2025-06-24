@@ -1,39 +1,38 @@
 package com.textilima.textilima.entities;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode; // Necesario para @EqualsAndHashCode.Exclude
+import lombok.NoArgsConstructor;
+import lombok.ToString; // Necesario para @ToString.Exclude
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-// ¡¡¡ASEGÚRATE QUE ESTE IMPORT ESTÉ PRESENTE!!!
-import com.textilima.textilima.entities.ConceptoPago; 
-
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "detalle_planilla")
+@EqualsAndHashCode(exclude = { "bonos", "descuentos", "planilla", "empleado", "conceptoPago" })
+@ToString(exclude = { "bonos", "descuentos", "planilla", "empleado", "conceptoPago" })
 public class DetallePlanilla {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idDetalle;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY) // FetchType.LAZY es preferible para relaciones ManyToOne
     @JoinColumn(name = "id_planilla", nullable = false)
     private Planilla planilla;
 
-    // ¡¡¡CAMPO 'empleado' CON NOMBRE CORRECTO Y RELACIÓN MAPPED POR JPA!!!
-    @ManyToOne(optional = false) // Un detalle de planilla siempre debe estar asociado a un empleado
+    @ManyToOne(optional = false, fetch = FetchType.LAZY) // FetchType.LAZY es preferible
     @JoinColumn(name = "id_empleado", nullable = false)
-    private Empleado empleado; // Este nombre de campo generará el método getEmpleado()
+    private Empleado empleado;
 
-    @ManyToOne(optional = true)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY) // FetchType.LAZY es preferible
     @JoinColumn(name = "id_concepto_pago", nullable = true)
     private ConceptoPago conceptoPago;
 
@@ -65,11 +64,15 @@ public class DetallePlanilla {
     private BigDecimal aporteEssaludEmpleador;
 
     // Relaciones OneToMany para Bonos y Descuentos
-    // Asegúrate de que DetallePlanilla_idDetalle sea la columna en Bono/Descuento que apunta a este DetallePlanilla
-    @OneToMany(mappedBy = "detallePlanilla", cascade = CascadeType.ALL, orphanRemoval = true)
+    // mappedBy apunta al campo en la entidad Bono/Descuento que mapea de vuelta a
+    // DetallePlanilla
+    // CascadeType.ALL para operaciones en cascada
+    // orphanRemoval para eliminar bonos/descuentos cuando se desvinculan del
+    // DetallePlanilla
+    @OneToMany(mappedBy = "detallePlanilla", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Bono> bonos = new HashSet<>();
 
-    @OneToMany(mappedBy = "detallePlanilla", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "detallePlanilla", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Descuento> descuentos = new HashSet<>();
 
     @Column(name = "created_at", updatable = false)

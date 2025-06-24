@@ -118,6 +118,7 @@ public class EmpleadoController {
             return "redirect:/empleados/listar";
         }
         model.addAttribute("empleado", empleado);
+        model.addAttribute("pageTitle", "Detalles del empleado");
         return "empleados/detalles"; // Nombre de la vista Thymeleaf (src/main/resources/templates/empleados/details.html)
     }
 }

@@ -1,0 +1,113 @@
+/* src/main/resources/static/css/main.css */
+
+/* --- Estilos para la tabla responsiva --- */
+@media (max-width: 768px) {
+    .table thead {
+        display: none; /* Oculta el encabezado de la tabla en pantallas pequeñas */
+    }
+    .table, .table tbody, .table tr, .table td {
+        display: block; /* Hace que las filas y celdas se comporten como bloques */
+        width: 100%;
+    }
+    .table tr {
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6; /* Borde simple para las "tarjetas" de fila */
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .table td {
+        text-align: right;
+        padding-left: 50%; /* Espacio para la pseudo-etiqueta del encabezado */
+        position: relative;
+    }
+    .table td::before {
+        content: attr(data-label); /* Usa el atributo data-label para mostrar el encabezado */
+        position: absolute;
+        left: 10px;
+        width: calc(50% - 20px);
+        text-align: left;
+        font-weight: bold;
+        color: #495057; /* Color de texto oscuro */
+    }
+    .table td.text-nowrap { /* Ajusta la columna de acciones para pantallas pequeñas */
+        text-align: center;
+        padding-left: 10px; /* Menos padding ya que no hay etiqueta before */
+    }
+    .table td.text-nowrap::before {
+        display: none; /* Oculta la pseudo-etiqueta para la columna de acciones */
+    }
+}
+
+/* --- Estilos para el modal de confirmación --- */
+.custom-modal {
+    display: none; /* Oculto por defecto */
+    position: fixed; /* Fijo en la ventana de visualización */
+    z-index: 1050; /* Por encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Permite desplazamiento si el contenido es demasiado grande */
+    background-color: rgba(0,0,0,0.4); /* Fondo semitransparente oscuro */
+    display: flex; /* Usar flexbox para centrar el contenido */
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente */
+}
+
+.custom-modal-content {
+    background-color: #fefefe; /* Fondo del cuadro de diálogo */
+    margin: auto; /* Centrado */
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra elegante */
+    width: 90%; /* Ancho responsivo */
+    max-width: 400px; /* Ancho máximo para el modal */
+    text-align: center;
+}
+
+.custom-modal-header {
+    border-bottom: 1px solid #eee; /* Línea separadora */
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #343a40; /* Color de texto oscuro */
+    font-weight: 600; /* Negrita */
+}
+
+.custom-modal-body {
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    color: #555;
+}
+
+.custom-modal-footer {
+    display: flex;
+    justify-content: center; /* Centra los botones */
+    gap: 15px; /* Espacio entre botones */
+}
+
+.custom-modal-footer .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Transición suave al pasar el ratón */
+}
+
+.custom-modal-footer .btn-confirm {
+    background-color: #dc3545; /* Rojo de Bootstrap para Confirmar */
+    color: white;
+    border: none;
+}
+.custom-modal-footer .btn-confirm:hover {
+    background-color: #c82333; /* Rojo más oscuro al pasar el ratón */
+}
+
+.custom-modal-footer .btn-cancel {
+    background-color: #6c757d; /* Gris de Bootstrap para Cancelar */
+    color: white;
+    border: none;
+}
+.custom-modal-footer .btn-cancel:hover {
+    background-color: #5a6268; /* Gris más oscuro al pasar el ratón */
+}

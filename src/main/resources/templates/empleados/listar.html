@@ -3,71 +3,116 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 <head>
-    <title th:text="${pageTitle} ?: 'Listado de Empleados'"></title>
+    <title>LISTADO DE EMPLEADOS</title>
+    <!-- Enlaza tu archivo CSS principal (donde irán los estilos de tabla y modal) -->
+    <link rel="stylesheet" href="/css/main.css">
+    <!-- Font Awesome debería estar enlazado en layout/base.html globalmente -->
 </head>
 <body>
     <div layout:fragment="content">
         <div class="container mt-5">
-            <h2><i class="fas fa-users"></i> Listado de Empleados</h2>
+            <h2 class="mb-4">LISTADO DE EMPLEADOS</h2>
             <hr>
-            <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
-            <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
 
-            <a th:href="@{/empleados/nuevo}" class="btn btn-primary mb-3"><i class="fas fa-user-plus"></i> Registrar Nuevo Empleado</a>
-
-            <div th:if="${empleados.empty}" class="alert alert-info text-center">
-                <i class="fas fa-info-circle"></i> No hay empleados registrados. ¡Registra uno ahora!
+            <!-- Mensajes de éxito y error -->
+            <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                <i class="fas fa-times-circle"></i> <span th:text="${errorMessage}"></span>
             </div>
 
-            <div th:unless="${empleados.empty}">
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover align-middle">
-                        <thead class="bg-dark text-white">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre Completo</th>
-                                <th>DNI</th>
-                                <th>Puesto</th>
-                                <th>Reg. Laboral</th>
-                                <th>Sistema Pensión</th>
-                                <th>Hijos</th>
-                                <th>Banco</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="empleado : ${empleados}">
-                                <td th:text="${empleado.idEmpleado}"></td>
-                                <td th:text="${empleado.nombres + ' ' + empleado.apellidos}"></td>
-                                <td th:text="${empleado.numeroDocumento}"></td>
-                                <!-- Acceso seguro a nombrePuesto y nombreBanco -->
-                                <td th:text="${empleado.puesto != null ? empleado.puesto.nombrePuesto : 'N/A'}"></td>
-                                <td th:text="${empleado.regimenLaboral}"></td>
-                                <td th:text="${empleado.sistemaPensiones}"></td>
-                                <td th:text="${empleado.hijos}"></td>
-                                <td th:text="${empleado.banco != null ? empleado.banco.nombreBanco : 'N/A'}"></td>
-                                <td>
-                                    <span th:classappend="${empleado.estado ? 'badge bg-success' : 'badge bg-danger'}" th:text="${empleado.estado ? 'Activo' : 'Inactivo'}"></span>
-                                </td>
-                                <td>
-                                    <a th:href="@{/empleados/detalles/{id}(id=${empleado.idEmpleado})}" class="btn btn-info btn-sm me-1" title="Ver Detalles"><i class="fas fa-eye"></i></a>
-                                    <a th:href="@{/empleados/editar/{id}(id=${empleado.idEmpleado})}" class="btn btn-warning btn-sm me-1" title="Editar"><i class="fas fa-edit"></i></a>
-                                    <span th:if="${empleado.estado}">
-                                        <a th:href="@{/empleados/desactivar/{id}(id=${empleado.idEmpleado})}" class="btn btn-danger btn-sm"
-                                           onclick="return confirm('¿Estás seguro de que quieres DESACTIVAR a este empleado?');" title="Desactivar"><i class="fas fa-toggle-off"></i></a>
-                                    </span>
-                                    <span th:unless="${empleado.estado}">
-                                        <a th:href="@{/empleados/activar/{id}(id=${empleado.idEmpleado})}" class="btn btn-success btn-sm"
-                                           onclick="return confirm('¿Estás seguro de que quieres ACTIVAR a este empleado?');" title="Activar"><i class="fas fa-toggle-on"></i></a>
-                                    </span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Botón para registrar nuevo empleado -->
+            <div class="mb-4">
+                <a th:href="@{/empleados/nuevo}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Registrar Nuevo Empleado
+                </a>
+            </div>
+
+            <!-- Mensaje si no hay empleados registrados -->
+            <div th:if="${empleados.empty}" class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> No hay empleados registrados.
+            </div>
+
+            <!-- Tabla de empleados -->
+            <div th:unless="${empleados.empty}" class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombres</th>
+                                    <th>Apellidos</th>
+                                    <th>DNI</th>
+                                    <th>Puesto</th>
+                                    <th>Reg. Laboral</th>
+                                    <th>Hijos</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="empleado : ${empleados}">
+                                    <td th:text="${empleado.idEmpleado}" data-label="ID"></td>
+                                    <td th:text="${empleado.nombres}" data-label="Nombres"></td>
+                                    <td th:text="${empleado.apellidos}" data-label="Apellidos"></td>
+                                    <td th:text="${empleado.numeroDocumento}" data-label="DNI"></td>
+                                    <td data-label="Puesto">
+                                        <span th:if="${empleado.puesto != null}" th:text="${empleado.puesto.nombrePuesto}"></span>
+                                        <span th:unless="${empleado.puesto != null}">N/A</span>
+                                    </td>
+                                    <td th:text="${empleado.regimenLaboral}" data-label="Reg. Laboral"></td>
+                                    <td th:text="${empleado.numeroHijos}" data-label="Hijos"></td>
+                                    <td data-label="Estado">
+                                        <span th:if="${empleado.estado}" class="badge bg-success">Activo</span>
+                                        <span th:unless="${empleado.estado}" class="badge bg-danger">Inactivo</span>
+                                    </td>
+                                    <td class="text-nowrap" data-label="Acciones">
+                                        <a th:href="@{/empleados/detalles/{id}(id=${empleado.idEmpleado})}" class="btn btn-info btn-sm" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a th:href="@{/empleados/editar/{id}(id=${empleado.idEmpleado})}" class="btn btn-warning btn-sm" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <!-- Botones de activar/desactivar, ahora sin onclick directo. -->
+                                        <!-- El JS en modal-handler.js adjuntará el evento de clic. -->
+                                        <a th:if="${empleado.estado}"
+                                           href="#"
+                                           class="btn btn-danger btn-sm action-button"
+                                           th:attr="data-id=${empleado.idEmpleado}, data-action='desactivar'">
+                                            <i class="fas fa-toggle-off"></i>
+                                        </a>
+                                        <a th:unless="${empleado.estado}"
+                                           href="#"
+                                           class="btn btn-success btn-sm action-button"
+                                           th:attr="data-id=${empleado.idEmpleado}, data-action='activar'">
+                                            <i class="fas fa-toggle-on"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Confirmation Modal -->
+        <div id="confirmModal" class="custom-modal">
+            <div class="custom-modal-content">
+                <div class="custom-modal-header" id="modalTitle"></div>
+                <div class="custom-modal-body" id="modalMessage"></div>
+                <div class="custom-modal-footer">
+                    <button type="button" class="btn btn-cancel" id="cancelActionBtn">Cancelar</button>
+                    <button type="button" class="btn btn-confirm" id="confirmActionBtn">Confirmar</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Enlazar el archivo JavaScript para el modal -->
+    <!-- ESTE SCRIPT DEBE IR AL FINAL DEL BODY PARA ASEGURAR QUE LOS ELEMENTOS HTML SE HAYAN CARGADO -->
+    <script src="/js/modal-handler.js"></script>
 </body>
 </html>
