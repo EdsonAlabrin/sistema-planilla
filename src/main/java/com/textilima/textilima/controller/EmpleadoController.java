@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/empleados")
@@ -71,8 +72,8 @@ public class EmpleadoController {
 
     // Muestra el formulario para editar un empleado existente
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEditar(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-        Empleado empleado = empleadoService.obtenerEmpleadoPorId(id);
+    public String mostrarFormularioEditar(@PathVariable("id") Integer idEmpleado, Model model, RedirectAttributes redirectAttributes) {
+       Optional <Empleado> empleado = empleadoService.obtenerEmpleadoPorId(idEmpleado);
         if (empleado == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Empleado no encontrado.");
             return "redirect:/empleados/listar";
@@ -87,9 +88,9 @@ public class EmpleadoController {
 
     // Desactiva un empleado
     @GetMapping("/desactivar/{id}")
-    public String desactivarEmpleado(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+    public String desactivarEmpleado(@PathVariable("id") Integer idEmpleado, RedirectAttributes redirectAttributes) {
         try {
-            empleadoService.desactivarEmpleado(id);
+            empleadoService.desactivarEmpleado(idEmpleado);
             redirectAttributes.addFlashAttribute("successMessage", "Empleado desactivado exitosamente.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al desactivar el empleado: " + e.getMessage());
@@ -99,9 +100,9 @@ public class EmpleadoController {
 
     // Activa un empleado
     @GetMapping("/activar/{id}")
-    public String activarEmpleado(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+    public String activarEmpleado(@PathVariable("id") Integer idEmpleado, RedirectAttributes redirectAttributes) {
         try {
-            empleadoService.activarEmpleado(id);
+            empleadoService.activarEmpleado(idEmpleado);
             redirectAttributes.addFlashAttribute("successMessage", "Empleado activado exitosamente.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al activar el empleado: " + e.getMessage());
@@ -110,15 +111,18 @@ public class EmpleadoController {
     }
 
     // Muestra los detalles de un empleado
-    @GetMapping("/detalles/{id}")
-    public String verDetallesEmpleado(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-        Empleado empleado = empleadoService.obtenerEmpleadoPorId(id);
-        if (empleado == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Empleado no encontrado.");
+   @GetMapping("/detalles/{idEmpleado}")
+    public String verDetallesEmpleado(@PathVariable Integer idEmpleado, Model model) { // Tipo de ID Integer
+        // Llama al método renombrado en el servicio
+        Optional<Empleado> empleado = empleadoService.obtenerEmpleadoPorId(idEmpleado); 
+        
+        if (empleado.isPresent()) {
+            model.addAttribute("empleado", empleado.get()); // Obtén el empleado del Optional
+            model.addAttribute("pageTitle", "Detalles del Empleado");
+            return "empleados/detalles";
+        } else {
+            model.addAttribute("errorMessage", "Empleado no encontrado.");
             return "redirect:/empleados/listar";
         }
-        model.addAttribute("empleado", empleado);
-        model.addAttribute("pageTitle", "Detalles del empleado");
-        return "empleados/detalles"; // Nombre de la vista Thymeleaf (src/main/resources/templates/empleados/details.html)
     }
 }

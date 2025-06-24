@@ -1,0 +1,19 @@
+/* src/main/resources/static/css/main.css */
+
+/* --- Estilos para el modal de confirmación --- */
+.custom-modal {
+    display: none; /* <-- Asegúrate que esta línea esté presente y no esté sobrescrita */
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    display: flex; /* Esto se activa por JS cuando el modal es visible */
+    justify-content: center;
+    align-items: center;
+}
+
+/* El resto de tus estilos de main.css... */

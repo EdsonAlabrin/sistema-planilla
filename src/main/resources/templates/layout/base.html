@@ -15,9 +15,9 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Tus estilos globales personalizados -->
-    <link rel="stylesheet" th:href="@{/estilos/global-layout.css}">
+    <link rel="stylesheet" th:href="@{/css/global-layout.css}">
     <!-- Tus estilos específicos para el menú lateral (Asegúrate de que este archivo exista y tenga el CSS mejorado) -->
-    <link rel="stylesheet" th:href="@{/estilos/sidebar-menu.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
 
     <!-- Fragmento para estilos específicos de cada página -->
     <th:block layout:fragment="page-styles"></th:block>
@@ -25,7 +25,7 @@
 
 <body>
     <!-- Barra lateral (Fragmento de Thymeleaf) - ¡CORRECCIÓN EN EL NOMBRE DEL FRAGMENTO! -->
-    <div th:replace="~{fragments/sidebar :: sidebar-menu}"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <!-- Contenido principal (donde se inyectarán las vistas específicas) -->
     <div class="main-content">
@@ -39,7 +39,7 @@
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <!-- Tu JavaScript global (para el toggle de submenú) -->
-    <script th:src="@{/js/sidebar-menu.js}"></script>
+    <script th:src="@{/js/sidebar.js}"></script>
 
     <!-- Fragmento para scripts específicos de cada página -->
     <th:block layout:fragment="page-scripts"></th:block>

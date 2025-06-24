@@ -69,14 +69,14 @@
                                         <span th:unless="${empleado.estado}" class="badge bg-danger">Inactivo</span>
                                     </td>
                                     <td class="text-nowrap" data-label="Acciones">
+                                        <!-- ESTA ES LA LÍNEA CRÍTICA PARA "VER DETALLES" -->
                                         <a th:href="@{/empleados/detalles/{id}(id=${empleado.idEmpleado})}" class="btn btn-info btn-sm" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <a th:href="@{/empleados/editar/{id}(id=${empleado.idEmpleado})}" class="btn btn-warning btn-sm" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <!-- Botones de activar/desactivar, ahora sin onclick directo. -->
-                                        <!-- El JS en modal-handler.js adjuntará el evento de clic. -->
+                                        <!-- Botones de activar/desactivar, AHORA SIN onclick. El JS se encarga de esto. -->
                                         <a th:if="${empleado.estado}"
                                            href="#"
                                            class="btn btn-danger btn-sm action-button"
@@ -98,21 +98,9 @@
             </div>
         </div>
 
-        <!-- Custom Confirmation Modal -->
-        <div id="confirmModal" class="custom-modal">
-            <div class="custom-modal-content">
-                <div class="custom-modal-header" id="modalTitle"></div>
-                <div class="custom-modal-body" id="modalMessage"></div>
-                <div class="custom-modal-footer">
-                    <button type="button" class="btn btn-cancel" id="cancelActionBtn">Cancelar</button>
-                    <button type="button" class="btn btn-confirm" id="confirmActionBtn">Confirmar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+      
 
     <!-- Enlazar el archivo JavaScript para el modal -->
-    <!-- ESTE SCRIPT DEBE IR AL FINAL DEL BODY PARA ASEGURAR QUE LOS ELEMENTOS HTML SE HAYAN CARGADO -->
     <script src="/js/modal-handler.js"></script>
 </body>
 </html>

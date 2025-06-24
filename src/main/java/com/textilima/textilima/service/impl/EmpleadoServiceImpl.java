@@ -50,26 +50,33 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         return empleados;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Empleado obtenerEmpleadoPorId(Integer id) {
-        Optional<Empleado> empleadoOptional = empleadoRepository.findById(id);
-        
+     // --- MÉTODO getEmpleadoById (¡AHORA SE LLAMA ASÍ Y ES COMPATIBLE!) ---
+    @Override // ESTA ANOTACIÓN AHORA SERÁ VÁLIDA porque coincide con la interfaz
+    @Transactional(readOnly = true) // Generalmente solo para métodos de lectura
+    public Optional<Empleado> obtenerEmpleadoPorId(Integer idEmpleado) { // <--- CAMBIADO DE 'obtenerEmpleadoPorId' A 'getEmpleadoById'
+        // Spring Data JPA ya proporciona findById, que devuelve un Optional
+        Optional<Empleado> empleadoOptional = empleadoRepository.findById(idEmpleado);
+
+        // La lógica para inicializar datos relacionados o por defecto
         empleadoOptional.ifPresent(empleado -> {
+            // Esto solo accede a la propiedad, si no la usas en la vista, puede que no sea necesario
             if (empleado.getPuesto() != null) {
-                empleado.getPuesto().getNombrePuesto();
+                empleado.getPuesto().getNombrePuesto(); // Accede para asegurar que cargue (lazy loading)
             }
             if (empleado.getBanco() != null) {
-                empleado.getBanco().getNombreBanco();
+                empleado.getBanco().getNombreBanco(); // Accede para asegurar que cargue
             }
+            // Asegura que numeroHijos no sea null, si es un campo que puede ser null en DB
             if (empleado.getNumeroHijos() == null) {
                 empleado.setNumeroHijos(0);
             }
         });
-        
-        return empleadoOptional.orElse(null);
-    }
 
+        // Este método en el servicio SIEMPRE debe devolver Optional<Empleado> para ser consistente
+        // con la interfaz y el uso de findById. El controlador lo manejará.
+        return empleadoOptional;
+    }
+   
     @Override
     @Transactional
     public Empleado crearEmpleado(Empleado empleado) {
@@ -190,5 +197,24 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     public Empleado obtenerEmpleadoPorDni(String dni) {
         // Implementación de búsqueda por número de documento (DNI)
         return empleadoRepository.findByNumeroDocumento(dni).orElse(null); // Asumiendo este método en EmpleadoRepository
+    }
+
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean cambiarEstadoEmpleado(Integer idEmpleado, boolean nuevoEstado) {
+        Optional<Empleado> optionalEmpleado = empleadoRepository.findById(idEmpleado);
+        if (optionalEmpleado.isPresent()) {
+            Empleado empleado = optionalEmpleado.get();
+            empleado.setEstado(nuevoEstado); // Actualiza el estado
+            empleadoRepository.save(empleado); // Guarda los cambios en la base de datos
+            return true;
+        }
+        return false; // Empleado no encontrado
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Empleado> findByNumeroDocumento(String numeroDocumento) { // <--- IMPLEMENTAR ESTE MÉTODO
+        return empleadoRepository.findByNumeroDocumento(numeroDocumento);
     }
 }

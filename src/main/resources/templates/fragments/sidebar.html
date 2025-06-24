@@ -7,11 +7,11 @@
 
 <body>
 
-    <nav class="sidebar" th:fragment="sidebar-menu">
+    <nav class="sidebar" th:fragment="sidebar">
         <h3>🧵 TextiLima</h3>
 
         <a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a>
-
+        <a th:href="@{/asistencia/marcar}"><i class="fas fa-calendar-check"></i> Asistencia</a>
         <a th:href="@{/empleados/listar}"><i class="fas fa-users"></i> Empleados</a>
         <!-- Usar /empleados/listar según tus controladores -->
 
@@ -23,7 +23,7 @@
 
         <!-- Los siguientes enlaces se han comentado/eliminado temporalmente hasta que se implementen sus controladores y vistas -->
         <!-- <a th:href="@{/descripcion}"><i class="fas fa-info-circle"></i> Nosotros</a> -->
-        <!-- <a th:href="@{/asistencia}"><i class="fas fa-calendar-check"></i> Asistencia</a> -->
+        
         <!-- <a th:href="@{/boletas}"><i class="fas fa-receipt"></i> Boletas</a> -->
         <!-- <a th:href="@{/bonos}"><i class="fas fa-gift"></i> Bonos</a> -->
         <!-- <a th:href="@{/descuentos}"><i class="fas fa-percent"></i> Descuentos</a> -->
