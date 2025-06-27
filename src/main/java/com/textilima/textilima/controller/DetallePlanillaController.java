@@ -1,6 +1,6 @@
 package com.textilima.textilima.controller;
 
-import com.textilima.textilima.entities.*;
+import com.textilima.textilima.model.*;
 import com.textilima.textilima.service.DetallePlanillaService;
 
 import org.springframework.beans.factory.annotation.Autowired;

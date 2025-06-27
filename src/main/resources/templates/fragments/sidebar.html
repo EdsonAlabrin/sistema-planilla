@@ -13,11 +13,8 @@
         <a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a>
         <a th:href="@{/asistencia/marcar}"><i class="fas fa-calendar-check"></i> Asistencia</a>
         <a th:href="@{/empleados/listar}"><i class="fas fa-users"></i> Empleados</a>
-        <!-- Usar /empleados/listar según tus controladores -->
-
         <a th:href="@{/puestos/listar}"><i class="fas fa-briefcase"></i> Puestos</a>
-        <!-- Usar /puestos/listar según tus controladores -->
-        <a th:href="@{/bancos/listar}"><i class="fas fa-university"></i> Bancos</a> <!-- Enlace a Bancos -->
+        <a th:href="@{/bancos/listar}"><i class="fas fa-university"></i> Bancos</a>
         <a th:href="@{/conceptos}"><i class="fas fa-tags"></i> Conceptos de Pago</a>
         <a th:href="@{/planillas}"><i class="fas fa-file-invoice"></i> Planillas</a>
 
@@ -30,6 +27,9 @@
         <!-- <a th:href="@{/usuarios}"><i class="fas fa-user-cog"></i> Usuarios</a> -->
     </nav>
 
+    <nav class="sidebar" th:fragment="sidebar-user">
+        <a href="@{/asisitencia/marcar}"><i class="fas fa-calendar-check">Asistencia</i></a>
+    </nav>
 </body>
 
 </html>

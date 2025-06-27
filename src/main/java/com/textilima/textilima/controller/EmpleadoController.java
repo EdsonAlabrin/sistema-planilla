@@ -1,10 +1,10 @@
 package com.textilima.textilima.controller;
 
-import com.textilima.textilima.entities.Empleado;
-import com.textilima.textilima.entities.Puesto; // Importa Puesto
-import com.textilima.textilima.entities.Banco; // Importa Banco
 import com.textilima.textilima.service.EmpleadoService;
 import com.textilima.textilima.service.PuestoService; // Necesario para listar puestos en el formulario de empleado
+import com.textilima.textilima.model.Banco;
+import com.textilima.textilima.model.Empleado;
+import com.textilima.textilima.model.Puesto;
 import com.textilima.textilima.service.BancoService; // Necesario para listar bancos en el formulario de empleado
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -83,7 +83,7 @@ public class EmpleadoController {
         model.addAttribute("puestos", puestos);
         List<Banco> bancos = bancoService.findAll(); // Para el dropdown de bancos
         model.addAttribute("bancos", bancos);
-        return "empleados/form";
+        return "empleados/listar";
     }
 
     // Desactiva un empleado

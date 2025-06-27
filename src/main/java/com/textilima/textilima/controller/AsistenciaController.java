@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.textilima.textilima.entities.Asistencia;
-import com.textilima.textilima.entities.EstadoAsistencia;
+import com.textilima.textilima.model.Asistencia;
+import com.textilima.textilima.model.Empleado;
+import com.textilima.textilima.model.EstadoAsistencia;
 import com.textilima.textilima.service.AsistenciaService;
 import com.textilima.textilima.service.EmpleadoService;
-import com.textilima.textilima.entities.Empleado;
 
 @Controller
 @RequestMapping("/asistencia")

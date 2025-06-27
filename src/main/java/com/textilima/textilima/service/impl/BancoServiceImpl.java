@@ -1,54 +1,76 @@
 package com.textilima.textilima.service.impl; // Paquete para las implementaciones de servicio
 
-import com.textilima.textilima.entities.Banco;
+import com.textilima.textilima.model.Banco;
 import com.textilima.textilima.repository.BancoRepository;
 import com.textilima.textilima.service.BancoService; // Importa la interfaz del servicio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Para manejar transacciones de base de datos
-
 import java.util.List;
 import java.util.Optional;
 
 @Service // Marca esta clase como un componente de servicio de Spring
 public class BancoServiceImpl implements BancoService { // Implementa la interfaz BancoService
 
-    private final BancoRepository bancoRepository; // Inyección del repositorio de Banco
+    @Autowired // Inyección de dependencia del repositorio de Banco
+    private BancoRepository bancoRepository;
 
-    @Autowired // Constructor para inyección de dependencias
-    public BancoServiceImpl(BancoRepository bancoRepository) {
-        this.bancoRepository = bancoRepository;
-    }
-
+    /**
+     * Obtiene una lista de todos los bancos.
+     * @return Una lista de objetos Banco.
+     */
     @Override
-    @Transactional(readOnly = true) // La operación de lectura no modifica la base de datos
-    public List<Banco> findAll() {
+    public List<Banco> getAllBancos() {
         return bancoRepository.findAll();
     }
 
+    /**
+     * Obtiene un banco por su ID.
+     * @param id El ID del banco.
+     * @return Un Optional que contiene el Banco si se encuentra, o vacío si no existe.
+     */
     @Override
-    @Transactional(readOnly = true)
-    public Optional<Banco> findById(Integer id) {
+    public Optional<Banco> getBancoById(Integer id) {
         return bancoRepository.findById(id);
     }
 
+    /**
+     * Guarda un nuevo banco o actualiza uno existente.
+     * @param banco El objeto Banco a guardar/actualizar.
+     * @return El Banco guardado/actualizado.
+     */
     @Override
-    @Transactional // La operación de guardar/actualizar modifica la base de datos
-    public Banco save(Banco banco) {
-        // En una aplicación real, aquí podrías añadir validaciones adicionales
-        // Por ejemplo, verificar si el nombre del banco o código ya existen antes de guardar
+    public Banco saveBanco(Banco banco) {
+        // Aquí se podría añadir lógica de negocio adicional antes de guardar,
+        // por ejemplo, validaciones de unicidad de nombre o código.
         return bancoRepository.save(banco);
     }
 
+    /**
+     * Elimina un banco por su ID.
+     * @param id El ID del banco a eliminar.
+     */
     @Override
-    @Transactional // La operación de eliminar modifica la base de datos
-    public void deleteById(Integer id) {
-        bancoRepository.deleteById(id);
+    public void deleteBanco(Integer idBanco) {
+        bancoRepository.deleteById(idBanco);
     }
 
+    /**
+     * Busca un banco por su nombre.
+     * @param nombreBanco El nombre del banco.
+     * @return Un Optional que contiene el Banco si se encuentra, o vacío si no existe.
+     */
     @Override
-    @Transactional(readOnly = true)
-    public Optional<Banco> findByNombreBanco(String nombreBanco) {
-        return bancoRepository.findByNombreBanco(nombreBanco);
+    public Optional<Banco> getBancoByNombreBanco(String nombreBanco) {
+        return Optional.ofNullable(bancoRepository.findByNombreBanco(nombreBanco));
+    }
+
+    /**
+     * Busca un banco por su código.
+     * @param codigoBanco El código del banco.
+     * @return Un Optional que contiene el Banco si se encuentra, o vacío si no existe.
+     */
+    @Override
+    public Optional<Banco> getBancoByCodigoBanco(String codigoBanco) {
+        return Optional.ofNullable(bancoRepository.findByCodigoBanco(codigoBanco));
     }
 }

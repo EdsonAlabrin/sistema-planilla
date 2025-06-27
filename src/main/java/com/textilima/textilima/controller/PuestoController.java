@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.textilima.textilima.entities.Puesto;
+import com.textilima.textilima.model.Puesto;
 import com.textilima.textilima.service.PuestoService;
 
 

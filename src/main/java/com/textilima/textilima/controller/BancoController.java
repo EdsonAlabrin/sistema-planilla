@@ -1,6 +1,6 @@
 package com.textilima.textilima.controller; // Paquete para los controladores
 
-import com.textilima.textilima.entities.Banco;
+import com.textilima.textilima.model.Banco;
 import com.textilima.textilima.service.BancoService; // Importa la interfaz del servicio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

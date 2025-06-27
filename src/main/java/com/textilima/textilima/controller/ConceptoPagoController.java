@@ -1,7 +1,7 @@
 package com.textilima.textilima.controller;
 
-import com.textilima.textilima.entities.ConceptoPago;
-import com.textilima.textilima.entities.ConceptoPago.TipoConcepto; // Importar el Enum
+import com.textilima.textilima.model.ConceptoPago;
+import com.textilima.textilima.model.ConceptoPago.TipoConcepto;
 import com.textilima.textilima.service.ConceptoPagoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

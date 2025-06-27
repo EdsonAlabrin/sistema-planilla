@@ -1,8 +1,8 @@
 package com.textilima.textilima.controller; // Asegúrate de que este paquete sea correcto
 
-import com.textilima.textilima.entities.Planilla;
 import com.textilima.textilima.service.PlanillaService;
 import com.textilima.textilima.service.EmpleadoService; // Importa EmpleadoService
+import com.textilima.textilima.model.Planilla;
 import com.textilima.textilima.service.ConceptoPagoService; // Importa ConceptoPagoService
 
 import org.springframework.beans.factory.annotation.Autowired;

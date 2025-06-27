@@ -1,36 +1,62 @@
 package com.textilima.textilima.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.textilima.textilima.entities.Empleado;
+import com.textilima.textilima.model.Empleado;
 
 public interface EmpleadoService {
-    List<Empleado> listarTodosLosEmpleados();
-
-    Optional<Empleado> obtenerEmpleadoPorId(Integer idEmpleado);
-
-    Empleado crearEmpleado(Empleado empleado);
-
-    Empleado actualizarEmpleado(Integer idEmpleado, Empleado empleadoDetalles);
-
-    void desactivarEmpleado(Integer idEmpleado);
-
-    void activarEmpleado(Integer idEmpleado);
-
-    // Métodos que deben ser implementados
-    List<Empleado> listarEmpleadosActivos(); // Agregado/confirmado
-
-    List<Empleado> buscarPorNombreOApellido(String query); // Agregado/confirmado
-
-    Empleado obtenerEmpleadoPorDni(String dni); // Agregado/confirmado
-
-    boolean cambiarEstadoEmpleado(Integer id, boolean nuevoEstado);
+    /**
+     * Obtiene una lista de todos los empleados.
+     * @return Una lista de objetos Empleado.
+     */
+    List<Empleado> getAllEmpleados();
 
     /**
-     * Busca un empleado por su número de documento (DNI).
-     * @param numeroDocumento El número de documento del empleado.
-     * @return Un Optional que contiene el Empleado si se encuentra, o vacío si no.
+     * Obtiene un empleado por su ID.
+     * @param id El ID del empleado.
+     * @return Un Optional que contiene el Empleado si se encuentra, o vacío si no existe.
      */
-    Optional<Empleado> findByNumeroDocumento(String numeroDocumento);
+    Optional<Empleado> getEmpleadoById(Integer idEmpleado);
+
+    /**
+     * Guarda un nuevo empleado o actualiza uno existente.
+     * @param empleado El objeto Empleado a guardar/actualizar.
+     * @return El Empleado guardado/actualizado.
+     */
+    Empleado saveEmpleado(Empleado empleado);
+
+    /**
+     * Elimina un empleado por su ID.
+     * @param id El ID del empleado a eliminar.
+     */
+    void deleteEmpleado(Integer idEmpleado);
+
+    /**
+     * Busca un empleado por su número de documento (DNI, Carné de Extranjería, etc.).
+     * @param numeroDocumento El número de documento del empleado.
+     * @return Un Optional que contiene el Empleado encontrado, o vacío si no existe.
+     */
+    Optional<Empleado> getEmpleadoByNumeroDocumento(String numeroDocumento);
+
+    /**
+     * Busca todos los empleados que están actualmente activos (estado = true).
+     * @return Una lista de empleados activos.
+     */
+    List<Empleado> getActiveEmpleados();
+
+    /**
+     * Busca todos los empleados que tienen hijos calificados para asignación familiar.
+     * @return Una lista de empleados con hijos calificados.
+     */
+    List<Empleado> getEmpleadosWithCalifiedChildren();
+
+    /**
+     * Busca empleados cuya fecha de ingreso se encuentra dentro de un rango especificado.
+     * @param startDate La fecha de inicio del rango (inclusive).
+     * @param endDate La fecha de fin del rango (inclusive).
+     * @return Una lista de empleados que ingresaron en el rango de fechas.
+     */
+    List<Empleado> getEmpleadosByFechaIngresoBetween(LocalDate startDate, LocalDate endDate);
 }
