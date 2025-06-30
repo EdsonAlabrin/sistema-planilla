@@ -1,78 +1,28 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    layout:decorate="~{layout/base}">
-
+      layout:decorate="~{layout/base}">
 <head>
-    <title>Detalles del Empleado</title> <!-- Título de la página explícito -->
-    <!-- Incluye Font Awesome para los íconos (idealmente esto iría en tu layout/base.html) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* Pequeños ajustes para la vista de detalles para alinear con los nuevos estilos */
-        .info-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            /* Espacio entre el ícono/label y el valor */
-            font-size: 1.05rem;
-            /* Ajustar el tamaño del texto para la información */
-            margin-bottom: 15px;
-            /* Espacio entre cada línea de información */
-        }
-
-        .info-item strong {
-            color: var(--dark-bg);
-            /* Color más oscuro para las etiquetas */
-            font-weight: 600;
-        }
-
-        .info-item i {
-            color: var(--primary-blue);
-            /* Color de íconos para información */
-            font-size: 1.2rem;
-        }
-
-        .card-header .icon {
-            color: var(--accent-green);
-            /* Color del ícono en el card-header */
-            margin-right: 15px;
-            font-size: 1.8rem;
-        }
-
-        .card-header h4 {
-            margin-bottom: 0;
-            /* Eliminar margen inferior predeterminado de h4 en card-header */
-            color: var(--white-text);
-            /* Asegurar que el texto sea blanco como el resto del header */
-        }
-
-        /* Estilos para los badges de estado */
-        .badge {
-            padding: 0.6em 0.9em;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            display: inline-block;
-            text-transform: uppercase;
-        }
-
-        .badge.bg-success {
-            background-color: var(--accent-green);
-            color: var(--white-text);
-        }
-
-        .badge.bg-danger {
-            background-color: var(--accent-red);
-            color: var(--white-text);
-        }
-    </style>
+    <title>Detalles del Empleado</title>
+    <!-- Los estilos específicos ahora vienen de main.css o se definen en page-styles si son muy puntuales -->
+    <th:block layout:fragment="page-styles">
+        <!-- Puedes añadir estilos adicionales específicos para esta página aquí si lo necesitas. -->
+        <style>
+            /* Si tu card-header está siendo sobreescrito a un color oscuro,
+               aseguramos que el texto dentro del h4 sea blanco.
+               Esto solo es necesario si tus CSS externos fuerzan un fondo oscuro al .card-header
+               sin un color de texto explícito para sus hijos.
+            */
+            .card-header h4 {
+                color: #ffffff !important; /* Fuerza el color blanco para el título dentro del card-header */
+            }
+        </style>
+    </th:block>
 </head>
-
 <body>
     <div layout:fragment="content">
-        <div class="container">
+        <div class="container mt-5">
             <div>
-                
-                <h2><i class="fas fa-user-circle icon"></i> Detalles del Empleado</h2>
+                <h2><i class="fas fa-user-circle main-form-title-icon"></i> Detalles del Empleado</h2>
             </div>
 
             <div th:if="${empleado == null}" class="alert alert-danger">
@@ -80,8 +30,8 @@
             </div>
             <div th:unless="${empleado == null}">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 th:text="${empleado.nombres + ' ' + empleado.apellidos}"></h4>
+                    <div class="card-header bg-dark"> <!-- Añadimos bg-dark aquí para asegurar el fondo oscuro -->
+                        <h4 th:text="${empleado.nombres + ' ' + empleado.apellidos}" class="text-white"></h4> <!-- Añadimos text-white aquí -->
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -118,13 +68,13 @@
                                     th:text="${empleado.correo}"></span>
                             </div>
                             <div class="col-md-6 info-item">
-                                <i class="fas fa-child"></i> <strong>Número de Hijos:</strong> <span
-                                    th:text="${empleado.numeroHijos}"></span>
+                                <i class="fas fa-child"></i> <strong>Asig. Familiar:</strong> <span
+                                    th:if="${empleado.tieneHijosCalificados}" class="badge bg-success">Sí</span>
+                                <span th:unless="${empleado.tieneHijosCalificados}" class="badge bg-danger">No</span>
                             </div>
                         </div>
-
+                        
                         <h5 class="mt-4">Información de Contacto</h5>
-                        <hr>
                         <div class="row">
                             <div class="col-12 info-item">
                                 <i class="fas fa-map-marker-alt"></i> <strong>Dirección:</strong> <span
@@ -145,7 +95,6 @@
                         </div>
 
                         <h5 class="mt-4">Información Laboral</h5>
-                        <hr>
                         <div class="row">
                             <div class="col-md-6 info-item">
                                 <i class="fas fa-briefcase"></i> <strong>Puesto:</strong>
@@ -175,7 +124,6 @@
                         </div>
 
                         <h5 class="mt-4">Información de Pensiones y Bancaria</h5>
-                        <hr>
                         <div class="row">
                             <div class="col-md-6 info-item">
                                 <i class="fas fa-hands-helping"></i> <strong>Sistema de Pensiones:</strong> <span
@@ -213,5 +161,4 @@
         </div>
     </div>
 </body>
-
 </html>

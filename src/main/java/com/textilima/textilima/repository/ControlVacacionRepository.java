@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.ControlVacacion;
 import com.textilima.textilima.model.Empleado;
 
+@Repository
 public interface ControlVacacionRepository extends JpaRepository<ControlVacacion, Integer> {
     /**
      * Busca un registro de control de vacaciones para un empleado y un período específico.

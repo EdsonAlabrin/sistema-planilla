@@ -47,7 +47,7 @@ public interface DetallePlanillaService {
      * @param planilla La planilla de la cual se desean obtener los detalles.
      * @return Una lista de DetallePlanilla para la planilla especificada.
      */
-    List<DetallePlanilla> getDetallesPlanillaByPlanilla(Planilla planilla);
+    List<DetallePlanilla> getDetallesByPlanilla(Planilla planilla);
 
     /**
      * Busca todos los detalles de planilla de un empleado en particular.

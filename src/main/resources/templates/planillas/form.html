@@ -3,42 +3,107 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 <head>
-    <title th:text="${pageTitle}"></title>
+    <title layout:title-pattern="$CONTENT_TITLE" th:text="${planilla.idPlanilla != null ? 'Editar Planilla' : 'Crear Nueva Planilla'}"></title>
+    <th:block layout:fragment="page-styles">
+        <style>
+            /* Puedes añadir estilos específicos para esta página aquí */
+            .form-section-title {
+                background-color: #f0f2f5;
+                padding: 10px 15px;
+                border-radius: 5px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+                font-weight: 600;
+                color: #343a40;
+                border-left: 5px solid #0d6efd;
+            }
+            .card-header h4 {
+                color: #ffffff !important; /* Asegura texto blanco si el fondo del card-header es oscuro */
+            }
+        </style>
+    </th:block>
 </head>
 <body>
-    <div layout:fragment="content">
-        <div class="container mt-5">
-            <h2><i class="fas fa-calculator"></i> Generar Nueva Planilla</h2>
-            <hr>
-            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
-
-            <form th:action="@{/planillas/generar}" method="post">
-                <!-- No se usa th:object="${planilla}" ya que los campos no están directamente en Planilla en este formulario -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-info-circle"></i> Datos para Generar Planilla
+    <section layout:fragment="content">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0 text-white">
+                    <i class="fas fa-file-invoice me-2"></i>
+                    <span th:text="${planilla.idPlanilla != null ? 'Editar Planilla Existente' : 'Crear Nueva Planilla'}"></span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- El action del formulario apunta a '/planillas/guardar' por defecto para ediciones. -->
+                <!-- Para la creación con cálculos, el botón "Crear y Calcular" anulará esto con formaction. -->
+                <form th:action="@{/planillas/guardar}" th:object="${planilla}" method="post">
+                    <input type="hidden" th:field="*{idPlanilla}" />
+                    
+                    <!-- Campo para el Mes -->
+                    <div class="mb-3">
+                        <label for="mes" class="form-label">Mes:</label>
+                        <select id="mes" th:field="*{mes}" class="form-select" th:classappend="${#fields.hasErrors('mes') ? 'is-invalid' : ''}">
+                            <option value="">-- Seleccione Mes --</option>
+                            <option th:each="i : ${#numbers.sequence(1, 12)}"
+                                    th:value="${i}"
+                                    th:text="${T(java.time.Month).of(i).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).getDefault())}"
+                                    th:selected="${i == planilla.mes}">
+                            </option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('mes')}" th:errors="*{mes}"></div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="mes" class="form-label">Mes:</label>
-                                <input type="number" class="form-control" id="mes" name="mes" th:value="${mesActual}" min="1" max="12" required />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="anio" class="form-label">Año:</label>
-                                <input type="number" class="form-control" id="anio" name="anio" th:value="${anioActual}" min="2000" max="2100" required />
-                            </div>
+
+                    <!-- Campo para el Año -->
+                    <div class="mb-3">
+                        <label for="anio" class="form-label">Año:</label>
+                        <input type="number" id="anio" th:field="*{anio}" class="form-control" th:classappend="${#fields.hasErrors('anio') ? 'is-invalid' : ''}" min="2000" max="2100" />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('anio')}" th:errors="*{anio}"></div>
+                    </div>
+
+                    <!-- Campo para el Tipo de Planilla -->
+                    <div class="mb-3">
+                        <label for="tipoPlanilla" class="form-label">Tipo de Planilla:</label>
+                        <select id="tipoPlanilla" th:field="*{tipoPlanilla}" class="form-select" th:classappend="${#fields.hasErrors('tipoPlanilla') ? 'is-invalid' : ''}">
+                            <option value="">-- Seleccione Tipo --</option>
+                            <option th:each="tipo : ${tiposPlanilla}"
+                                    th:value="${tipo}"
+                                    th:text="${tipo.displayName}"
+                                    th:selected="${tipo == planilla.tipoPlanilla}">
+                            </option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('tipoPlanilla')}" th:errors="*{tipoPlanilla}"></div>
+                    </div>
+
+                    <!-- Sección de Botones -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <div>
+                            <!-- Botón para NUEVA PLANILLA: "Crear y Calcular Planilla" -->
+                            <th:block th:if="${planilla.idPlanilla == null}">
+                                <button type="submit" class="btn btn-success me-2"
+                                        formaction="/planillas/generar-con-calculos" formmethod="post"
+                                        onclick="return confirm('¿Está seguro de que desea crear la planilla y generar los cálculos para todos los empleados?');">
+                                    <i class="fas fa-plus-circle me-1"></i> Crear y Calcular Planilla
+                                </button>
+                            </th:block>
+
+                            <!-- Botón para EDITAR PLANILLA: "Guardar Cambios" -->
+                            <th:block th:if="${planilla.idPlanilla != null}">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-save me-1"></i> Guardar Cambios
+                                </button>
+                            </th:block>
+
+                            <!-- Botón "Cancelar" (siempre visible) -->
+                            <a th:href="@{/planillas/listar}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Cancelar
+                            </a>
                         </div>
                     </div>
-                </div>
-
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary me-2"><i class="fas fa-play-circle"></i> Generar Planilla</button>
-                    <a th:href="@{/planillas}" class="btn btn-secondary me-2"><i class="fas fa-times"></i> Cancelar</a>
-                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="card-footer text-muted small">
+                <p class="mb-0">Completa los datos para crear o editar la planilla.</p>
+            </div>
         </div>
-    </div>
+    </section>
 </body>
 </html>

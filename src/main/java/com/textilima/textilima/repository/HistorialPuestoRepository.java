@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.Empleado;
 import com.textilima.textilima.model.HistorialPuesto;
 
+@Repository
 public interface HistorialPuestoRepository extends JpaRepository<HistorialPuesto, Integer> {
     /**
      * Busca el historial de puestos de un empleado específico.

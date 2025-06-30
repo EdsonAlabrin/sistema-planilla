@@ -25,27 +25,26 @@ import java.time.LocalDate; // Importar LocalDate para fechas sin hora
 @AllArgsConstructor // Genera constructor con todos los argumentos
 public class ParametroLegal { // Se usa "ParametroLegal" en singular para la entidad
 
-    @Id
+   @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_parametro")
     private Integer idParametro;
 
-    @Column(name = "codigo", nullable = false, length = 20)
-    private String codigo; // Ej. "RMV", "UIT"
+    @Column(name = "codigo", nullable = false, unique = true, length = 50)
+    private String codigo;
 
     @Column(name = "descripcion", length = 255)
     private String descripcion;
 
-    @Column(name = "valor", nullable = false, precision = 10, scale = 2)
-    private BigDecimal valor; // Usar BigDecimal para precisión monetaria
+    @Column(name = "valor", nullable = false, precision = 10, scale = 4)
+    private BigDecimal valor;
 
     @Column(name = "fecha_vigencia_inicio", nullable = false)
-    private LocalDate fechaVigenciaInicio; // Fecha desde que el parámetro es válido
+    private LocalDate fechaInicioVigencia;
 
-    @Column(name = "fecha_vigencia_fin")
-    private LocalDate fechaVigenciaFin; // Fecha hasta que el parámetro es válido (opcional)
+    @Column(name = "fecha_vigencia_fin") // Permite NULL para vigencia indefinida
+    private LocalDate fechaFinVigencia;
 
-    // Campos de auditoría automática
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -53,14 +52,4 @@ public class ParametroLegal { // Se usa "ParametroLegal" en singular para la ent
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    /*
-     * Observaciones de la revisión de la base de datos:
-     * La clave única uq_codigo_fecha_inicio en la base de datos
-     * (UNIQUE KEY `uq_codigo_fecha_inicio` (`codigo`,`fecha_vigencia_inicio`))
-     * es fundamental y asegura la unicidad por parámetro y vigencia.
-     * La lógica de la aplicación debe asegurarse de consultar el valor
-     * con la fecha_vigencia_inicio más reciente que sea menor o igual
-     * a la fecha de la planilla que se está calculando.
-     */
 }

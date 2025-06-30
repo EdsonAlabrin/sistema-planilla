@@ -10,30 +10,32 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Entidad que representa el detalle de una planilla por empleado.
  * Mapea a la tabla `detalle_planilla`.
- * Contiene los totales calculados de ingresos, descuentos y aportes para un empleado en una planilla específica.
  */
 @Entity
 @Table(name = "detalle_planilla")
-@Data // Genera getters, setters, toString, equals, hashCode
-@NoArgsConstructor // Genera constructor sin argumentos
-@AllArgsConstructor // Genera constructor con todos los argumentos
-public class DetallePlanilla { // Se usa "DetallePlanilla" en singular para la entidad
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DetallePlanilla {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_detalle")
     private Integer idDetalle;
 
-    @ManyToOne // Muchos detalles pueden pertenecer a una misma planilla
-    @JoinColumn(name = "id_planilla", nullable = false) // Columna en `detalle_planilla` que referencia a `planillas`
+    // Relación ManyToOne con Planilla: Cada detalle pertenece a una planilla.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_planilla", nullable = false)
     private Planilla planilla;
 
-    @ManyToOne // Muchos detalles pueden pertenecer a un mismo empleado (en diferentes planillas)
-    @JoinColumn(name = "id_empleado", nullable = false) // Columna en `detalle_planilla` que referencia a `empleados`
+    // Relación ManyToOne con Empleado: Cada detalle es para un empleado específico.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_empleado", nullable = false)
     private Empleado empleado;
 
     @Column(name = "sueldo_base", nullable = false, precision = 10, scale = 2)
@@ -60,7 +62,19 @@ public class DetallePlanilla { // Se usa "DetallePlanilla" en singular para la e
     @Column(name = "sueldo_neto", nullable = false, precision = 10, scale = 2)
     private BigDecimal sueldoNeto;
 
-    // Campos de auditoría automática
+    // Relación OneToMany con MovimientoPlanilla: Un detalle puede tener varios movimientos (ingresos/descuentos).
+    // mappedBy indica que la relación es bidireccional y la columna FK está en MovimientoPlanilla.
+    // CascadeType.ALL significa que operaciones como guardar o eliminar se propagarán.
+    @OneToMany(mappedBy = "detallePlanilla", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<MovimientoPlanilla> movimientosPlanilla;
+
+    // --- NUEVA RELACIÓN OneToOne con Boleta ---
+    // mappedBy indica que la columna de clave foránea reside en la tabla 'boletas'.
+    // FetchType.LAZY para evitar cargar la boleta a menos que sea necesario.
+    // optional = true porque no todos los DetallePlanilla tendrán una Boleta asociada.
+    @OneToOne(mappedBy = "detallePlanilla", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    private Boleta boleta;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -69,16 +83,7 @@ public class DetallePlanilla { // Se usa "DetallePlanilla" en singular para la e
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se mapean las relaciones ManyToOne con Planilla y Empleado.
-     * - Se utilizan BigDecimal para todos los campos monetarios para asegurar la precisión.
-     * - Los campos como remuneracion_computable_afecta, total_ingresos_adicionales,
-     * total_descuentos, total_aportes_empleador, sueldo_bruto, y sueldo_neto
-     * son campos calculados. Es crucial que la lógica de la aplicación sea
-     * la única responsable de calcular y almacenar estos valores correctamente
-     * para evitar inconsistencias.
-     * - La clave única uq_detalle_planilla_empleado en la base de datos
-     * asegura un único detalle de planilla por planilla y empleado.
-     */
+    // PROPIEDAD TRANSITORIA para saber si ya se generó una boleta (NO SE MAPEA A LA BD)
+    @Transient
+    private Boolean boletaGenerada = false;
 }

@@ -1,51 +1,62 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/base}"> <!-- Extiende tu plantilla base -->
+      layout:decorate="~{layout/base}">
 <head>
-    <title th:text="${pageTitle}"></title>
-    <th:block layout:fragment="page-styles">
-        <!-- Estilos específicos para esta página si son necesarios -->
-    </th:block>
+    <title th:text="${banco.idBanco == null ? 'Registrar Nuevo Banco' : 'Editar Banco'}"></title>
 </head>
 <body>
     <div layout:fragment="content">
-        <div class="container mt-5">
-            <h2 th:text="${banco.idBanco == null ? 'Crear Nuevo Banco' : 'Editar Banco'}"></h2>
-            <hr>
-            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+        <div class="container mt-5 mb-5">
+            <h2 class="main-form-title">
+                <i class="fas fa-university"></i>
+                <span th:text="${banco.idBanco == null ? 'Registrar Nuevo Banco' : 'Editar Banco'}"></span>
+            </h2>
+            <hr class="mb-4">
 
-            <form th:action="@{/bancos/guardar}" th:object="${banco}" method="post">
+            <!-- Mensajes flash de error global (si es necesario) -->
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <form th:action="@{/bancos/guardar}" th:object="${banco}" method="post" class="shadow-lg p-4 rounded-3 bg-white">
+                <!-- Campo oculto para el ID, necesario para edición -->
                 <input type="hidden" th:field="*{idBanco}" />
                 <input type="hidden" th:field="*{createdAt}" />
                 <input type="hidden" th:field="*{updatedAt}" />
 
-                <div class="card mb-4">
+                <div class="card mb-4 border-0 shadow-sm">
                     <div class="card-header">
-                        <i class="fas fa-info-circle"></i> Datos del Banco
+                        <i class="fas fa-info-circle me-2"></i> Datos del Banco
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label for="nombreBanco" class="form-label">Nombre del Banco:</label>
-                            <input type="text" class="form-control" id="nombreBanco" th:field="*{nombreBanco}" required />
-                        </div>
-                        <div class="mb-3">
-                            <label for="codigoBanco" class="form-label">Código del Banco (ej: 002):</label>
-                            <input type="text" class="form-control" id="codigoBanco" th:field="*{codigoBanco}" />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nombreBanco" class="form-label">Nombre del Banco:</label>
+                                <input type="text" id="nombreBanco" th:field="*{nombreBanco}" class="form-control" required>
+                                <div th:if="${#fields.hasErrors('nombreBanco')}" th:errors="*{nombreBanco}" class="text-danger"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="codigoBanco" class="form-label">Código del Banco (Opcional):</label>
+                                <input type="text" id="codigoBanco" th:field="*{codigoBanco}" class="form-control">
+                                <div th:if="${#fields.hasErrors('codigoBanco')}" th:errors="*{codigoBanco}" class="text-danger"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save"></i> Guardar Banco</button>
-                    <a th:href="@{/bancos}" class="btn btn-secondary me-2"><i class="fas fa-times"></i> Cancelar</a>
-                    <a th:href="@{/}" class="btn btn-info"><i class="fas fa-home"></i> Ir a Inicio</a>
+                <!-- Botones de Acción -->
+                <div class="mt-4 text-center">
+                    <button type="submit" class="btn btn-primary btn-lg me-3 shadow-sm">
+                        <i class="fas fa-save me-2"></i> Guardar Banco
+                    </button>
+                    <a th:href="@{/bancos/listar}" class="btn btn-secondary btn-lg shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i> Cancelar y Volver
+                    </a>
                 </div>
             </form>
         </div>
     </div>
-    <th:block layout:fragment="page-scripts">
-        <!-- Scripts específicos para esta página si son necesarios -->
-    </th:block>
 </body>
 </html>

@@ -10,9 +10,15 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class DetallePlanillaServiceImpl implements DetallePlanillaService {
     
+    private static final Logger logger = LoggerFactory.getLogger(DetallePlanillaServiceImpl.class);
+
+    // Repository for accessing DetallePlanilla data
    @Autowired // Injects the DetallePlanillaRepository dependency
     private DetallePlanillaRepository detallePlanillaRepository;
 
@@ -73,7 +79,8 @@ public class DetallePlanillaServiceImpl implements DetallePlanillaService {
      * @return A list of DetallePlanilla for the specified payroll.
      */
     @Override
-    public List<DetallePlanilla> getDetallesPlanillaByPlanilla(Planilla planilla) {
+    public List<DetallePlanilla> getDetallesByPlanilla(Planilla planilla) { // <--- ESTE ES EL MÉTODO
+        logger.debug("Buscando detalles para la planilla ID: {}", planilla.getIdPlanilla());
         return detallePlanillaRepository.findByPlanilla(planilla);
     }
 

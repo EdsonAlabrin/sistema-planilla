@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.Asistencia;
 import com.textilima.textilima.model.Empleado;
 
+@Repository
 public interface AsistenciaRepository extends JpaRepository<Asistencia, Integer> {
     /**
      * Busca la asistencia de un empleado para una fecha específica.

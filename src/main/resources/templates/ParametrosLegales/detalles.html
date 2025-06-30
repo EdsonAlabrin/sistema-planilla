@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}"> <!-- Declara que esta página usa el layout base.html -->
+<head>
+    <title>Detalles del Parámetro Legal</title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para los detalles de parámetro legal -->
+        <style>
+            .container {
+                margin-top: 30px;
+                background-color: #ffffff;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+            .card {
+                border-radius: 10px;
+                border: none;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            }
+            .card-header {
+                background-color: #007bff;
+                color: white;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            }
+            .list-group-item strong {
+                color: #007bff;
+            }
+            .btn-secondary {
+                background-color: #6c757d;
+                border-color: #6c757d;
+                border-radius: 8px;
+            }
+            .btn-warning {
+                background-color: #ffc107;
+                border-color: #ffc107;
+                border-radius: 8px;
+            }
+            i {
+                margin-right: 5px;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content"> <!-- Todo el contenido de la página irá dentro de este fragmento -->
+        <div class="container mt-5">
+            <h2 class="text-primary"><i class="fas fa-info-circle"></i> Detalles del Parámetro Legal</h2>
+            <hr>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 th:text="${parametro.descripcion} + ' (' + ${parametro.codigo} + ')'">Descripción del Parámetro</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>ID Parámetro:</strong> <span th:text="${parametro.idParametro}"></span></li>
+                        <li class="list-group-item"><strong>Código:</strong> <span th:text="${parametro.codigo}"></span></li>
+                        <li class="list-group-item"><strong>Valor:</strong> <span th:text="${#numbers.formatCurrency(parametro.valor)}"></span></li>
+                        <li class="list-group-item"><strong>Vigencia Inicio:</strong> <span th:text="${#temporals.format(parametro.fechaVigenciaInicio, 'dd-MM-yyyy')}"></span></li>
+                        <li class="list-group-item">
+                            <strong>Vigencia Fin:</strong>
+                            <span th:if="${parametro.fechaVigenciaFin}" th:text="${#temporals.format(parametro.fechaVigenciaFin, 'dd-MM-yyyy')}"></span>
+                            <span th:unless="${parametro.fechaVigenciaFin}">Vigente Indefinidamente</span>
+                        </li>
+                        <li class="list-group-item"><strong>Fecha Creación:</strong> <span th:text="${#temporals.format(parametro.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></span></li>
+                        <li class="list-group-item"><strong>Última Actualización:</strong> <span th:text="${#temporals.format(parametro.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></span></li>
+                    </ul>
+                </div>
+                <div class="card-footer text-end">
+                    <a th:href="@{/parametros-legales/listar}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left"></i> Volver al Listado</a>
+                    <a th:href="@{/parametros-legales/editar/{id}(id=${parametro.idParametro})}" class="btn btn-warning"><i class="fas fa-edit"></i> Editar Parámetro</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para los detalles de parámetro legal -->
+    </th:block>
+</body>
+</html>

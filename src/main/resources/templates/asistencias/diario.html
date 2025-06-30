@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}"> <!-- Asumo que sigues usando layout/base, si no, ajusta esto -->
+<head>
+    <title>Reporte Diario de Asistencias</title>
+    <th:block layout:fragment="page-styles">
+        <style>
+            .table-hover tbody tr:hover { background-color: rgba(13, 110, 253, 0.1); }
+            .badge-presente { background-color: #28a745; color: white; padding: 0.4em 0.8em; border-radius: 0.5rem; }
+            .badge-tardanza { background-color: #ffc107; color: #212529; padding: 0.4em 0.8em; border-radius: 0.5rem; }
+            .badge-ausente { background-color: #dc3545; color: white; padding: 0.4em 0.8em; border-radius: 0.5rem; }
+            .badge-justificada { background-color: #6f42c1; color: white; padding: 0.4em 0.8em; border-radius: 0.5rem; }
+            .card-header { border-bottom: 1px solid rgba(0, 0, 0, 0.125); }
+            .card-footer { border-top: 1px solid rgba(0, 0, 0, 0.125); }
+            /* Se ha eliminado container-main-content y ahora se basa en el margen del layout/base */
+            /* .container-main-content { margin-top: 20px; margin-bottom: 20px; } */
+            .card.shadow { border-radius: 1rem; overflow: hidden; }
+            .bg-primary { background-color: #0d6efd !important; }
+            .form-control.me-2 { border-radius: 0.5rem; }
+            .btn-light { border-radius: 0.5rem; }
+            
+            /* CORRECCIONES PARA EL BOTÓN "Volver a Marcar" */
+            .btn-back-bottom {
+                position: fixed;
+                bottom: 1.5rem;
+                /* Ajustamos 'left' para que esté fuera del sidebar en pantallas grandes */
+                left: calc(250px + 1.5rem); /* Ancho del sidebar (250px) + un padding (1.5rem) */
+                z-index: 1040; /* ¡MUY IMPORTANTE! Debe ser mayor que el z-index del sidebar (1030) */
+                background-color: #6c757d;
+                color: white;
+                border-radius: 0.75rem;
+                padding: 0.75rem 1.5rem;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+            }
+            .btn-back-bottom:hover {
+                background-color: #5a6268;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            }
+
+            /* Media query para ajustar la posición del botón en pantallas pequeñas (donde el sidebar se colapsa o superpone) */
+            @media (max-width: 768px) {
+                .btn-back-bottom {
+                    left: 1.5rem; /* Vuelve a la posición original en pantallas pequeñas */
+                }
+            }
+            /* FIN DE CORRECCIONES PARA EL BOTÓN */
+
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <!-- El contenedor principal del contenido ya viene con margin-left desde layout/base -->
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-calendar-day me-2"></i>
+                        Reporte Diario de Asistencias
+                        <span th:text="${#temporals.format(fechaConsulta, 'dd/MM/yyyy')}"
+                              class="ms-3 badge bg-secondary"></span>
+                    </h4>
+                    <form th:action="@{/asistencias/diario}" method="get" class="d-flex align-items-center">
+                        <input type="date" name="fecha" th:value="${#temporals.format(fechaConsulta, 'yyyy-MM-dd')}"
+                               class="form-control me-2" style="width: 180px;" onchange="this.form.submit()">
+                        <button type="submit" class="btn btn-light" title="Buscar por fecha">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="alert alert-info text-center" role="alert" th:if="${#lists.isEmpty(asistencias)}">
+                    No se encontraron registros de asistencia para el <strong
+                        th:text="${#temporals.format(fechaConsulta, 'dd/MM/yyyy')}"></strong>.
+                </div>
+
+                <div class="table-responsive" th:unless="${#lists.isEmpty(asistencias)}">
+                    <table class="table table-hover table-striped table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Empleado</th>
+                                <th>DNI</th>
+                                <th>Entrada</th>
+                                <th>Salida</th>
+                                <th>Estado</th>
+                                <th>Horas Trabajadas</th>
+                                <th>Min. Tardanza</th>
+                                <th>HE 25%</th>
+                                <th>HE 35%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="asist, stat : ${asistencias}">
+                                <td th:text="${stat.count}"></td>
+                                <td>
+                                    <span th:text="${asist.empleado.apellidos + ', ' + asist.empleado.nombres}"></span>
+                                </td>
+                                <td th:text="${asist.empleado.numeroDocumento}"></td>
+                                <td th:text="${asist.horaEntrada != null ? #temporals.format(asist.horaEntrada, 'HH:mm:ss') : '--:--:--'}"></td>
+                                <td>
+                                    <span th:if="${asist.horaSalida != null}"
+                                          th:text="${#temporals.format(asist.horaSalida, 'HH:mm:ss')}"></span>
+                                    <span th:unless="${asist.horaSalida != null}" class="text-muted">--:--:--</span>
+                                </td>
+                                <td>
+                                    <span th:switch="${asist.estado != null ? asist.estado.name() : ''}" class="badge rounded-pill">
+                                        <span th:case="'PRESENTE'" class="badge-presente">Presente</span>
+                                        <span th:case="'TARDANZA'" class="badge-tardanza">Tardanza</span>
+                                        <span th:case="'AUSENTE'" class="badge-ausente">Ausente</span>
+                                        <span th:case="'FALTA_JUSTIFICADA'" class="badge-justificada">Falta Justificada</span>
+                                        <span th:case="''" class="badge bg-secondary">Sin Estado</span>
+                                        <span th:case="*" class="badge bg-secondary">Desconocido</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:text="${asist.horasTrabajadasFormateadas}"></span>
+                                </td>
+                                <td th:text="${asist.minutosTardanza ?: 0}"></td>
+                                <td th:text="${#numbers.formatDecimal(asist.horasExtras25, 0, 2)}"></td>
+                                <td th:text="${#numbers.formatDecimal(asist.horasExtras35, 0, 2)}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <div class="text-muted">
+                        <span th:text="'Mostrando ' + ${#lists.size(asistencias)} + ' registros'"></span>
+                    </div>
+                    <div>
+                        <a th:href="@{/asistencias/diario(fecha=${#temporals.format(fechaConsulta.minusDays(1), 'yyyy-MM-dd')})}"
+                           class="btn btn-outline-primary me-2" title="Día anterior">
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </a>
+                        <a th:href="@{/asistencias/diario(fecha=${#temporals.format(fechaConsulta.plusDays(1), 'yyyy-MM-dd')})}"
+                           class="btn btn-outline-primary" title="Día siguiente">
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer text-muted small">
+                <div class="d-flex justify-content-between">
+                    <span>Generado el <span
+                                th:text="${#temporals.format(fechaActual, 'dd/MM/yyyy HH:mm')}"></span></span>
+                    <span>Total registros: <span th:text="${#lists.size(asistencias)}"></span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón Volver al registro (fijo en la esquina) -->
+        <a th:href="@{/asistencias/registro}" class="btn btn-secondary btn-back-bottom">
+            <i class="fas fa-arrow-left"></i> Volver a Marcar
+        </a>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos de la página -->
+    </th:block>
+</body>
+</html>

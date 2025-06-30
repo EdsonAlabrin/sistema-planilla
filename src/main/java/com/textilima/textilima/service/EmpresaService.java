@@ -38,5 +38,8 @@ public interface EmpresaService {
      * @return Un Optional que contiene la Empresa si se encuentra, o vacío si no existe.
      */
     Optional<Empresa> getEmpresaByRuc(String ruc);
+
+    // Método para obtener la única empresa registrada (o la primera)
+    Optional<Empresa> getOneCompany();
 }
 

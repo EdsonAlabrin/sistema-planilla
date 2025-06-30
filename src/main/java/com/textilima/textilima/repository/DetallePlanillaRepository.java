@@ -1,11 +1,15 @@
 package com.textilima.textilima.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.DetallePlanilla;
 import com.textilima.textilima.model.Empleado;
 import com.textilima.textilima.model.Planilla;
+
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,5 +37,10 @@ public interface DetallePlanillaRepository extends JpaRepository<DetallePlanilla
      * @return Una lista de DetallePlanilla para el empleado especificado.
      */
     List<DetallePlanilla> findByEmpleado(Empleado empleado);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM DetallePlanilla dp WHERE dp.planilla.idPlanilla = :idPlanilla")
+    void deleteByPlanillaId(Integer idPlanilla); // CAMBIADO A INTEGER
 }
 

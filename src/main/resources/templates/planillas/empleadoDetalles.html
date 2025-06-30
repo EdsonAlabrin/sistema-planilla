@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:title-pattern="$CONTENT_TITLE" th:text="${'Detalle de Empleado - ' + detallePlanilla.empleado.nombres + ' ' + detallePlanilla.empleado.apellidos}"></title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header card-header-custom">
+                <h1 class="h4 mb-0"
+                    th:text="${'Detalle de Planilla para ' + detallePlanilla.empleado.nombres + ' ' + detallePlanilla.empleado.apellidos}">
+                    Detalle de Empleado
+                </h1>
+                <h2 class="h6 mb-0 text-white-75"
+                    th:text="${'Planilla: ' + detallePlanilla.planilla.tipoPlanilla + ' ' + detallePlanilla.planilla.mes + '/' + detallePlanilla.planilla.anio}"></h2>
+            </div>
+            <div class="card-body">
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
+                    <div class="col">
+                        <div class="card text-center bg-light border-info">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">Sueldo Base:</h5>
+                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoBase, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-center bg-light border-info">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">Asignación Familiar:</h5>
+                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.asignacionFamiliar, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-center bg-light border-info">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">Remuneración Computable Afecta:</h5>
+                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.remuneracionComputableAfecta, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-center bg-light border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">Total Ingresos Adicionales:</h5>
+                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalIngresosAdicionales, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-center bg-light border-danger">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger">Total Descuentos:</h5>
+                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalDescuentos, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-center bg-light border-purple">
+                            <div class="card-body">
+                                <h5 class="card-title text-purple">Total Aportes Empleador (Essalud):</h5>
+                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalAportesEmpleador, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card text-center bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Sueldo Bruto:</h5>
+                                <p class="card-text fs-3 fw-bolder" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoBruto, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card text-center bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Sueldo Neto:</h5>
+                                <p class="card-text fs-3 fw-bolder" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoNeto, 1, 'COMMA', 2, 'POINT')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="h5 mb-3 text-gray-800">Desglose de Movimientos</h2>
+
+                <div class="row g-3">
+                    <!-- Ingresos -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-success">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="h5 mb-0">Ingresos</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    <!-- Iterar sobre los movimientos cuyo tipo de concepto sea INGRESO -->
+                                    <li th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'INGRESO']}"
+                                        class="py-1 border-bottom d-flex justify-content-between align-items-center">
+                                        <span th:text="${mov.concepto.nombreConcepto}"></span>
+                                        <span class="fw-semibold" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></span>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'INGRESO'])}" class="text-muted text-center py-2">
+                                        No hay ingresos detallados adicionales.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Descuentos -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h3 class="h5 mb-0">Descuentos</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    <!-- Iterar sobre los movimientos cuyo tipo de concepto sea DESCUENTO -->
+                                    <li th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'DESCUENTO']}"
+                                        class="py-1 border-bottom d-flex justify-content-between align-items-center">
+                                        <span th:text="${mov.concepto.nombreConcepto}"></span>
+                                        <span class="fw-semibold" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></span>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'DESCUENTO'])}" class="text-muted text-center py-2">
+                                        No hay descuentos detallados.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aportes Empleador -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-purple">
+                            <div class="card-header bg-purple text-white">
+                                <h3 class="h5 mb-0">Aportes del Empleador</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    <!-- Iterar sobre los movimientos cuyo tipo de concepto sea APORTE_EMPLEADOR -->
+                                    <li th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'APORTE_EMPLEADOR']}"
+                                        class="py-1 border-bottom d-flex justify-content-between align-items-center">
+                                        <span th:text="${mov.concepto.nombreConcepto}"></span>
+                                        <span class="fw-semibold" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></span>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'APORTE_EMPLEADOR'])}" class="text-muted text-center py-2">
+                                        No hay aportes del empleador detallados.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-start">
+                    <a th:href="@{/planillas/{id}/detalles(id=${detallePlanilla.planilla.idPlanilla})}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Volver a Detalles de Planilla
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Estilos CSS personalizados para los colores de las tarjetas -->
+        <style>
+            .border-purple { border-color: #6f42c1 !important; }
+            .bg-purple { background-color: #6f42c1 !important; }
+            .text-purple { color: #6f42c1 !important; }
+        </style>
+    </section>
+</body>
+</html>

@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.Boleta;
 import com.textilima.textilima.model.DetallePlanilla;
 
+@Repository
 public interface BoletaRepository  extends JpaRepository<Boleta, Integer> {
     /**
      * Busca una boleta por su detalle de planilla asociado.

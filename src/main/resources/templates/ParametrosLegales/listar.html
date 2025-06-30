@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}"> <!-- Declara que esta página usa el layout base.html -->
+<head>
+    <title>Listado de Parámetros Legales</title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para la lista de parámetros legales, si los hay -->
+        <style>
+            .container {
+                margin-top: 30px;
+                background-color: #ffffff;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+            .table {
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            .table th {
+                background-color: #007bff;
+                color: white;
+            }
+            .table-striped tbody tr:nth-of-type(odd) {
+                background-color: #f2f7ff; /* Un azul claro */
+            }
+            .btn-primary {
+                background-color: #007bff;
+                border-color: #007bff;
+                border-radius: 8px;
+            }
+            .btn-info {
+                background-color: #17a2b8;
+                border-color: #17a2b8;
+                border-radius: 8px;
+            }
+            .btn-warning {
+                background-color: #ffc107;
+                border-color: #ffc107;
+                border-radius: 8px;
+            }
+            .btn-danger {
+                background-color: #dc3545;
+                border-color: #dc3545;
+                border-radius: 8px;
+            }
+            .alert {
+                border-radius: 10px;
+            }
+            i {
+                margin-right: 5px;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content"> <!-- Todo el contenido de la página irá dentro de este fragmento -->
+        <div class="container mt-5">
+            <h2 class="text-primary"><i class="fas fa-balance-scale"></i> Listado de Parámetros Legales</h2>
+            <hr>
+            <a th:href="@{/parametros-legales/nuevo}" class="btn btn-primary mb-3"><i class="fas fa-plus-circle"></i> Nuevo Parámetro</a>
+
+            <!-- Mensajes flash de éxito/error -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${parametros.empty}" class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle"></i> No hay parámetros legales registrados. <a th:href="@{/parametros-legales/nuevo}">¡Crea uno ahora!</a>
+            </div>
+
+            <div th:if="${!parametros.empty}">
+                <table class="table table-striped table-bordered rounded">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Valor</th>
+                            <th>Vigencia Inicio</th>
+                            <th>Vigencia Fin</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="parametro : ${parametros}">
+                            <td th:text="${parametro.idParametro}"></td>
+                            <td th:text="${parametro.codigo}"></td>
+                            <td th:text="${parametro.descripcion}"></td>
+                            <td th:text="${#numbers.formatCurrency(parametro.valor)}"></td>
+                            <td th:text="${#temporals.format(parametro.fechaVigenciaInicio, 'dd-MM-yyyy')}"></td>
+                            <td>
+                                <span th:if="${parametro.fechaVigenciaFin}" th:text="${#temporals.format(parametro.fechaVigenciaFin, 'dd-MM-yyyy')}"></span>
+                                <span th:unless="${parametro.fechaVigenciaFin}">Actual</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/parametros-legales/detalles/{id}(id=${parametro.idParametro})}" class="btn btn-info btn-sm me-1"><i class="fas fa-eye"></i> Ver</a>
+                                <a th:href="@{/parametros-legales/editar/{id}(id=${parametro.idParametro})}" class="btn btn-warning btn-sm me-1"><i class="fas fa-edit"></i> Editar</a>
+                                <a th:href="@{/parametros-legales/eliminar/{id}(id=${parametro.idParametro})}" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('¿Estás seguro de que quieres eliminar este parámetro legal?');"><i class="fas fa-trash-alt"></i> Eliminar</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para la lista de parámetros legales -->
+    </th:block>
+</body>
+</html>

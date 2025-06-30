@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalTime;
 
 /**
  * Entidad que representa los puestos de trabajo en la empresa.
@@ -23,7 +24,7 @@ import java.time.Instant;
 @AllArgsConstructor // Genera constructor con todos los argumentos
 public class Puesto { // Se usa "Puesto" en singular para la entidad
 
-    @Id
+  @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_puesto")
     private Integer idPuesto;
@@ -34,8 +35,17 @@ public class Puesto { // Se usa "Puesto" en singular para la entidad
     @Column(name = "salario_base", nullable = false, precision = 10, scale = 2)
     private BigDecimal salarioBase; // Usar BigDecimal para precisión monetaria
 
-    @Column(name = "jornada_laboral_horas", precision = 4, scale = 2)
-    private BigDecimal jornadaLaboralHoras; // Puede ser decimal (ej. 8.50 horas)
+    @Column(name = "jornada_laboral_horas")
+    private Integer jornadaLaboralHoras; // Horas de la jornada laboral (ej. 8)
+
+    @Column(name = "hora_inicio_jornada") // Nueva columna para la hora de inicio de la jornada
+    private LocalTime horaInicioJornada;
+
+    @Column(name = "hora_fin_jornada") // Nueva columna para la hora de fin de la jornada
+    private LocalTime horaFinJornada;
+
+    @Column(name = "descripcion", columnDefinition = "TEXT") // TEXT para descripciones largas
+    private String descripcion;
 
     // Campos de auditoría automática
     @CreationTimestamp
@@ -47,10 +57,11 @@ public class Puesto { // Se usa "Puesto" en singular para la entidad
     private Instant updatedAt;
 
     /*
-     * Sugerencia de mejora de la base de datos:
-     * Si los salarios base cambian con el tiempo y necesitas un histórico,
-     * podrías considerar una tabla separada 'historial_salarios_puesto'
-     * o añadir una fecha de vigencia a esta tabla para registrar los cambios.
-     * Por ahora, se mantiene el diseño original de la tabla 'puestos'.
+     * Observaciones de la revisión de la base de datos aplicadas:
+     * - Se usa BigDecimal para salario_base para asegurar la precisión.
+     * - Se mapea a la tabla 'puestos'.
+     * - Se añaden horaInicioJornada y horaFinJornada para el cálculo preciso de asistencia.
+     * - El campo 'descripcion' utiliza columnDefinition = "TEXT" para mapearse a un tipo TEXT en la BD,
+     * permitiendo descripciones más largas.
      */
 }

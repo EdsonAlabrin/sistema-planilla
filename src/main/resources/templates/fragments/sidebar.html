@@ -11,20 +11,19 @@
         <h3>🧵 TextiLima</h3>
 
         <a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a>
-        <a th:href="@{/asistencia/marcar}"><i class="fas fa-calendar-check"></i> Asistencia</a>
+        <a th:href="@{/asistencias/registro}"><i class="fas fa-calendar-check"></i> Asistencia</a>
         <a th:href="@{/empleados/listar}"><i class="fas fa-users"></i> Empleados</a>
         <a th:href="@{/puestos/listar}"><i class="fas fa-briefcase"></i> Puestos</a>
         <a th:href="@{/bancos/listar}"><i class="fas fa-university"></i> Bancos</a>
         <a th:href="@{/conceptos}"><i class="fas fa-tags"></i> Conceptos de Pago</a>
-        <a th:href="@{/planillas}"><i class="fas fa-file-invoice"></i> Planillas</a>
+        <a th:href="@{/planillas/listar}"><i class="fas fa-file-invoice"></i> Planillas</a>
 
         <!-- Los siguientes enlaces se han comentado/eliminado temporalmente hasta que se implementen sus controladores y vistas -->
         <!-- <a th:href="@{/descripcion}"><i class="fas fa-info-circle"></i> Nosotros</a> -->
         
         <!-- <a th:href="@{/boletas}"><i class="fas fa-receipt"></i> Boletas</a> -->
-        <!-- <a th:href="@{/bonos}"><i class="fas fa-gift"></i> Bonos</a> -->
-        <!-- <a th:href="@{/descuentos}"><i class="fas fa-percent"></i> Descuentos</a> -->
-        <!-- <a th:href="@{/usuarios}"><i class="fas fa-user-cog"></i> Usuarios</a> -->
+        
+        <a th:href="@{/usuarios}"><i class="fas fa-user-cog"></i> Usuarios</a> 
     </nav>
 
     <nav class="sidebar" th:fragment="sidebar-user">

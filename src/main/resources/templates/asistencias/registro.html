@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Marcar Asistencia</title>
+    <th:block layout:fragment="page-styles">
+        <!-- Estilos específicos para esta página -->
+        <style>
+            /* Reset body margin and add flexbox for centering if not handled by layout/base */
+            body.is-toggled #page-content-wrapper { /* Adjust if page-content-wrapper interferes with body centering */
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                min-height: calc(100vh - 56px); /* Adjust for navbar height if fixed */
+                background: linear-gradient(135deg, #f7f9fc 0%, #2c3e50 100%);
+            }
+            body:not(.is-toggled) #page-content-wrapper {
+                 display: flex;
+                 flex-direction: column;
+                 justify-content: center;
+                 align-items: center;
+                 min-height: calc(100vh - 56px); /* Adjust for navbar height if fixed */
+                 background: linear-gradient(135deg, #f7f9fc 0%, #2c3e50 100%);
+            }
+            /* Ensure content takes full height when sidebar is open or closed */
+            #page-content-wrapper {
+                flex-grow: 1;
+            }
+
+            /* Container for the card to control its width */
+            .main-content > .container-fluid {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-grow: 1; /* Make it fill available space */
+            }
+
+            .asistencia-card {
+                max-width: 420px;
+                width: 100%; /* Ensure it's responsive */
+                border: none;
+                border-radius: 1rem;
+                animation: fadeIn 0.7s ease;
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important; /* Stronger shadow for pop */
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .bg-gradient-primary {
+                background: linear-gradient(90deg, #416fcc 0%, #031e38 100%);
+            }
+
+            .btn-gradient-entrada {
+                background: linear-gradient(90deg, #28a745 0%, #17a2b8 100%); /* Greenish/Teal gradient */
+                border: none;
+                color: white;
+                font-weight: bold;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                border-radius: 0.75rem; /* Slightly rounded for gradient buttons */
+            }
+
+            .btn-gradient-entrada:hover {
+                filter: brightness(1.1);
+                transform: translateY(-2px);
+                box-shadow: 0 0.25rem 0.5rem rgba(40, 167, 69, 0.3) !important;
+            }
+
+            .btn-gradient-salida {
+                background: linear-gradient(90deg, #dc3545 0%, #fd7e14 100%); /* Red/Orange gradient */
+                border: none;
+                color: white;
+                font-weight: bold;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                border-radius: 0.75rem; /* Slightly rounded for gradient buttons */
+            }
+
+            .btn-gradient-salida:hover {
+                filter: brightness(1.1);
+                transform: translateY(-2px);
+                box-shadow: 0 0.25rem 0.5rem rgba(220, 53, 69, 0.3) !important;
+            }
+
+            .clock {
+                font-size: 2.2rem; /* Even larger for impact */
+                font-weight: 900; /* Extra bold */
+                color: #0d6efd;
+                text-align: center;
+                user-select: none;
+                margin-bottom: 1.5rem;
+                text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            }
+
+            .btn-back {
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+                z-index: 10;
+            }
+
+            .alert {
+                border-radius: 0.75rem; /* Consistent with other elements */
+            }
+
+            /* Ensure input is large and centered */
+            .form-control-lg {
+                height: calc(2.5rem + 1.25rem); /* Adjust height for larger input */
+                padding: 0.75rem 1rem;
+            }
+            .input-group-text {
+                background-color: #e9ecef; /* Light gray background */
+                border-right: none;
+                border-radius: 0.75rem 0 0 0.75rem;
+            }
+            .input-group .form-control {
+                border-left: none;
+                border-radius: 0 0.75rem 0.75rem 0;
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 576px) {
+                .asistencia-card {
+                    margin: 1rem; /* Add margin on small screens */
+                }
+                .btn-lg {
+                    font-size: 1rem; /* Adjust font size for small buttons */
+                    padding: 0.5rem 1rem;
+                }
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <!-- Este contenedor se centrará en el body gracias a los estilos de page-styles -->
+        <div class="d-flex justify-content-center align-items-center min-vh-100 w-100">
+            <div class="card asistencia-card">
+                <div class="card-header text-white text-center bg-gradient-primary py-3">
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-user-check me-2"></i>
+                        Registro de Asistencia
+                    </h4>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Reloj en vivo -->
+                    <div id="clock" class="clock mb-4" aria-live="polite" aria-atomic="true">00:00:00</div>
+
+                    <!-- Mensajes flash de éxito/error -->
+                    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-times-circle me-2"></i> <span th:text="${errorMessage}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Formulario de marcado de asistencia -->
+                    <form th:action="@{/asistencias/marcar}" method="post">
+                        <div class="input-group mb-4 shadow-sm">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            <input type="text" name="numeroDocumento" id="numeroDocumento" placeholder="Ingrese su DNI"
+                                   class="form-control form-control-lg text-center"
+                                   pattern="\d{8}" title="Debe ingresar 8 dígitos numéricos" required autofocus />
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <button type="submit" name="tipoMarca" value="entrada" class="btn btn-gradient-entrada btn-lg flex-grow-1">
+                                <i class="fas fa-sign-in-alt me-1"></i> Marcar Entrada
+                            </button>
+                            <button type="submit" name="tipoMarca" value="salida" class="btn btn-gradient-salida btn-lg flex-grow-1">
+                                <i class="fas fa-sign-out-alt me-1"></i> Marcar Salida
+                            </button>
+                        </div>
+                        <p class="text-center text-muted mt-3 mb-0">Fecha actual: <span th:text="${#temporals.format(fechaActual, 'dd/MM/yyyy')}"></span></p>
+                    </form>
+
+                    <!-- Botón para ir al reporte diario -->
+                    <div class="mt-4 text-center">
+                        <a th:href="@{/asistencias/diario}" class="btn btn-info btn-lg w-100 shadow-sm"> <!-- ¡VERIFICA ESTA LÍNEA! -->
+                            <i class="fas fa-clipboard-list me-2"></i> Ver Reporte Diario
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para esta página (reloj y alertas) -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const clockEl = document.getElementById('clock');
+                const updateClock = () => {
+                    const now = new Date();
+                    const h = String(now.getHours()).padStart(2, '0');
+                    const m = String(now.getMinutes()).padStart(2, '0');
+                    const s = String(now.getSeconds()).padStart(2, '0');
+                    clockEl.textContent = `${h}:${m}:${s}`;
+                };
+
+                updateClock(); // Inicializa el reloj
+                setInterval(updateClock, 1000); // Actualiza cada segundo
+
+                // Para que los mensajes de alerta desaparezcan después de un tiempo
+                const alertElement = document.querySelector('.alert');
+                if (alertElement) {
+                    setTimeout(() => {
+                        alertElement.style.transition = 'opacity 0.5s ease-out';
+                        alertElement.style.opacity = '0';
+                        setTimeout(() => alertElement.remove(), 500);
+                    }, 7000); // 7 segundos para dar tiempo a leer
+                }
+            });
+        </script>
+    </th:block>
+</body>
+</html>

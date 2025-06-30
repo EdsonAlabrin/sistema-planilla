@@ -1,95 +1,123 @@
 package com.textilima.textilima.service.impl;
 
 import com.textilima.textilima.model.Asistencia;
+import com.textilima.textilima.model.Asistencia.EstadoAsistencia;
 import com.textilima.textilima.model.Empleado;
+import com.textilima.textilima.model.Puesto;
 import com.textilima.textilima.repository.AsistenciaRepository;
 import com.textilima.textilima.service.AsistenciaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class AsistenciaServiceImpl implements AsistenciaService {
 
-    @Autowired // Injects the AsistenciaRepository dependency
+    @Autowired
     private AsistenciaRepository asistenciaRepository;
 
-    /**
-     * Retrieves a list of all attendances.
-     * @return A list of Asistencia objects.
-     */
     @Override
     public List<Asistencia> getAllAsistencias() {
         return asistenciaRepository.findAll();
     }
 
-    /**
-     * Retrieves an attendance record by its ID.
-     * @param id The ID of the attendance record.
-     * @return An Optional containing the Asistencia if found, or empty if not found.
-     */
     @Override
-    public Optional<Asistencia> getAsistenciaById(Integer idAsistencia) {
-        return asistenciaRepository.findById(idAsistencia);
+    public Optional<Asistencia> getAsistenciaById(Integer id) {
+        return asistenciaRepository.findById(id);
     }
 
-    /**
-     * Saves a new attendance record or updates an existing one.
-     * @param asistencia The Asistencia object to save/update.
-     * @return The saved/updated Asistencia.
-     */
     @Override
     public Asistencia saveAsistencia(Asistencia asistencia) {
-        // Here you could add additional business logic before saving,
-        // for example, calculating tardiness minutes based on entry time and expected time.
         return asistenciaRepository.save(asistencia);
     }
 
-    /**
-     * Deletes an attendance record by its ID.
-     * @param id The ID of the attendance record to delete.
-     */
     @Override
-    public void deleteAsistencia(Integer idAsistencia) {
-        asistenciaRepository.deleteById(idAsistencia);
+    public void deleteAsistencia(Integer id) {
+        asistenciaRepository.deleteById(id);
     }
 
-    /**
-     * Searches for an employee's attendance for a specific date.
-     * @param empleado The employee.
-     * @param fecha The date of the attendance.
-     * @return An Optional containing the found Asistencia, or empty if not found.
-     */
     @Override
     public Optional<Asistencia> getAsistenciaByEmpleadoAndFecha(Empleado empleado, LocalDate fecha) {
         return asistenciaRepository.findByEmpleadoAndFecha(empleado, fecha);
     }
 
-    /**
-     * Searches for all attendance records of an employee within a date range.
-     * @param empleado The employee.
-     * @param fechaInicio The start date of the range (inclusive).
-     * @param fechaFin The end date of the range (inclusive).
-     * @return A list of attendance records for the employee within the specified range.
-     */
     @Override
     public List<Asistencia> getAsistenciasByEmpleadoAndFechaBetween(Empleado empleado, LocalDate fechaInicio, LocalDate fechaFin) {
         return asistenciaRepository.findByEmpleadoAndFechaBetween(empleado, fechaInicio, fechaFin);
     }
 
-    /**
-     * Searches for attendance records with tardiness or absence status for an employee within a date range.
-     * This is useful for calculating payroll deductions.
-     * @param empleado The employee.
-     * @param fechaInicio The start date of the range (inclusive).
-     * @param fechaFin The end date of the range (inclusive).
-     * @param estados The attendance statuses to search for (e.g., Asistencia.EstadoAsistencia.TARDANZA, Asistencia.EstadoAsistencia.AUSENTE).
-     * @return A list of attendance records matching the statuses and date range.
-     */
     @Override
     public List<Asistencia> getAsistenciasByEmpleadoAndFechaBetweenAndEstados(Empleado empleado, LocalDate fechaInicio, LocalDate fechaFin, List<Asistencia.EstadoAsistencia> estados) {
         return asistenciaRepository.findByEmpleadoAndFechaBetweenAndEstadoIn(empleado, fechaInicio, fechaFin, estados);
+    }
+
+    @Override
+    public Asistencia calculateTardinessAndOvertime(Asistencia asistencia, Puesto puesto) {
+        if (asistencia.getHoraEntrada() == null || asistencia.getHoraSalida() == null ||
+            puesto.getHoraInicioJornada() == null || puesto.getHoraFinJornada() == null ||
+            puesto.getJornadaLaboralHoras() == null) {
+            throw new IllegalArgumentException("Información de asistencia o jornada laboral incompleta para calcular tardanzas/horas extras.");
+        }
+
+        LocalTime horaEntradaReal = asistencia.getHoraEntrada();
+        LocalTime horaSalidaReal = asistencia.getHoraSalida();
+        LocalTime horaInicioJornada = puesto.getHoraInicioJornada();
+        LocalTime horaFinJornada = puesto.getHoraFinJornada();
+        Integer jornadaLaboralHoras = puesto.getJornadaLaboralHoras();
+
+        asistencia.setMinutosTardanza(0);
+        asistencia.setHorasExtras25(BigDecimal.ZERO);
+        asistencia.setHorasExtras35(BigDecimal.ZERO);
+        asistencia.setEstado(Asistencia.EstadoAsistencia.PRESENTE);
+
+        // 1. Calcular Tardanza
+        if (horaEntradaReal.isAfter(horaInicioJornada)) {
+            Duration tardanzaDuration = Duration.between(horaInicioJornada, horaEntradaReal);
+            long minutosTardanza = tardanzaDuration.toMinutes();
+            asistencia.setMinutosTardanza((int) minutosTardanza);
+            asistencia.setEstado(Asistencia.EstadoAsistencia.TARDANZA);
+        }
+
+        // 2. Calcular Horas Efectivas Trabajadas y Horas Extras
+        Duration duracionTrabajada = Duration.between(horaEntradaReal, horaSalidaReal);
+        long minutosTrabajados = duracionTrabajada.toMinutes();
+
+        long jornadaLaboralMinutos = jornadaLaboralHoras * 60L;
+
+        if (minutosTrabajados > jornadaLaboralMinutos) {
+            // Horas adicionales más allá del fin de jornada o más allá de las horas de jornada
+            Duration horasExtrasRawDuration = Duration.between(horaFinJornada, horaSalidaReal);
+
+            if (horasExtrasRawDuration.isNegative()) {
+                horasExtrasRawDuration = Duration.ZERO;
+            }
+
+            BigDecimal totalHorasExtras = BigDecimal.valueOf(horasExtrasRawDuration.toMinutes()).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+
+            BigDecimal limiteHoras25 = BigDecimal.valueOf(2.0);
+            BigDecimal horas25 = BigDecimal.ZERO;
+            BigDecimal horas35 = BigDecimal.ZERO;
+
+            if (totalHorasExtras.compareTo(BigDecimal.ZERO) > 0) {
+                if (totalHorasExtras.compareTo(limiteHoras25) <= 0) {
+                    horas25 = totalHorasExtras;
+                } else {
+                    horas25 = limiteHoras25;
+                    horas35 = totalHorasExtras.subtract(limiteHoras25);
+                }
+            }
+
+            asistencia.setHorasExtras25(horas25);
+            asistencia.setHorasExtras35(horas35);
+        }
+
+        return asistencia;
     }
 }

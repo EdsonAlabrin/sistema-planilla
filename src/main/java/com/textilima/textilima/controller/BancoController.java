@@ -15,96 +15,129 @@ import java.util.Optional;
 @RequestMapping("/bancos") // Mapea todas las solicitudes que comienzan con /bancos a este controlador
 public class BancoController {
 
-    private final BancoService bancoService; // Inyección del servicio de Banco
+    private final BancoService bancoService;
 
-    @Autowired // Constructor para inyección de dependencias
+    @Autowired
     public BancoController(BancoService bancoService) {
         this.bancoService = bancoService;
     }
 
-    // Muestra la lista de todos los bancos
-    @GetMapping ("/listar")// Mapea las solicitudes GET a /bancos
-    public String listBancos(Model model) {
-        List<Banco> bancos = bancoService.findAll();
-        model.addAttribute("bancos", bancos); // Añade la lista de bancos al modelo para la vista
-        return "bancos/listar"; // Retorna el nombre de la vista (Thymeleaf buscará en src/main/resources/templates/bancos/list.html)
+    /**
+     * Muestra la lista de todos los bancos.
+     * GET /bancos/listar
+     * @param model Objeto Model para pasar datos a la vista.
+     * @return El nombre de la vista Thymeleaf (bancos/listar.html).
+     */
+    @GetMapping("/listar")
+    public String listarBancos(Model model) {
+        List<Banco> bancos = bancoService.getAllBancos();
+        model.addAttribute("bancos", bancos);
+        return "bancos/listar"; // Nombre de la vista Thymeleaf
     }
 
-    // Muestra el formulario para crear un nuevo banco
-    @GetMapping("/nuevo") // Mapea las solicitudes GET a /bancos/nuevo
-    public String showNewBancoForm(Model model) {
-        model.addAttribute("banco", new Banco()); // Crea una nueva instancia de Banco para el formulario
-        model.addAttribute("pageTitle", "Crear Nuevo Banco"); // Título para la página
-        return "bancos/form"; // Retorna el formulario de banco
+    /**
+     * Muestra el formulario para crear un nuevo banco.
+     * GET /bancos/nuevo
+     * @param model Objeto Model para pasar un Banco vacío a la vista.
+     * @return El nombre de la vista Thymeleaf (bancos/form.html).
+     */
+    @GetMapping("/nuevo")
+    public String mostrarFormularioCrear(Model model) {
+        model.addAttribute("banco", new Banco());
+        return "bancos/form"; // Nombre de la vista Thymeleaf
     }
 
-    // Muestra el formulario para editar un banco existente
-    @GetMapping("/editar/{id}") // Mapea las solicitudes GET a /bancos/editar/{id}
-    public String showEditBancoForm(@PathVariable Integer id, Model model, RedirectAttributes ra) {
-        Optional<Banco> bancoOptional = bancoService.findById(id);
-        if (bancoOptional.isPresent()) {
-            model.addAttribute("banco", bancoOptional.get());
-            model.addAttribute("pageTitle", "Editar Banco (ID: " + id + ")");
-            return "bancos/form";
-        } else {
-            ra.addFlashAttribute("errorMessage", "Banco no encontrado con ID: " + id);
-            return "redirect:/bancos"; // Redirige a la lista si el banco no existe
-        }
-    }
-
-    // Guarda un banco nuevo o actualizado
-    @PostMapping("/guardar") // Mapea las solicitudes POST a /bancos/guardar
-    public String saveBanco(@ModelAttribute Banco banco, RedirectAttributes ra) {
+    /**
+     * Procesa el envío del formulario para crear o actualizar un banco.
+     * POST /bancos/guardar
+     * @param banco El objeto Banco enviado desde el formulario.
+     * @param redirectAttributes Para añadir mensajes flash que persisten en la redirección.
+     * @return Una redirección a la lista de bancos o al formulario en caso de error.
+     */
+    @PostMapping("/guardar")
+    public String guardarBanco(@ModelAttribute("banco") Banco banco, RedirectAttributes redirectAttributes) {
         try {
-            // Validación básica para evitar nombres duplicados
-            Optional<Banco> existingBancoByName = bancoService.findByNombreBanco(banco.getNombreBanco());
-            if (existingBancoByName.isPresent() && !existingBancoByName.get().getIdBanco().equals(banco.getIdBanco())) {
-                ra.addFlashAttribute("errorMessage", "Ya existe un banco con el nombre: " + banco.getNombreBanco());
-                // Redirige al formulario con los datos pre-rellenados si es una edición, o al formulario vacío si es nuevo
-                return "redirect:/bancos/" + (banco.getIdBanco() != null ? "editar/" + banco.getIdBanco() : "nuevo");
+            // Validaciones básicas de unicidad (opcional, también pueden ser manejadas por la BD o Bean Validation)
+            Optional<Banco> existingBancoByName = bancoService.getBancoByNombreBanco(banco.getNombreBanco());
+            if (existingBancoByName.isPresent() && (banco.getIdBanco() == null || !existingBancoByName.get().getIdBanco().equals(banco.getIdBanco()))) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Ya existe un banco con el nombre '" + banco.getNombreBanco() + "'.");
+                return "redirect:/bancos/nuevo"; // O redirigir a editar si es un conflicto al editar
             }
-            // Puedes añadir una validación similar para codigoBanco si también debe ser único
-            // Optional<Banco> existingBancoByCode = bancoService.findByCodigoBanco(banco.getCodigoBanco());
-            // if (banco.getCodigoBanco() != null && existingBancoByCode.isPresent() && !existingBancoByCode.get().getIdBanco().equals(banco.getIdBanco())) {
-            //     ra.addFlashAttribute("errorMessage", "Ya existe un banco con el código: " + banco.getCodigoBanco());
-            //     return "redirect:/bancos/" + (banco.getIdBanco() != null ? "editar/" + banco.getIdBanco() : "nuevo");
-            // }
 
-            bancoService.save(banco); // Guarda el banco
-            ra.addFlashAttribute("successMessage", "Banco guardado exitosamente!");
+            Optional<Banco> existingBancoByCode = bancoService.getBancoByCodigoBanco(banco.getCodigoBanco());
+            if (existingBancoByCode.isPresent() && (banco.getIdBanco() == null || !existingBancoByCode.get().getIdBanco().equals(banco.getIdBanco()))) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Ya existe un banco con el código '" + banco.getCodigoBanco() + "'.");
+                return "redirect:/bancos/nuevo"; // O redirigir a editar si es un conflicto al editar
+            }
+
+            bancoService.saveBanco(banco); // saveBanco maneja creación y actualización
+            redirectAttributes.addFlashAttribute("successMessage", "Banco guardado exitosamente.");
         } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "Error al guardar el banco: " + e.getMessage());
-            e.printStackTrace(); // Imprime el stack trace para depuración en la consola del servidor
-            // Considera redirigir de nuevo al formulario si hay un error crítico
-            return "redirect:/bancos/listar" + (banco.getIdBanco() != null ? "/editar/" + banco.getIdBanco() : "/nuevo");
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al guardar el banco: " + e.getMessage());
+            // En caso de error, volvemos al formulario para que el usuario corrija
+            if (banco.getIdBanco() != null) {
+                return "redirect:/bancos/editar/" + banco.getIdBanco();
+            } else {
+                return "redirect:/bancos/nuevo";
+            }
         }
-        return "redirect:/bancos/listar"; // Redirige a la lista de bancos
+        return "redirect:/bancos/listar"; // Redirige a la lista después de guardar
     }
 
-    // Elimina un banco por su ID
-    @GetMapping("/eliminar/{id}") // Mapea las solicitudes GET a /bancos/eliminar/{id}
-    public String deleteBanco(@PathVariable Integer id, RedirectAttributes ra) {
-        try {
-            bancoService.deleteById(id);
-            ra.addFlashAttribute("successMessage", "Banco eliminado exitosamente!");
-        } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "Error al eliminar el banco: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return "redirect:/bancos/listar"; // Redirige a la lista de bancos
-    }
-
-    // Muestra los detalles de un banco específico
-    @GetMapping("/detalles/{id}") // Mapea las solicitudes GET a /bancos/detalles/{id}
-    public String viewBancoDetails(@PathVariable Integer id, Model model, RedirectAttributes ra) {
-        Optional<Banco> bancoOptional = bancoService.findById(id);
-        if (bancoOptional.isPresent()) {
-            model.addAttribute("banco", bancoOptional.get());
-            model.addAttribute("pageTitle", "Detalles del Banco");
-            return "bancos/detalles"; // Retorna la vista de detalles
-        } else {
-            ra.addFlashAttribute("errorMessage", "Banco no encontrado con ID: " + id);
+    /**
+     * Muestra el formulario para editar un banco existente.
+     * GET /bancos/editar/{id}
+     * @param id El ID del banco a editar.
+     * @param model Objeto Model para pasar el Banco a la vista.
+     * @param redirectAttributes Para añadir mensajes flash si el banco no se encuentra.
+     * @return El nombre de la vista Thymeleaf (bancos/form.html) o una redirección.
+     */
+    @GetMapping("/editar/{id}")
+    public String mostrarFormularioEditar(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<Banco> banco = bancoService.getBancoById(id);
+        if (banco.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Banco no encontrado.");
             return "redirect:/bancos/listar";
         }
+        model.addAttribute("banco", banco.get());
+        return "bancos/form";
+    }
+
+    /**
+     * Elimina un banco.
+     * GET /bancos/eliminar/{id}
+     * Esta acción ahora se desencadena desde el modal de confirmación en la vista listar.
+     * @param id El ID del banco a eliminar.
+     * @param redirectAttributes Para añadir mensajes flash.
+     * @return Una redirección a la lista de bancos.
+     */
+    @GetMapping("/eliminar/{id}")
+    public String eliminarBanco(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            bancoService.deleteBanco(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Banco eliminado exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el banco: " + e.getMessage());
+        }
+        return "redirect:/bancos/listar";
+    }
+
+    /**
+     * Muestra los detalles de un banco.
+     * GET /bancos/detalles/{id}
+     * @param id El ID del banco a mostrar.
+     * @param model Objeto Model para pasar el Banco a la vista.
+     * @param redirectAttributes Para añadir mensajes flash si el banco no se encuentra.
+     * @return El nombre de la vista Thymeleaf (bancos/detalles.html) o una redirección.
+     */
+    @GetMapping("/detalles/{id}")
+    public String verDetallesBanco(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<Banco> banco = bancoService.getBancoById(id);
+        if (banco.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Banco no encontrado.");
+            return "redirect:/bancos/listar";
+        }
+        model.addAttribute("banco", banco.get());
+        return "bancos/detalles";
     }
 }

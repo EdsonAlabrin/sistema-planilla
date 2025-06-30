@@ -58,16 +58,24 @@ public class EmpresaServiceImpl implements EmpresaService {
         empresaRepository.deleteById(idEmpresa);
     }
 
-    /**
+     /**
      * Busca una empresa por su número de RUC.
-     * En el caso de una única empresa, esta es una forma común de recuperarla.
      * @param ruc El número de RUC de la empresa.
      * @return Un Optional que contiene la Empresa si se encuentra, o vacío si no existe.
      */
     @Override
     public Optional<Empresa> getEmpresaByRuc(String ruc) {
-        // El método findByRuc del repositorio retorna directamente Empresa (o null),
-        // pero lo envolvemos en Optional para consistencia con los métodos de servicio.
-        return Optional.ofNullable(empresaRepository.findByRuc(ruc));
+        return empresaRepository.findByRuc(ruc);
+    }
+
+    /**
+     * Obtiene la primera empresa registrada.
+     * Útil cuando se espera que solo haya una configuración de empresa.
+     * @return Un Optional que contiene la primera Empresa encontrada, o vacío si no hay ninguna.
+     */
+    @Override
+    public Optional<Empresa> getOneCompany() {
+        List<Empresa> empresas = empresaRepository.findAll();
+        return empresas.isEmpty() ? Optional.empty() : Optional.of(empresas.get(0));
     }
 }

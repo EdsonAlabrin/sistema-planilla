@@ -1,207 +1,237 @@
+// src/main/java/com/textilima/textilima/controller/AsistenciaController.java
 package com.textilima.textilima.controller;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+// !!! Importaciones de Logger - ¡Estas son las que faltaban! !!!
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.textilima.textilima.model.Asistencia;
 import com.textilima.textilima.model.Empleado;
-import com.textilima.textilima.model.EstadoAsistencia;
+import com.textilima.textilima.model.Puesto;
 import com.textilima.textilima.service.AsistenciaService;
 import com.textilima.textilima.service.EmpleadoService;
+import com.textilima.textilima.service.PuestoService;
 
 @Controller
-@RequestMapping("/asistencia")
+@RequestMapping("/asistencias")
 public class AsistenciaController {
-    @Autowired
-    private EmpleadoService empleadoService; // Necesario para buscar empleados por DNI
-
-    @Autowired
-    private AsistenciaService asistenciaService; // Para registrar la asistencia
-
     
-    /**
-     * Muestra la página principal de registro de asistencia.
-     * @param model Objeto Model para pasar atributos a la vista.
-     * @return Nombre de la plantilla Thymeleaf para el registro de asistencia.
-     */
-    @GetMapping("/marcar")
-    public String mostrarFormularioMarcar(Model model) {
-        // Puedes pre-cargar la hora actual si lo necesitas, aunque el JS ya lo hace.
-        model.addAttribute("horaActual", LocalTime.now().toString());
-        // Añadir mensajes flash si hay alguno redirigido
-        return "asistencia/registro"; // Mapea a src/main/resources/templates/asistencia/marcar.html
+    // Instancia del Logger
+    private static final Logger logger = LoggerFactory.getLogger(AsistenciaController.class);
+
+    private final AsistenciaService asistenciaService;
+    private final EmpleadoService empleadoService;
+    private final PuestoService puestoService;
+
+    @Autowired
+    public AsistenciaController(AsistenciaService asistenciaService, EmpleadoService empleadoService, PuestoService puestoService) {
+        this.asistenciaService = asistenciaService;
+        this.empleadoService = empleadoService; // <<-- ¡Correcto ahora!
+        this.puestoService = puestoService;
     }
 
     /**
-     * Procesa la solicitud para marcar la asistencia (entrada o salida).
-     * @param dni El DNI del empleado.
-     * @param horaRegistro La hora registrada desde el cliente.
-     * @param redirectAttributes Para añadir mensajes flash a la redirección.
-     * @return Redirección a la misma página con un mensaje de éxito o error.
+     * Muestra la lista de todas las asistencias.
+     * GET /asistencias/listar
+     * @param model Objeto Model para pasar datos a la vista.
+     * @return El nombre de la vista Thymeleaf (asistencias/listar.html).
+     */
+    @GetMapping("/listar")
+    public String listarAsistencias(Model model) {
+        logger.info("Solicitando listar todas las asistencias.");
+        List<Asistencia> asistencias = asistenciaService.getAllAsistencias();
+        model.addAttribute("asistencias", asistencias);
+        logger.info("Mostrando {} asistencias en la lista.", asistencias.size());
+        return "asistencias/listar";
+    }
+
+    /**
+     * Muestra el formulario para registrar una nueva asistencia (marcar entrada/salida).
+     * GET /asistencias/registro (URL)
+     * Retorna la vista asistencias/registro.html
+     * @param model Objeto Model para pasar la fecha actual a la vista.
+     * @return El nombre de la vista Thymeleaf (asistencias/registro.html).
+     */
+    @GetMapping("/registro") // <-- RUTA URL DEL NAVEGADOR: /asistencias/registro
+    public String mostrarFormularioRegistro(Model model) {
+        logger.info("Mostrando formulario de registro de asistencia.");
+        model.addAttribute("fechaActual", LocalDate.now());
+        return "asistencias/registro"; // <-- NOMBRE DEL ARCHIVO HTML: registro.html
+    }
+
+    /**
+     * Procesa el marcado de asistencia por DNI. Determina si es entrada o salida.
+     * POST /asistencias/marcar
+     * @param numeroDocumento El número de DNI del empleado.
+     * @param tipoMarca El tipo de marca ("entrada" o "salida") enviada desde el formulario.
+     * @param redirectAttributes Para añadir mensajes flash.
+     * @return Redirección a la página de marcado de asistencia con un mensaje de éxito o error.
      */
     @PostMapping("/marcar")
-    public String marcarAsistencia(
-            @RequestParam("dni") String dni,
-            @RequestParam("horaRegistro") String horaRegistro,
-            RedirectAttributes redirectAttributes) {
-
-        // 1. Validar el formato del DNI (si no se hizo completamente en el frontend)
-        if (dni == null || !dni.matches("\\d{8}")) {
-            redirectAttributes.addFlashAttribute("mensaje", "DNI inválido. Debe contener 8 dígitos numéricos.");
-            redirectAttributes.addFlashAttribute("tipo", "danger");
-            return "redirect:/asistencia/marcar";
-        }
-
-        // 2. Buscar al empleado por DNI
-        Optional<Empleado> empleadoOptional = empleadoService.findByNumeroDocumento(dni);
-
-        if (empleadoOptional.isEmpty()) {
-            redirectAttributes.addFlashAttribute("mensaje", "Empleado no encontrado con el DNI proporcionado.");
-            redirectAttributes.addFlashAttribute("tipo", "danger");
-            return "redirect:/asistencia/marcar";
-        }
-
-        Empleado empleado = empleadoOptional.get();
-        LocalTime horaMarcada = LocalTime.parse(horaRegistro); // Convertir String a LocalTime
-
-        // 3. Verificar si el empleado ya tiene una asistencia registrada para hoy
-        Optional<Asistencia> asistenciaHoyOptional = asistenciaService.findAsistenciaByEmpleadoAndFecha(empleado.getIdEmpleado(), java.time.LocalDate.now());
-
+    public String marcarAsistencia(@RequestParam("numeroDocumento") String numeroDocumento,
+                                   @RequestParam("tipoMarca") String tipoMarca,
+                                   RedirectAttributes redirectAttributes) {
+        logger.info("Intento de marcar asistencia para DNI: {} con tipo de marca: {}", numeroDocumento, tipoMarca);
         try {
-            Asistencia asistenciaActualizada;
-            if (asistenciaHoyOptional.isPresent()) {
-                // Si ya hay un registro hoy, intentar registrar la SALIDA
-                Asistencia asistenciaExistente = asistenciaHoyOptional.get();
-                if (asistenciaExistente.getHoraEntrada() != null && asistenciaExistente.getHoraSalida() == null) {
-                    // Si ya marcó entrada pero no salida, registrar salida
-                    asistenciaActualizada = asistenciaService.registrarSalida(empleado, horaMarcada);
-                    if (asistenciaActualizada != null) {
-                        redirectAttributes.addFlashAttribute("mensaje", "¡Salida registrada exitosamente para " + empleado.getNombres() + " " + empleado.getApellidos() + "!");
-                        redirectAttributes.addFlashAttribute("tipo", "success");
-                    } else {
-                        redirectAttributes.addFlashAttribute("mensaje", "Error al registrar la salida. No se encontró registro de entrada.");
-                        redirectAttributes.addFlashAttribute("tipo", "danger");
+            Empleado empleado = empleadoService.getEmpleadoByNumeroDocumento(numeroDocumento)
+                                                .orElseThrow(() -> new RuntimeException("Empleado no encontrado con el DNI: " + numeroDocumento));
+            logger.debug("Empleado encontrado: {} {}", empleado.getNombres(), empleado.getApellidos());
+
+            Puesto puesto = empleado.getPuesto();
+            if (puesto == null || puesto.getJornadaLaboralHoras() == null || puesto.getHoraInicioJornada() == null || puesto.getHoraFinJornada() == null) {
+                logger.warn("Puesto o información de jornada incompleta para empleado: {}", empleado.getIdEmpleado());
+                throw new IllegalArgumentException("Puesto no asignado al empleado o información de jornada incompleta (horas/inicio/fin). No se puede registrar asistencia.");
+            }
+
+            LocalDate hoy = LocalDate.now();
+            LocalTime horaActual = LocalTime.now();
+            Optional<Asistencia> asistenciaOpt = asistenciaService.getAsistenciaByEmpleadoAndFecha(empleado, hoy);
+            logger.debug("Buscando asistencia existente para empleado {} en fecha {}. Encontrado: {}", empleado.getIdEmpleado(), hoy, asistenciaOpt.isPresent());
+
+            Asistencia asistencia;
+            String mensajeExito;
+
+            if (asistenciaOpt.isPresent()) {
+                asistencia = asistenciaOpt.get();
+                logger.debug("Asistencia existente encontrada. Hora entrada: {}, Hora salida: {}", asistencia.getHoraEntrada(), asistencia.getHoraSalida());
+                if ("entrada".equals(tipoMarca)) {
+                    if (asistencia.getHoraEntrada() != null) {
+                        logger.warn("Intento duplicado de entrada para empleado {} en fecha {}.", empleado.getIdEmpleado(), hoy);
+                        redirectAttributes.addFlashAttribute("errorMessage", "Ya se registró una entrada para " + empleado.getNombres() + " " + empleado.getApellidos() + " hoy.");
+                        return "redirect:/asistencias/registro";
                     }
-                } else if (asistenciaExistente.getHoraEntrada() != null && asistenciaExistente.getHoraSalida() != null) {
-                    // Si ya marcó entrada y salida, informar
-                    redirectAttributes.addFlashAttribute("mensaje", "Ya has marcado tu entrada y salida para hoy, " + empleado.getNombres() + ".");
-                    redirectAttributes.addFlashAttribute("tipo", "info");
+                    asistencia.setHoraEntrada(horaActual);
+                    mensajeExito = "¡Entrada registrada exitosamente para " + empleado.getNombres() + " " + empleado.getApellidos() + "!";
+                    logger.info("Entrada registrada para empleado: {}", empleado.getIdEmpleado());
+                } else if ("salida".equals(tipoMarca)) {
+                    if (asistencia.getHoraSalida() != null) {
+                        logger.warn("Intento duplicado de salida para empleado {} en fecha {}.", empleado.getIdEmpleado(), hoy);
+                        redirectAttributes.addFlashAttribute("errorMessage", "Ya se registró una salida para " + empleado.getNombres() + " " + empleado.getApellidos() + " hoy.");
+                        return "redirect:/asistencias/registro";
+                    }
+                    if (asistencia.getHoraEntrada() == null) {
+                        logger.warn("Intento de salida sin entrada previa para empleado {} en fecha {}.", empleado.getIdEmpleado(), hoy);
+                        redirectAttributes.addFlashAttribute("errorMessage", "No se puede registrar salida sin una entrada previa para " + empleado.getNombres() + " " + empleado.getApellidos() + " hoy.");
+                        return "redirect:/asistencias/registro";
+                    }
+                    asistencia.setHoraSalida(horaActual);
+                    mensajeExito = "¡Salida registrada exitosamente para " + empleado.getNombres() + " " + empleado.getApellidos() + "!";
+                    logger.info("Salida registrada para empleado: {}", empleado.getIdEmpleado());
                 } else {
-                    // Caso para cuando el registro existe pero no hay hora de entrada (¿error?)
-                    redirectAttributes.addFlashAttribute("mensaje", "Registro de asistencia incompleto. Contacte a RH.");
-                    redirectAttributes.addFlashAttribute("tipo", "warning");
+                    logger.error("Tipo de marca no válido: {}", tipoMarca);
+                    throw new IllegalArgumentException("Tipo de marca no válido: " + tipoMarca);
                 }
             } else {
-                // Si no hay registro hoy, registrar la ENTRADA
-                asistenciaActualizada = asistenciaService.registrarEntrada(empleado, horaMarcada);
-                if (asistenciaActualizada.getEstado() == EstadoAsistencia.TARDANZA) {
-                     redirectAttributes.addFlashAttribute("mensaje", "¡Entrada registrada con tardanza para " + empleado.getNombres() + " " + empleado.getApellidos() + "!");
-                     redirectAttributes.addFlashAttribute("tipo", "warning");
+                if ("salida".equals(tipoMarca)) {
+                    logger.warn("Intento de salida sin asistencia existente para empleado {} en fecha {}.", empleado.getIdEmpleado(), hoy);
+                    redirectAttributes.addFlashAttribute("errorMessage", "No se puede registrar salida sin una entrada previa para " + empleado.getNombres() + " " + empleado.getApellidos() + " hoy.");
+                    return "redirect:/asistencias/registro";
+                }
+                asistencia = new Asistencia();
+                asistencia.setEmpleado(empleado);
+                asistencia.setFecha(hoy);
+                asistencia.setHoraEntrada(horaActual);
+                asistencia.setEstado(Asistencia.EstadoAsistencia.PRESENTE);
+                mensajeExito = "¡Entrada registrada exitosamente para " + empleado.getNombres() + " " + empleado.getApellidos() + "!";
+                logger.info("Nueva asistencia (entrada) creada para empleado: {}", empleado.getIdEmpleado());
+            }
+
+            if (asistencia.getHoraEntrada() != null && asistencia.getHoraSalida() != null) {
+                logger.debug("Calculando tardanza y horas extras para asistencia con entrada y salida.");
+                asistencia = asistenciaService.calculateTardinessAndOvertime(asistencia, puesto);
+            } else if (asistencia.getHoraEntrada() != null) {
+                logger.debug("Calculando tardanza solo para entrada.");
+                if (asistencia.getHoraEntrada().isAfter(puesto.getHoraInicioJornada())) {
+                    long minutosTardanza = Duration.between(puesto.getHoraInicioJornada(), asistencia.getHoraEntrada()).toMinutes();
+                    asistencia.setMinutosTardanza((int) minutosTardanza);
+                    asistencia.setEstado(Asistencia.EstadoAsistencia.TARDANZA);
+                    logger.info("Empleado {} con tardanza de {} minutos.", empleado.getIdEmpleado(), minutosTardanza);
                 } else {
-                     redirectAttributes.addFlashAttribute("mensaje", "¡Entrada registrada exitosamente para " + empleado.getNombres() + " " + empleado.getApellidos() + "!");
-                     redirectAttributes.addFlashAttribute("tipo", "success");
+                    asistencia.setMinutosTardanza(0);
+                    asistencia.setEstado(Asistencia.EstadoAsistencia.PRESENTE);
                 }
             }
-        } catch (Exception e) {
-            // Manejo general de cualquier otra excepción
-            redirectAttributes.addFlashAttribute("mensaje", "Ocurrió un error al procesar la asistencia: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("tipo", "danger");
-            e.printStackTrace(); // Imprime el stack trace para depuración en el servidor
+
+            asistenciaService.saveAsistencia(asistencia);
+            redirectAttributes.addFlashAttribute("successMessage", mensajeExito);
+            logger.info("Asistencia guardada/actualizada con éxito para empleado: {}", empleado.getIdEmpleado());
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Error de validación al marcar asistencia: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error de validación: " + e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error("Error inesperado al procesar asistencia: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al procesar asistencia: " + e.getMessage());
         }
-
-        return "redirect:/asistencia/marcar"; // Redirige de vuelta al formulario de registro
-    }
-
-    // Endpoint para obtener todas las asistencias
-    @GetMapping
-    public ResponseEntity<List<Asistencia>> obtenerTodasAsistencias() {
-        List<Asistencia> asistencias = asistenciaService.obtenerTodasAsistencias();
-        return new ResponseEntity<>(asistencias, HttpStatus.OK);
-    }
-
-    // Endpoint para obtener una asistencia por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Asistencia> obtenerAsistenciaPorId(@PathVariable Integer idAsistencia) {
-        return asistenciaService.obtenerAsistenciaPorId(idAsistencia)
-                .map(asistencia -> new ResponseEntity<>(asistencia, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    // Endpoint para guardar una nueva asistencia
-    @PostMapping
-    public ResponseEntity<Asistencia> saveAsistencia(@RequestBody Asistencia asistencia) {
-        Asistencia newAsistencia = asistenciaService.saveAsistencia(asistencia);
-        return new ResponseEntity<>(newAsistencia, HttpStatus.CREATED);
-    }
-
-    // Endpoint para eliminar una asistencia por ID
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAsistencia(@PathVariable Integer id) {
-        asistenciaService.deleteAsistencia(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    // !!! NUEVO ENDPOINT PARA OBTENER ASISTENCIAS POR FECHA !!!
-    @GetMapping("/fecha/{fecha}")
-    public ResponseEntity<List<Asistencia>> getAsistenciasByFecha(@PathVariable String fecha) {
-        try {
-            LocalDate parsedFecha = LocalDate.parse(fecha); // Convierte la cadena a LocalDate
-            List<Asistencia> asistencias = asistenciaService.obtenerAsistenciasByFecha(parsedFecha);
-            return new ResponseEntity<>(asistencias, HttpStatus.OK);
-        } catch (Exception e) {
-            // Manejo de errores si la fecha no es válida o hay un problema en el servicio
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return "redirect:/asistencias/registro";
     }
 
     /**
      * Muestra el reporte diario de asistencias para una fecha específica.
-     * @param fecha La fecha para la que se desea el reporte. Si es null, usa la fecha actual.
-     * @param model El modelo para pasar datos a la vista.
-     * @return El nombre de la plantilla Thymeleaf para el reporte diario.
+     * GET /asistencias/diario (URL)
+     * Retorna la vista asistencias/diario.html
+     * @param fecha Opcional, la fecha para la cual generar el reporte. Si no se provee, usa la fecha actual.
+     * @param model Objeto Model para pasar los datos a la vista.
+     * @return El nombre de la vista Thymeleaf (asistencias/diario.html).
      */
-    @GetMapping("/diario") // Ruta para el reporte diario
-    public String mostrarReporteDiario(
-            @RequestParam(value = "fecha", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            Model model) {
+    @GetMapping("/diario")
+    public String mostrarReporteDiario(@RequestParam(value = "fecha", required = false) LocalDate fecha, Model model) {
+        LocalDate fechaConsulta = (fecha != null) ? fecha : LocalDate.now();
+        logger.info("===== Solicitando reporte diario de asistencias para la fecha: {} =====", fechaConsulta);
+        model.addAttribute("fechaConsulta", fechaConsulta);
 
-        // Si no se proporciona una fecha, usar la fecha actual de San Juan de Lurigancho
-        if (fecha == null) {
-            fecha = LocalDate.now(); // LocalDate.now() ya usa la zona horaria del sistema por defecto, que debería ser correcta si el servidor está configurado para -05:00.
+        List<Empleado> todosLosEmpleados = empleadoService.getAllEmpleados();
+        logger.debug("Cantidad de empleados obtenidos de la base de datos: {}", todosLosEmpleados.size());
+        if (todosLosEmpleados.isEmpty()) {
+            logger.warn("No se encontraron empleados en la base de datos. El reporte estará vacío.");
+        } else {
+            todosLosEmpleados.forEach(emp -> logger.debug("Empleado en la lista: ID={}, Nombre={}, DNI={}", emp.getIdEmpleado(), emp.getNombres(), emp.getNumeroDocumento()));
         }
 
-        List<Asistencia> asistencias = asistenciaService.obtenerAsistenciasByFecha(fecha);
 
-        // Agregamos las horas trabajadas a cada objeto Asistencia o en un DTO
-        // Para este ejemplo, voy a pasar un DTO simplificado o añadir la duración al modelo directamente
-        // Es mejor crear un DTO si la vista necesita campos que no están en la entidad directamente.
-        // Pero para simplificar y dado que el HTML usa `asist` directamente, calcularemos en la vista.
-        // Ojo: El cálculo de horas trabajadas en el HTML usando #temporals.createTime(...) tiene limitaciones
-        // y puede no ser preciso para diferencias grandes o negativas (e.g., entrada a las 23:00 y salida a la 01:00).
-        // Una mejor práctica sería calcular un 'duration' en el backend y pasarlo.
-        // Por ahora, el cálculo en Thymeleaf es solo para la diferencia de horas/minutos/segundos del mismo día.
+        List<Asistencia> asistencias = new java.util.ArrayList<>();
+        logger.debug("Iniciando procesamiento de asistencias para {} empleados.", todosLosEmpleados.size());
 
-        model.addAttribute("fechaConsulta", fecha);
+        for (Empleado empleado : todosLosEmpleados) {
+            Optional<Asistencia> asistenciaOpt = asistenciaService.getAsistenciaByEmpleadoAndFecha(empleado, fechaConsulta);
+            if (asistenciaOpt.isPresent()) {
+                asistencias.add(asistenciaOpt.get());
+                logger.debug("Asistencia REAL encontrada para empleado {} (DNI: {}) en {}. Estado: {}", empleado.getIdEmpleado(), empleado.getNumeroDocumento(), fechaConsulta, asistenciaOpt.get().getEstado());
+            } else {
+                Asistencia asistenciaAusente = new Asistencia();
+                asistenciaAusente.setEmpleado(empleado);
+                asistenciaAusente.setFecha(fechaConsulta);
+                asistenciaAusente.setEstado(Asistencia.EstadoAsistencia.AUSENTE);
+                asistenciaAusente.setMinutosTardanza(0);
+                asistenciaAusente.setHorasExtras25(BigDecimal.ZERO);
+                asistenciaAusente.setHorasExtras35(BigDecimal.ZERO);
+                asistencias.add(asistenciaAusente);
+                logger.debug("No se encontró asistencia para empleado {} (DNI: {}). Añadido como AUSENTE para la fecha {}.", empleado.getIdEmpleado(), empleado.getNumeroDocumento(), fechaConsulta);
+            }
+        }
+
+        asistencias.sort((a1, a2) -> a1.getEmpleado().getNombres().compareToIgnoreCase(a2.getEmpleado().getNombres()));
+
         model.addAttribute("asistencias", asistencias);
-        model.addAttribute("fechaActual", LocalTime.now()); // Para mostrar "Generado el..."
-
-        return "asistencia/diario"; // Nombre del archivo HTML en src/main/resources/templates/asistencia/
+        model.addAttribute("fechaActual", LocalDate.now());
+        logger.info("Reporte diario de asistencias finalizado. Se han cargado {} registros (incluyendo ausentes) para la fecha {}.", asistencias.size(), fechaConsulta);
+        logger.debug("Lista final de asistencias para el reporte: {}", asistencias);
+        return "asistencias/diario";
     }
 }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Título dinámico: Usa el título de la página específica, o un fallback -->
-    <title layout:title-pattern="$LAYOUT_TITLE | $CONTENT_TITLE">TextiLima</title>
+    <title layout:title-pattern="$CONTENT_TITLE | TextiLima">TextiLima</title>
 
     <!-- Bootstrap CSS (via WebJars) - Versión 5.3.0 recomendada para consistencia -->
     <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -16,19 +16,91 @@
 
     <!-- Tus estilos globales personalizados -->
     <link rel="stylesheet" th:href="@{/css/global-layout.css}">
-    <!-- Tus estilos específicos para el menú lateral (Asegúrate de que este archivo exista y tenga el CSS mejorado) -->
+    <!-- Tus estilos específicos para el menú lateral -->
     <link rel="stylesheet" th:href="@{/css/sidebar.css}">
 
     <!-- Fragmento para estilos específicos de cada página -->
     <th:block layout:fragment="page-styles"></th:block>
+
+    <style>
+        /* INICIO DE LAS CORRECCIONES PARA EL FOOTER */
+        /* Asegura que html y body ocupen el 100% de la altura del viewport */
+        html, body {
+            height: 100%;
+            margin: 0; /* Elimina márgenes por defecto */
+            padding: 0; /* Elimina paddings por defecto */
+        }
+
+        /* Configura el body como un contenedor flexbox de columna */
+        /* Esto es CRUCIAL para que 'flex-grow' en main-content y 'mt-auto' en footer funcionen */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Asegura que el body siempre ocupe al menos la altura completa del viewport */
+            font-family: 'Inter', sans-serif; /* Aplicar Inter a todo el cuerpo */
+            background-color: #f8f9fa; /* Fondo ligero de Bootstrap */
+        }
+
+        /* Hace que el contenido principal se "estire" y ocupe el espacio disponible, empujando el footer */
+        .main-content {
+            flex-grow: 1; /* Ocupa todo el espacio flexible restante */
+            padding: 1.5rem; /* Agregado para un padding estándar */
+            margin-left: 250px; /* Ajusta según el ancho de tu sidebar */
+            transition: margin-left 0.3s ease; /* Transición para el sidebar si es colapsable */
+        }
+
+        /* Asegura que el footer ocupe el 100% del ancho de su contenedor (el body) */
+        footer {
+            width: 100%; /* Fuerza al footer a ocupar todo el ancho disponible */
+        }
+
+        /* Centra el texto dentro del párrafo del footer (más específico que text-center de Bootstrap) */
+        footer p {
+            text-align: center;
+        }
+        /* FIN DE LAS CORRECCIONES PARA EL FOOTER */
+
+        /* Tus estilos originales para .sidebar, y media queries se mantienen */
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: #343a40; /* Color oscuro (Bootstrap `bg-dark`) */
+            color: #ffffff;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            z-index: 1030;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        body.sidebar-collapsed .main-content {
+            margin-left: 0;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Barra lateral (Fragmento de Thymeleaf) - ¡CORRECCIÓN EN EL NOMBRE DEL FRAGMENTO! -->
+    <!-- Barra lateral (Fragmento de Thymeleaf) -->
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <!-- Contenido principal (donde se inyectarán las vistas específicas) -->
     <div class="main-content">
+        <!-- Mensajes de éxito/error flash, asumidos aquí o en un fragmento incluido -->
+        <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <div layout:fragment="content">
             <!-- El contenido específico de cada vista va aquí -->
         </div>
@@ -44,8 +116,10 @@
     <!-- Fragmento para scripts específicos de cada página -->
     <th:block layout:fragment="page-scripts"></th:block>
 
+    <!-- Footer dentro del body -->
+    <footer class=" text-dark py-4 text-center mt-auto">
+        <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> Textilima. Todos los derechos reservados.</p>
+    </footer>
 
 </body>
-
-
 </html>

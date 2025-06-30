@@ -12,6 +12,7 @@
     --dark-bg: #2c3e50; /* Azul oscuro para fondos y texto principal */
     --light-bg: #ecf0f1; /* Fondo muy claro para el contenido */
     --white-text: #ffffff;
+    --white-bg: #ffffff; /* Añadido: fondo blanco explícito */
     --dark-text: #34495e; /* Texto oscuro para el cuerpo */
     --accent-green: #28a745; /* Verde para éxito/acento */
     --accent-red: #dc3545; /* Rojo para peligro/desactivar */
@@ -48,7 +49,7 @@ body {
     margin-left: auto;
     margin-right: auto;
     padding: 40px;
-    background-color: var(--white-text); /* Fondo blanco para el contenido */
+    background-color: var(--white-bg); /* Fondo blanco para el contenido */
     border-radius: 18px; /* Más redondeado */
     box-shadow: 0 15px 40px var(--shadow-light); /* Sombra más pronunciada y difusa */
     margin-top: 30px;
@@ -148,7 +149,7 @@ body {
 /* Encabezados de contenido */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Montserrat', sans-serif; /* Nueva fuente para encabezados */
-    color: var(--white-bg);
+    color: var(--dark-text); /* Corregido: Usar color oscuro para headings generales */
     margin-bottom: 35px;
     font-weight: 700;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.05);
@@ -171,7 +172,7 @@ hr {
     box-shadow: 0 8px 25px var(--shadow-light); /* Sombra más definida */
     width: 100%;
     margin-bottom: 30px;
-    background-color: var(--white-text);
+    background-color: var(--white-bg);
 }
 
 .table th, .table td {
@@ -182,7 +183,8 @@ hr {
 }
 
 .table thead th {
-    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-light) 100%); /* Degradado en encabezado de tabla */
+    /* Ajustado para consistencia con --primary-blue */
+    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-dark-blue) 100%);
     color: var(--white-text);
     border-bottom: none;
     font-weight: 700;
@@ -311,11 +313,12 @@ hr {
     border: none;
     margin-bottom: 40px;
     overflow: hidden;
-    background-color: var(--white-text);
+    background-color: var(--white-bg);
 }
 
 .card-header {
-    background: linear-gradient(90deg, var(--dark-bg) 0%, var(--secondary-gray) 100%); /* Degradado oscuro */
+    /* Ajustado para usar primary-blue y primary-dark-blue */
+    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-dark-blue) 100%);
     color: var(--white-text);
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
@@ -475,77 +478,6 @@ hr {
         font-size: 0.95rem;
     }
 }
-/* Estilos para el modal de confirmación personalizado */
-.custom-modal {
-    display: none; /* Oculto por defecto */
-    position: fixed; /* Permanece en su lugar al hacer scroll */
-    z-index: 1050; /* Por encima de otros elementos */
-    left: 0;
-    top: 0;
-    width: 100%; /* Ancho completo */
-    height: 100%; /* Alto completo */
-    overflow: auto; /* Permite scroll si el contenido es grande */
-    background-color: rgba(0,0,0,0.4); /* Fondo semi-transparente */
-    display: flex; /* Usamos flexbox para centrar el contenido */
-    justify-content: center;
-    align-items: center;
-}
-
-.custom-modal-content {
-    background-color: var(--white-bg); /* Usar variable global */
-    margin: auto; /* Centra el modal */
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra para el modal */
-    width: 90%; /* Ancho responsivo */
-    max-width: 400px; /* Ancho máximo */
-    text-align: center;
-    position: relative;
-}
-
-.custom-modal-header {
-    border-bottom: 1px solid var(--border-color); /* Usar variable global */
-    padding-bottom: 15px;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    color: var(--dark-text); /* Usar variable global */
-    font-weight: 600;
-}
-
-.custom-modal-body {
-    font-size: 1.1rem;
-    margin-bottom: 25px;
-    color: #555;
-}
-
-.custom-modal-footer {
-    display: flex;
-    justify-content: center;
-    gap: 15px; /* Espacio entre los botones del footer */
-}
-
-.custom-modal-footer .btn {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.custom-modal-footer .btn-confirm {
-    background-color: var(--accent-red); /* Usar variable global */
-    color: white;
-    border: none;
-}
-.custom-modal-footer .btn-confirm:hover {
-    background-color: #c82333; /* Color específico de hover para el botón de confirmar */
-}
-
-.custom-modal-footer .btn-cancel {
-    background-color: var(--secondary-gray); /* Usar variable global */
-    color: var(--white-text); /* Usar variable global */
-    border: 1px solid var(--secondary-gray); /* Usar variable global */
-}
-.custom-modal-footer .btn-cancel:hover {
-    background-color: #5a6268; /* Color específico de hover para cancelar */
-}
+/* No se incluyeron estilos personalizados para modal aquí.
+   El modal de Bootstrap utilizado en el HTML se estilizará con
+   las variables CSS globales y las clases de Bootstrap. */

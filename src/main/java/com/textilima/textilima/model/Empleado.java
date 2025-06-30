@@ -8,25 +8,21 @@ import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate; // Importar LocalDate para fechas sin hora
+import java.time.LocalDate;
 
-/**
- * Entidad que representa la información de los empleados.
- * Mapea a la tabla `empleados`.
- * Contiene datos personales, laborales y de sistemas de pensiones.
- */
 @Entity
 @Table(name = "empleados")
-@Data // Genera getters, setters, toString, equals, hashCode
-@NoArgsConstructor // Genera constructor sin argumentos
-@AllArgsConstructor // Genera constructor con todos los argumentos
-public class Empleado { // Se usa "Empleado" en singular para la entidad
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Empleado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_empleado")
-    private Integer idEmpleado;
+    private Integer idEmpleado; // ID es Integer
 
     @Column(name = "nombres", nullable = false, length = 100)
     private String nombres;
@@ -35,16 +31,16 @@ public class Empleado { // Se usa "Empleado" en singular para la entidad
     private String apellidos;
 
     @Column(name = "tipo_documento", length = 10)
-    private String tipoDocumento; // Ej. DNI, Carné de Extranjería
+    private String tipoDocumento;
 
     @Column(name = "numero_documento", nullable = false, unique = true, length = 20)
-    private String numeroDocumento;
+    private String numeroDocumento; // CAMBIADO de 'dni' a 'numeroDocumento' para coincidir
 
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
     @Column(name = "sexo", length = 1)
-    private String sexo; // Ej. 'M' para Masculino, 'F' para Femenino
+    private String sexo;
 
     @Column(name = "estado_civil", length = 20)
     private String estadoCivil;
@@ -71,39 +67,39 @@ public class Empleado { // Se usa "Empleado" en singular para la entidad
     private LocalDate fechaIngreso;
 
     @Column(name = "estado")
-    private Boolean estado; // true para activo, false para inactivo/cesado
+    private Boolean estado;
 
     @Column(name = "fecha_cese")
     private LocalDate fechaCese;
 
-    @ManyToOne // Muchos empleados pueden tener un puesto
-    @JoinColumn(name = "id_puesto", nullable = false) // Columna en `empleados` que referencia a `puestos`
+    // Asumo que Puesto y Banco existen y tienen IDs Integer
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_puesto", nullable = false)
     private Puesto puesto;
 
     @Column(name = "regimen_laboral", nullable = false, length = 50)
-    private String regimenLaboral; // Ej. "Regimen General", "MYPE"
+    private String regimenLaboral;
 
-    @Column(name = "tiene_hijos_calificados")
-    private Boolean tieneHijosCalificados; // 1 si tiene hijos menores de 18 o cursando estudios superiores, 0 si no
+    @Column(name = "tiene_hijos_calificados", nullable = false) 
+    private Boolean tieneHijosCalificados; 
 
-    @Enumerated(EnumType.STRING) // Almacenar el nombre del enum como String en la base de datos
-    @Column(name = "sistema_pensiones", length = 3) // "AFP" o "ONP"
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sistema_pensiones", length = 3)
     private SistemaPensiones sistemaPensiones;
 
     @Column(name = "codigo_pension", length = 50)
-    private String codigoPension; // CUSPP para AFP
+    private String codigoPension;
 
     @Column(name = "nombre_afp", length = 50)
-    private String nombreAfp; // Solo si sistema_pensiones es AFP
+    private String nombreAfp;
 
     @Column(name = "numero_cuenta_banco", length = 50)
     private String numeroCuentaBanco;
 
-    @ManyToOne // Muchos empleados pueden usar un mismo banco
-    @JoinColumn(name = "id_banco") // Columna en `empleados` que referencia a `bancos` (puede ser nulo)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_banco")
     private Banco banco;
 
-    // Campos de auditoría automática
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -112,21 +108,16 @@ public class Empleado { // Se usa "Empleado" en singular para la entidad
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Enum para sistema de pensiones
     public enum SistemaPensiones {
         AFP, ONP
     }
-
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se usa LocalDate para campos de fecha sin hora.
-     * - Se mapean las relaciones ManyToOne con Puesto y Banco.
-     * - Se utiliza un Enum para 'sistema_pensiones' para asegurar los valores permitidos.
-     *
-     * Sugerencias adicionales:
-     * - Para 'estado', se mantiene Boolean. Si se necesita mayor granularidad (ACTIVO, INACTIVO, CESADO),
-     * se podría cambiar a un Enum o String con más valores.
-     * - Para los campos condicionales de AFP (codigoPension, nombreAfp), se mantienen como parte de la entidad.
-     * Si la lógica de AFP se vuelve muy compleja, se podría considerar una tabla separada.
-     */
 }
+
+// ** NOTA IMPORTANTE: Necesitas las entidades Puesto.java y Banco.java
+// Asegúrate de que sus IDs también sean Integer si aún no lo son.
+// Puesto.java:
+// @Entity @Table(name = "puestos") @Data @NoArgsConstructor @AllArgsConstructor
+// public class Puesto { @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Integer idPuesto; ... }
+// Banco.java:
+// @Entity @Table(name = "bancos") @Data @NoArgsConstructor @AllArgsConstructor
+// public class Banco { @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Integer idBanco; ... }

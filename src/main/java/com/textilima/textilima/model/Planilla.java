@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.time.LocalDate; // Importar LocalDate para fechas sin hora
+import java.util.List;
 
 /**
  * Entidad que representa la cabecera de una planilla de pago.
@@ -22,7 +23,6 @@ import java.time.LocalDate; // Importar LocalDate para fechas sin hora
 @NoArgsConstructor // Genera constructor sin argumentos
 @AllArgsConstructor // Genera constructor con todos los argumentos
 public class Planilla { // Se usa "Planilla" en singular para la entidad
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_planilla")
@@ -41,9 +41,21 @@ public class Planilla { // Se usa "Planilla" en singular para la entidad
     @Column(name = "fecha_generada", nullable = false)
     private LocalDate fechaGenerada;
 
-    @ManyToOne // Muchas planillas pueden referenciar un mismo parámetro legal (RMV, etc.)
+    @ManyToOne(fetch = FetchType.LAZY) // Muchas planillas pueden referenciar un mismo parámetro legal (RMV, etc.)
     @JoinColumn(name = "id_param_rmv") // Columna en `planillas` que referencia a `parametros_legales`
     private ParametroLegal paramRmv; // Referencia al parámetro legal de RMV vigente en la fecha de la planilla
+
+    // Relación OneToMany con DetallePlanilla
+    // MappedBy indica el nombre del campo en la entidad DetallePlanilla que posee
+    // la relación.
+    // CascadeType.ALL significa que las operaciones (persist, merge, remove,
+    // refresh, detach)
+    // realizadas en la entidad Planilla se propagarán a sus entidades
+    // DetallePlanilla asociadas.
+    // orphanRemoval = true asegura que si un DetallePlanilla es desvinculado de la
+    // lista, sea eliminado.
+    @OneToMany(mappedBy = "planilla", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetallePlanilla> detallePlanillaList;
 
     // Campos de auditoría automática
     @CreationTimestamp
@@ -56,20 +68,19 @@ public class Planilla { // Se usa "Planilla" en singular para la entidad
 
     // Enum para el tipo de planilla
     public enum TipoPlanilla {
-        CTS, GRATIFICACION, LBS, MENSUAL, VACACION
+        MENSUAL("Mensual"),
+        QUINCENAL("Quincenal"),
+        SEMANAL("Semanal"); // Puedes añadir más si necesitas
+
+        private final String displayName; // Campo para el nombre legible
+
+        TipoPlanilla(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se usa LocalDate para la fecha_generada.
-     * - Se mapea la relación ManyToOne con ParametroLegal (para RMV).
-     * - Se utiliza un Enum para 'tipo_planilla' para asegurar los valores permitidos.
-     * - La clave única uq_planilla_mes_anio_tipo en la base de datos
-     * asegura una única planilla por mes, año y tipo.
-     *
-     * Sugerencias adicionales para el futuro:
-     * - Se podría añadir un campo 'estado_planilla' (ej. 'PENDIENTE', 'CALCULADA', 'APROBADA', 'PAGADA', 'CERRADA')
-     * para controlar el flujo de trabajo de la planilla.
-     * - Considerar agregar un 'fecha_pago' si se maneja por tipo de planilla.
-     */
 }

@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate; // Importar LocalDate para fechas sin hora
 import java.time.LocalTime; // Importar LocalTime para horas sin fecha
@@ -30,16 +31,12 @@ public class Asistencia { // Se usa "Asistencia" en singular para la entidad
     @Column(name = "id_asistencia")
     private Integer idAsistencia;
 
-    @ManyToOne // Muchas asistencias pueden pertenecer a un empleado
-    @JoinColumn(name = "id_empleado", nullable = false) // Columna en `asistencias` que referencia a `empleados`
+    @ManyToOne(fetch = FetchType.LAZY) // Muchas asistencias para un empleado
+    @JoinColumn(name = "id_empleado", nullable = false)
     private Empleado empleado;
 
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
-
-    @Enumerated(EnumType.STRING) // Almacenar el nombre del enum como String en la base de datos
-    @Column(name = "estado", nullable = false, length = 20) // 'PRESENTE','AUSENTE','TARDANZA','FALTA_JUSTIFICADA'
-    private EstadoAsistencia estado;
 
     @Column(name = "hora_entrada")
     private LocalTime horaEntrada;
@@ -48,13 +45,17 @@ public class Asistencia { // Se usa "Asistencia" en singular para la entidad
     private LocalTime horaSalida;
 
     @Column(name = "minutos_tardanza")
-    private Integer minutosTardanza;
+    private Integer minutosTardanza = 0; // Por defecto 0, si no hay tardanza
 
-    @Column(name = "horas_extras_25", precision = 4, scale = 2)
-    private BigDecimal horasExtras25; // Usar BigDecimal para precisión decimal
+    @Column(name = "horas_extras_25", precision = 5, scale = 2)
+    private BigDecimal horasExtras25 = BigDecimal.ZERO; // Horas extras al 25%
 
-    @Column(name = "horas_extras_35", precision = 4, scale = 2)
-    private BigDecimal horasExtras35; // Usar BigDecimal para precisión decimal
+    @Column(name = "horas_extras_35", precision = 5, scale = 2)
+    private BigDecimal horasExtras35 = BigDecimal.ZERO; // Horas extras al 35%
+
+    @Enumerated(EnumType.STRING) // Almacenar el nombre del enum como String
+    @Column(name = "estado", nullable = false, length = 20)
+    private EstadoAsistencia estado = EstadoAsistencia.PRESENTE; // Estado de la asistencia
 
     // Campos de auditoría automática
     @CreationTimestamp
@@ -67,16 +68,40 @@ public class Asistencia { // Se usa "Asistencia" en singular para la entidad
 
     // Enum para el estado de asistencia
     public enum EstadoAsistencia {
-        PRESENTE, AUSENTE, TARDANZA, FALTA_JUSTIFICADA
+        PRESENTE("Presente"),
+        TARDANZA("Tardanza"),
+        AUSENTE("Ausente");
+
+        private final String displayName;
+
+        EstadoAsistencia(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se usa LocalDate para la fecha y LocalTime para las horas.
-     * - Se mapea la relación ManyToOne con Empleado.
-     * - Se utiliza un Enum para 'estado' de la asistencia para asegurar los valores permitidos.
-     * - Se usan BigDecimal para horas_extras_25 y horas_extras_35 para precisión.
-     * - La clave única uq_empleado_fecha_asistencia en la base de datos
-     * asegura una única asistencia por empleado por día.
+    /**
+     * Método transitorio para calcular las horas trabajadas en formato HH:mm:ss.
+     * No se mapea a una columna en la base de datos.
+     * @return String con las horas trabajadas formateadas.
      */
+    @Transient // Indica que este campo no se mapea a una columna de BD
+    public String getHorasTrabajadasFormateadas() {
+        if (this.horaEntrada == null || this.horaSalida == null) {
+            return "--:--:--";
+        }
+        Duration duration = Duration.between(this.horaEntrada, this.horaSalida);
+        if (duration.isNegative()) {
+            return "00:00:00"; // Si la salida es antes de la entrada, asumimos 0
+        }
+        long seconds = duration.getSeconds();
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long remainingSeconds = seconds % 60;
+
+        return String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds);
+    }
 }

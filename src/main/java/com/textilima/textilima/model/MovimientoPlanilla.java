@@ -11,36 +11,29 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-/**
- * Entidad que registra los movimientos de pago específicos (ingresos, descuentos, aportes)
- * para un empleado dentro de un detalle de planilla.
- * Mapea a la tabla `movimientos_planilla`.
- * Es esencial para el desglose detallado de la boleta de pago de cada empleado.
- */
 @Entity
 @Table(name = "movimientos_planilla")
-@Data // Genera getters, setters, toString, equals, hashCode
-@NoArgsConstructor // Genera constructor sin argumentos
-@AllArgsConstructor // Genera constructor con todos los argumentos
-public class MovimientoPlanilla { // Se usa "MovimientoPlanilla" en singular para la entidad
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class MovimientoPlanilla {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_movimiento")
-    private Integer idMovimiento;
+    private Integer idMovimiento; // ID es Integer
 
-    @ManyToOne // Muchos movimientos pueden pertenecer a un mismo detalle de planilla
-    @JoinColumn(name = "id_detalle", nullable = false) // Columna en `movimientos_planilla` que referencia a `detalle_planilla`
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_detalle", nullable = false)
     private DetallePlanilla detallePlanilla;
 
-    @ManyToOne // Muchos movimientos pueden referirse al mismo concepto de pago
-    @JoinColumn(name = "id_concepto", nullable = false) // Columna en `movimientos_planilla` que referencia a `conceptos_pago`
-    private ConceptoPago concepto;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_concepto", nullable = false)
+    private ConceptoPago concepto; // Usa ConceptoPago
 
     @Column(name = "monto", nullable = false, precision = 10, scale = 2)
     private BigDecimal monto;
 
-    // Campos de auditoría automática
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -49,13 +42,11 @@ public class MovimientoPlanilla { // Se usa "MovimientoPlanilla" en singular par
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se mapean las relaciones ManyToOne con DetallePlanilla y ConceptoPago.
-     * - Se utiliza BigDecimal para el campo 'monto' para asegurar la precisión monetaria.
-     * - Esta tabla es esencial para el desglose detallado de los ingresos, descuentos
-     * y aportes que componen el sueldo neto de cada empleado en una planilla.
-     * - Asegúrate de que esta tabla se pueble dinámicamente con todos los conceptos
-     * aplicables a cada empleado en cada planilla calculada.
-     */
+    // CONSTRUCTOR ADICIONADO para uso en el controlador al generar
+    public MovimientoPlanilla(Integer idMovimiento, DetallePlanilla detallePlanilla, ConceptoPago concepto, BigDecimal monto) {
+        this.idMovimiento = idMovimiento;
+        this.detallePlanilla = detallePlanilla;
+        this.concepto = concepto;
+        this.monto = monto;
+    }
 }

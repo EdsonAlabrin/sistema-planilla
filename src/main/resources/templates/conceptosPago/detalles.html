@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Detalles de Concepto de Pago</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5 mb-5">
+            <h2 class="main-form-title"><i class="fas fa-money-bill-wave"></i> Detalles de Concepto de Pago</h2>
+            <hr class="mb-4">
+
+            <div th:if="${conceptoPago == null}" class="alert alert-danger text-center" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i> Concepto de pago no encontrado.
+            </div>
+            <div th:unless="${conceptoPago == null}">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h4 th:text="${conceptoPago.nombreConcepto}"></h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 info-item">
+                                <i class="fas fa-fingerprint"></i> <strong>ID Concepto:</strong> <span
+                                    th:text="${conceptoPago.idConcepto}"></span>
+                            </div>
+                            <div class="col-md-6 info-item">
+                                <i class="fas fa-barcode"></i> <strong>Código SUNAT:</strong> <span
+                                    th:text="${conceptoPago.codigoSunat != null and conceptoPago.codigoSunat != '' ? conceptoPago.codigoSunat : 'N/A'}"></span>
+                            </div>
+                            <div class="col-md-6 info-item">
+                                <i class="fas fa-tag"></i> <strong>Tipo de Concepto:</strong>
+                                <span th:if="${conceptoPago.tipo == T(com.textilima.textilima.model.ConceptoPago.TipoConcepto).INGRESO}" class="badge bg-success">INGRESO</span>
+                                <span th:if="${conceptoPago.tipo == T(com.textilima.textilima.model.ConceptoPago.TipoConcepto).DESCUENTO}" class="badge bg-danger">DESCUENTO</span>
+                                <span th:if="${conceptoPago.tipo == T(com.textilima.textilima.model.ConceptoPago.TipoConcepto).APORTE_EMPLEADOR}" class="badge bg-primary">APORTE EMPL.</span>
+                            </div>
+                            <div class="col-md-6 info-item">
+                                <i class="fas fa-calculator"></i> <strong>Método de Cálculo:</strong> <span
+                                    th:text="${conceptoPago.metodoCalculo.name().replace('_', ' ')}"></span>
+                            </div>
+                            <div class="col-md-6 info-item">
+                                <i class="fas fa-percent"></i> <strong>Valor Referencial:</strong> <span
+                                    th:if="${conceptoPago.valorReferencial != null}"
+                                    th:text="${#numbers.formatCurrency(conceptoPago.valorReferencial)}"></span>
+                                <span th:unless="${conceptoPago.valorReferencial != null}">N/A</span>
+                            </div>
+                            <div class="col-md-6 info-item">
+                                <i class="fas fa-money-bill-alt"></i> <strong>¿Es Remunerativo?:</strong>
+                                <span th:if="${conceptoPago.esRemunerativo}" class="badge bg-success">Sí</span>
+                                <span th:unless="${conceptoPago.esRemunerativo}" class="badge bg-danger">No</span>
+                            </div>
+                            <div class="col-md-12">
+                                <h5 class="mt-4">Afectaciones</h5>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-4 info-item">
+                                        <i class="fas fa-building"></i> <strong>¿Afecto a ONP?:</strong>
+                                        <span th:if="${conceptoPago.afectoOnp}" class="badge bg-success">Sí</span>
+                                        <span th:unless="${conceptoPago.afectoOnp}" class="badge bg-danger">No</span>
+                                    </div>
+                                    <div class="col-md-4 info-item">
+                                        <i class="fas fa-piggy-bank"></i> <strong>¿Afecto a AFP?:</strong>
+                                        <span th:if="${conceptoPago.afectoAfp}" class="badge bg-success">Sí</span>
+                                        <span th:unless="${conceptoPago.afectoAfp}" class="badge bg-danger">No</span>
+                                    </div>
+                                    <div class="col-md-4 info-item">
+                                        <i class="fas fa-heartbeat"></i> <strong>¿Afecto a EsSalud?:</strong>
+                                        <span th:if="${conceptoPago.afectoEssalud}" class="badge bg-success">Sí</span>
+                                        <span th:unless="${conceptoPago.afectoEssalud}" class="badge bg-danger">No</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 info-item">
+                                <i class="fas fa-file-invoice"></i> <strong>Descripción:</strong> <span
+                                    th:text="${conceptoPago.descripcion != null and conceptoPago.descripcion != '' ? conceptoPago.descripcion : 'N/A'}"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a th:href="@{/conceptospago/editar/{id}(id=${conceptoPago.idConcepto})}" class="btn btn-warning me-2">
+                            <i class="fas fa-edit"></i> Editar Concepto
+                        </a>
+                        <a th:href="@{/conceptospago/listar}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Listado
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

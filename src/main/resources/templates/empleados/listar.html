@@ -3,35 +3,36 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 <head>
-    <title>LISTADO DE EMPLEADOS</title>
-    <!-- Enlaza tu archivo CSS principal (donde irán los estilos de tabla y modal) -->
-    <link rel="stylesheet" href="/css/main.css">
-    <!-- Font Awesome debería estar enlazado en layout/base.html globalmente -->
+    <title>Listado de Empleados</title>
+    <!-- Los estilos específicos ahora vienen de main.css o se definen en page-styles si son muy puntuales -->
+    <!-- <th:block layout:fragment="page-styles"></th:block> REMOVED, styles are now in main.css -->
 </head>
 <body>
     <div layout:fragment="content">
         <div class="container mt-5">
-            <h2 class="mb-4">LISTADO DE EMPLEADOS</h2>
-            <hr>
+            <h2 class="main-list-title"><i class="fas fa-users"></i> Listado de Empleados</h2>
+            <hr class="mb-4">
 
-            <!-- Mensajes de éxito y error -->
-            <div th:if="${successMessage}" class="alert alert-success" role="alert">
-                <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+            <!-- Mensajes flash de éxito/error -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-                <i class="fas fa-times-circle"></i> <span th:text="${errorMessage}"></span>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-times-circle me-2"></i> <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
             <!-- Botón para registrar nuevo empleado -->
             <div class="mb-4">
                 <a th:href="@{/empleados/nuevo}" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Registrar Nuevo Empleado
+                    <i class="fas fa-user-plus me-2"></i> Registrar Nuevo Empleado
                 </a>
             </div>
 
             <!-- Mensaje si no hay empleados registrados -->
-            <div th:if="${empleados.empty}" class="alert alert-info text-center">
-                <i class="fas fa-info-circle"></i> No hay empleados registrados.
+            <div th:if="${empleados.empty}" class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle me-2"></i> No hay empleados registrados.
             </div>
 
             <!-- Tabla de empleados -->
@@ -47,7 +48,7 @@
                                     <th>DNI</th>
                                     <th>Puesto</th>
                                     <th>Reg. Laboral</th>
-                                    <th>Hijos</th>
+                                    <th>Asig. Familiar</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -63,32 +64,46 @@
                                         <span th:unless="${empleado.puesto != null}">N/A</span>
                                     </td>
                                     <td th:text="${empleado.regimenLaboral}" data-label="Reg. Laboral"></td>
-                                    <td th:text="${empleado.numeroHijos}" data-label="Hijos"></td>
+                                    <td data-label="Asignación Familiar">
+                                        <span th:if="${empleado.tieneHijosCalificados}" class="badge bg-success">Sí</span>
+                                        <span th:unless="${empleado.tieneHijosCalificados}" class="badge bg-danger">No</span>
+                                    </td>
                                     <td data-label="Estado">
                                         <span th:if="${empleado.estado}" class="badge bg-success">Activo</span>
                                         <span th:unless="${empleado.estado}" class="badge bg-danger">Inactivo</span>
                                     </td>
                                     <td class="text-nowrap" data-label="Acciones">
-                                        <!-- ESTA ES LA LÍNEA CRÍTICA PARA "VER DETALLES" -->
-                                        <a th:href="@{/empleados/detalles/{id}(id=${empleado.idEmpleado})}" class="btn btn-info btn-sm" title="Ver Detalles">
+                                        <a th:href="@{/empleados/detalles/{id}(id=${empleado.idEmpleado})}" class="btn btn-info btn-sm action-button" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a th:href="@{/empleados/editar/{id}(id=${empleado.idEmpleado})}" class="btn btn-warning btn-sm" title="Editar">
+                                        <a th:href="@{/empleados/editar/{id}(id=${empleado.idEmpleado})}" class="btn btn-warning btn-sm action-button" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <!-- Botones de activar/desactivar, AHORA SIN onclick. El JS se encarga de esto. -->
-                                        <a th:if="${empleado.estado}"
-                                           href="#"
-                                           class="btn btn-danger btn-sm action-button"
-                                           th:attr="data-id=${empleado.idEmpleado}, data-action='desactivar'">
+                                        <!-- Botón para eliminar (desencadena modal) -->
+                                        <button type="button"
+                                                class="btn btn-danger btn-sm action-button"
+                                                th:attr="data-id=${empleado.idEmpleado}, data-action='eliminar'"
+                                                data-bs-toggle="modal" data-bs-target="#confirmationModal"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                        <!-- Botones de activar/desactivar (desencadenan modal) -->
+                                        <button type="button"
+                                                th:if="${empleado.estado}"
+                                                class="btn btn-danger btn-sm action-button"
+                                                th:attr="data-id=${empleado.idEmpleado}, data-action='desactivar'"
+                                                data-bs-toggle="modal" data-bs-target="#confirmationModal"
+                                                title="Desactivar">
                                             <i class="fas fa-toggle-off"></i>
-                                        </a>
-                                        <a th:unless="${empleado.estado}"
-                                           href="#"
-                                           class="btn btn-success btn-sm action-button"
-                                           th:attr="data-id=${empleado.idEmpleado}, data-action='activar'">
+                                        </button>
+                                        <button type="button"
+                                                th:unless="${empleado.estado}"
+                                                class="btn btn-success btn-sm action-button"
+                                                th:attr="data-id=${empleado.idEmpleado}, data-action='activar'"
+                                                data-bs-toggle="modal" data-bs-target="#confirmationModal"
+                                                title="Activar">
                                             <i class="fas fa-toggle-on"></i>
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -98,9 +113,84 @@
             </div>
         </div>
 
-      
+        <!-- Modal de Confirmación (Bootstrap) -->
+        <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="confirmationModalLabel"><i class="fas fa-exclamation-triangle me-2"></i> Confirmar Acción</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-2"></i> Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="confirmActionButton"><i class="fas fa-check me-2"></i> Confirmar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <!-- Enlazar el archivo JavaScript para el modal -->
-    <script src="/js/modal-handler.js"></script>
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <!-- Scripts específicos para la lista de empleados (manejo del modal) -->
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const confirmationModal = document.getElementById('confirmationModal');
+                const modalMessage = document.getElementById('modalMessage');
+                const confirmActionButton = document.getElementById('confirmActionButton');
+
+                let currentEmpleadoId = null;
+                let currentAction = null;
+
+                // Evento para abrir el modal y configurar su contenido
+                confirmationModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget; // Botón que activó el modal
+                    currentEmpleadoId = button.getAttribute('data-id');
+                    currentAction = button.getAttribute('data-action');
+
+                    let message = '';
+                    if (currentAction === 'eliminar') {
+                        message = '¿Estás seguro de que quieres eliminar a este empleado permanentemente? Esta acción no se puede deshacer.';
+                        confirmActionButton.classList.remove('btn-primary', 'btn-success', 'btn-warning'); // Limpiar clases previas
+                        confirmActionButton.classList.add('btn-danger');
+                        confirmActionButton.innerHTML = '<i class="fas fa-trash-alt me-2"></i> Eliminar';
+                    } else if (currentAction === 'desactivar') {
+                        message = '¿Estás seguro de que quieres desactivar a este empleado? El empleado no podrá registrar asistencia ni ser incluido en nuevas planillas.';
+                        confirmActionButton.classList.remove('btn-primary', 'btn-danger', 'btn-success'); // Limpiar clases previas
+                        confirmActionButton.classList.add('btn-warning');
+                        confirmActionButton.innerHTML = '<i class="fas fa-toggle-off me-2"></i> Desactivar';
+                    } else if (currentAction === 'activar') {
+                        message = '¿Estás seguro de que quieres activar a este empleado? El empleado volverá a estar activo en el sistema.';
+                        confirmActionButton.classList.remove('btn-primary', 'btn-danger', 'btn-warning'); // Limpiar clases previas
+                        confirmActionButton.classList.add('btn-success');
+                        confirmActionButton.innerHTML = '<i class="fas fa-toggle-on me-2"></i> Activar';
+                    } else {
+                        message = '¿Estás seguro de realizar esta acción?';
+                        confirmActionButton.classList.remove('btn-danger', 'btn-success', 'btn-warning'); // Limpiar clases previas
+                        confirmActionButton.classList.add('btn-primary');
+                        confirmActionButton.innerHTML = '<i class="fas fa-check me-2"></i> Confirmar';
+                    }
+                    modalMessage.textContent = message;
+                });
+
+                // Evento para manejar la acción confirmada
+                confirmActionButton.addEventListener('click', function() {
+                    confirmationModal.querySelector('.btn-close').click(); // Cerrar el modal
+
+                    if (currentEmpleadoId && currentAction) {
+                        let url = '';
+                        if (currentAction === 'eliminar') {
+                            url = /*[[@{/empleados/eliminar/}]]*/ '' + currentEmpleadoId;
+                        } else if (currentAction === 'desactivar' || currentAction === 'activar') {
+                            url = /*[[@{/empleados/cambiarEstado/}]]*/ '' + currentEmpleadoId + '?estado=' + (currentAction === 'activar' ? 'true' : 'false');
+                        }
+                        window.location.href = url; // Redirigir para ejecutar la acción
+                    }
+                });
+            });
+        </script>
+    </th:block>
 </body>
 </html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:title-pattern="$CONTENT_TITLE" th:text="${'Detalles de Planilla - ' + planilla.mes + '/' + planilla.anio + ' (' + planilla.tipoPlanilla + ')'}"></title>
+    <style>
+        /* Estilo para los botones de acción para que sean más compactos */
+        .btn-action-icon {
+            padding: .25rem .5rem; /* Menos padding */
+            font-size: .875rem; /* Tamaño de fuente más pequeño */
+            line-height: 1.5;
+            border-radius: .2rem;
+            vertical-align: middle;
+        }
+        /* Ajustar el ancho de las columnas de acciones si es necesario */
+        .table th.text-center, .table td.text-center {
+            white-space: nowrap; /* Evita que el texto se rompa */
+            width: 1%; /* Intenta que la columna ocupe solo el espacio necesario */
+        }
+    </style>
+</head>
+<body>
+    <section layout:fragment="content">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header card-header-custom">
+                <h1 class="h4 mb-0" th:text="${'Detalles de Planilla: ' + planilla.tipoPlanilla + ' ' + planilla.mes + '/' + planilla.anio}"></h1>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4 text-muted">
+                    <div class="col-md-6">
+                        <p><strong>ID Planilla:</strong> <span th:text="${planilla.idPlanilla}"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Fecha Generada:</strong> <span th:text="${#temporals.format(planilla.fechaGenerada, 'dd/MM/yyyy')}"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>RMV Aplicada:</strong> <span th:text="${planilla.paramRmv != null ? 'S/ ' + #numbers.formatDecimal(planilla.paramRmv.valor, 1, 'COMMA', 2, 'POINT') : 'N/A'}"></span></p>
+                    </div>
+                </div>
+
+                <h2 class="h5 mb-3 text-gray-800">Detalles por Empleado</h2>
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Empleado</th>
+                                <th scope="col">Sueldo Base</th>
+                                <th scope="col">Asignación Familiar</th>
+                                <th scope="col">Ingresos Adicionales</th>
+                                <th scope="col">Total Descuentos</th>
+                                <th scope="col">Sueldo Bruto</th>
+                                <th scope="col">Sueldo Neto</th>
+                                <th scope="col" class="text-center">Detalle</th> <!-- Columna de acciones modificada -->
+                                <th scope="col" class="text-center">Boleta</th> <!-- Columna de boletas modificada -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="detalle, iStat : ${detallesPlanilla}">
+                                <td th:text="${detalle.empleado.nombres + ' ' + detalle.empleado.apellidos}"></td>
+                                <td th:text="${'S/ ' + #numbers.formatDecimal(detalle.sueldoBase, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td th:text="${'S/ ' + #numbers.formatDecimal(detalle.asignacionFamiliar, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td th:text="${'S/ ' + #numbers.formatDecimal(detalle.totalIngresosAdicionales, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td th:text="${'S/ ' + #numbers.formatDecimal(detalle.totalDescuentos, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td th:text="${'S/ ' + #numbers.formatDecimal(detalle.sueldoBruto, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td class="fw-semibold" th:text="${'S/ ' + #numbers.formatDecimal(detalle.sueldoNeto, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td class="text-center">
+                                    <!-- Botón "Ver Detalle Completo" solo con icono -->
+                                    <a th:href="@{/planillas/detalle-empleado/{id}(id=${detalle.idDetalle})}"
+                                       class="btn btn-primary btn-action-icon" title="Ver Detalle Completo">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    </a>
+                                </td>
+                                <!-- Columna para acciones de Boleta, ahora más compacta -->
+                                <td class="text-center">
+                                    <th:block th:if="${!detalle.boletaGenerada}">
+                                        <form th:action="@{/planillas/generar-boleta/{idDetalle}(idDetalle=${detalle.idDetalle})}" method="post"
+                                              class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres generar la boleta para este empleado?');">
+                                            <button type="submit" class="btn btn-success btn-action-icon" title="Generar Boleta">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </button>
+                                        </form>
+                                    </th:block>
+                                    <th:block th:if="${detalle.boletaGenerada}">
+                                        <!-- Botón "Ver Boleta" solo con icono -->
+                                        <a th:href="@{/planillas/ver-boleta/{idBoleta}(idBoleta=${detalle.boleta.idBoleta})}"
+                                           class="btn btn-info btn-action-icon me-1" title="Ver Boleta" target="_blank">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <!-- Botón "Eliminar Boleta" solo con icono -->
+                                        <form th:action="@{/planillas/eliminar-boleta/{idBoleta}(idBoleta=${detalle.boleta.idBoleta})}" method="post"
+                                              class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta boleta? Esta acción es irreversible.');">
+                                            <button type="submit" class="btn btn-danger btn-action-icon" title="Eliminar Boleta">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </th:block>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div th:if="${#lists.isEmpty(detallesPlanilla)}" class="alert alert-warning text-center" role="alert">
+                        No hay detalles de planilla para esta planilla todavía.
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-start">
+                    <a th:href="@{/planillas/listar}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Volver al Listado de Planillas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

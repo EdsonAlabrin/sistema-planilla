@@ -18,7 +18,7 @@ public interface PlanillaService {
 
     /**
      * Obtiene una planilla por su ID.
-     * @param idPlanilla El ID de la planilla.
+     * @param id El ID de la planilla.
      * @return Un Optional que contiene la Planilla si se encuentra, o vacío si no existe.
      */
     Optional<Planilla> getPlanillaById(Integer idPlanilla);
@@ -61,8 +61,16 @@ public interface PlanillaService {
      */
     List<Planilla> getPlanillasByAnioAndTipo(Integer anio, TipoPlanilla tipoPlanilla);
 
-    // Aquí iría la lógica más compleja de cálculo de planilla
-    // Por ejemplo:
-    // Planilla generatePlanilla(Integer mes, Integer anio, TipoPlanilla tipoPlanilla);
+    /**
+     * Genera y calcula una nueva planilla para un mes, año y tipo específicos.
+     * Este es el método central para el cálculo de planillas.
+     * @param mes El mes de la planilla (1-12).
+     * @param anio El año de la planilla.
+     * @param tipoPlanilla El tipo de planilla a generar (MENSUAL, CTS, GRATIFICACION, LBS, VACACION).
+     * @return La Planilla generada con todos sus detalles.
+     * @throws IllegalStateException Si la planilla para el período y tipo ya existe.
+     * @throws RuntimeException Si ocurren errores durante el cálculo.
+     */
+    Planilla generatePlanilla(Integer mes, Integer anio, TipoPlanilla tipoPlanilla);
 }
 

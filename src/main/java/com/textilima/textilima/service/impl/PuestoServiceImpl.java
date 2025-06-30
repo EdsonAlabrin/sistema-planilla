@@ -12,15 +12,15 @@ import java.util.Optional;
 @Service
 public class PuestoServiceImpl implements PuestoService {
 
-    @Autowired // Inyección de dependencia del repositorio de Puesto
+   @Autowired
     private PuestoRepository puestoRepository;
 
     /**
-     * Obtiene una lista de todas los puestos.
+     * Obtiene una lista de todos los puestos.
      * @return Una lista de objetos Puesto.
      */
     @Override
-    public List<Puesto> getAllPuestos() {
+    public List<Puesto> listarTodosLosPuestos() {
         return puestoRepository.findAll();
     }
 
@@ -30,20 +30,41 @@ public class PuestoServiceImpl implements PuestoService {
      * @return Un Optional que contiene el Puesto si se encuentra, o vacío si no existe.
      */
     @Override
-    public Optional<Puesto> getPuestoById(Integer idPuesto) {
+    public Optional<Puesto> obtenerPuestoPorId(Integer idPuesto) {
         return puestoRepository.findById(idPuesto);
     }
 
     /**
-     * Guarda un nuevo puesto o actualiza uno existente.
-     * @param puesto El objeto Puesto a guardar/actualizar.
-     * @return El Puesto guardado/actualizado.
+     * Guarda un nuevo puesto.
+     * @param puesto El objeto Puesto a guardar.
+     * @return El Puesto guardado.
      */
     @Override
-    public Puesto savePuesto(Puesto puesto) {
-        // Aquí se podría añadir lógica de negocio adicional antes de guardar,
-        // por ejemplo, validaciones de salario o jornada laboral.
+    public Puesto crearPuesto(Puesto puesto) {
         return puestoRepository.save(puesto);
+    }
+
+    /**
+     * Actualiza un puesto existente.
+     * @param id El ID del puesto a actualizar.
+     * @param puesto Detalles del puesto para actualizar.
+     * @return El Puesto actualizado.
+     */
+    @Override
+    public Puesto actualizarPuesto(Integer idPuesto, Puesto puesto) {
+        Optional<Puesto> existingPuesto = puestoRepository.findById(idPuesto);
+        if (existingPuesto.isPresent()) {
+            Puesto updatedPuesto = existingPuesto.get();
+            updatedPuesto.setNombrePuesto(puesto.getNombrePuesto());
+            updatedPuesto.setSalarioBase(puesto.getSalarioBase());
+            updatedPuesto.setJornadaLaboralHoras(puesto.getJornadaLaboralHoras());
+            updatedPuesto.setHoraInicioJornada(puesto.getHoraInicioJornada()); // Actualizar nueva propiedad
+            updatedPuesto.setHoraFinJornada(puesto.getHoraFinJornada());     // Actualizar nueva propiedad
+            updatedPuesto.setDescripcion(puesto.getDescripcion());
+            return puestoRepository.save(updatedPuesto);
+        } else {
+            throw new RuntimeException("Puesto con ID " + idPuesto + " no encontrado para actualización.");
+        }
     }
 
     /**
@@ -51,7 +72,7 @@ public class PuestoServiceImpl implements PuestoService {
      * @param id El ID del puesto a eliminar.
      */
     @Override
-    public void deletePuesto(Integer idPuesto) {
+    public void eliminarPuesto(Integer idPuesto) {
         puestoRepository.deleteById(idPuesto);
     }
 

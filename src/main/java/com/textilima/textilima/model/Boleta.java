@@ -53,17 +53,16 @@ public class Boleta { // Se usa "Boleta" en singular para la entidad
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se mapea la relación OneToOne con DetallePlanilla. La base de datos
-     * tiene ON DELETE CASCADE en esta relación, lo que significa que si un
-     * DetallePlanilla se elimina, la Boleta asociada también se eliminará.
-     * - Se usa LocalDate para la fecha_emision.
-     * - Se utilizan Boolean para los campos 'firmada' y 'enviada'.
-     *
-     * Sugerencias adicionales:
-     * - Asegúrate de que 'ruta_pdf' almacene rutas relativas o URLs a un
-     * sistema de almacenamiento de archivos seguro, y no los PDFs directamente.
-     * - Podrías añadir un campo 'fecha_firma' o 'fecha_envio' para mayor detalle en la auditoría.
-     */
+   
+    // Este constructor permite crear una Boleta con los campos mínimos necesarios.
+    // Lombok generará el constructor sin argumentos gracias a @NoArgsConstructor.
+    // Si necesitas el constructor con TODOS los campos para otras operaciones, puedes dejar @AllArgsConstructor
+    // o crear un constructor manual que incluya todos los campos.
+    public Boleta(DetallePlanilla detallePlanilla, LocalDate fechaEmision, String rutaPdf) {
+        this.detallePlanilla = detallePlanilla;
+        this.fechaEmision = fechaEmision;
+        this.rutaPdf = rutaPdf;
+        // Los campos 'firmada' y 'enviada' se inicializan con sus valores por defecto (false)
+        // 'createdAt' y 'updatedAt' serán manejados por @CreationTimestamp/@UpdateTimestamp
+    }
 }
