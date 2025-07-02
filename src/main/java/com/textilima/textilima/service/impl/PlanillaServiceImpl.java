@@ -146,7 +146,7 @@ public class PlanillaServiceImpl implements PlanillaService {
         LocalDate fechaFinPeriodo = fechaInicioPeriodo.withDayOfMonth(fechaInicioPeriodo.lengthOfMonth());
 
         // 2. Obtener los parámetros legales vigentes (RMV, UIT) para el periodo
-        // ¡¡¡CORRECCIÓN AQUÍ!!! Usar getParametroLegalByCodigoAndFechaVigencia
+        // Usar getParametroLegalByCodigoAndFechaVigencia
         ParametroLegal rmv = parametroLegalService.getParametroLegalByCodigoAndFechaVigencia("RMV", fechaFinPeriodo)
                                                      .orElseThrow(() -> new RuntimeException("RMV no encontrado para la fecha: " + fechaFinPeriodo));
         ParametroLegal uit = parametroLegalService.getParametroLegalByCodigoAndFechaVigencia("UIT", fechaFinPeriodo)

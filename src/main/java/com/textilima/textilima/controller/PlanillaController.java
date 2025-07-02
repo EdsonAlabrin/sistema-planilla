@@ -454,14 +454,14 @@ public class PlanillaController {
         }
     }
 
-    /**
+      /**
      * Endpoint para eliminar una boleta.
      * @param idBoleta El ID de la Boleta a eliminar.
      * @param redirectAttributes Para pasar mensajes.
      * @return Redirección a la página de detalles de la planilla.
      */
     @PostMapping("/eliminar-boleta/{idBoleta}")
-    public String eliminarBoleta(@PathVariable Integer idBoleta, RedirectAttributes redirectAttributes) {
+    public String eliminarBoleta(@PathVariable("idBoleta") Integer idBoleta, RedirectAttributes redirectAttributes) {
         Optional<Boleta> boletaOptional = boletaService.getBoletaById(idBoleta);
         if (boletaOptional.isPresent()) {
             Integer idPlanilla = boletaOptional.get().getDetallePlanilla().getPlanilla().getIdPlanilla();
