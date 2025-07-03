@@ -1,173 +1,418 @@
+<!-- src/main/resources/templates/planillas/empleadoDetalles.html -->
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/base}">
+      layout:decorate="~{layout/base}"> <!-- ASUMIDO: fragments/baseLayout.html -->
 <head>
-    <title layout:title-pattern="$CONTENT_TITLE" th:text="${'Detalle de Empleado - ' + detallePlanilla.empleado.nombres + ' ' + detallePlanilla.empleado.apellidos}"></title>
+    <title>Detalle de Empleado en Planilla</title>
+    <!-- Font Awesome para iconos (si no está ya en baseLayout.html) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos generales para los títulos de las secciones */
+        .main-list-title {
+            color: #2c3e50; /* Un azul oscuro más profundo */
+            font-weight: 700; /* Más negrita */
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .main-list-title i {
+            margin-right: 10px;
+            color: #3498db; /* Un azul más vibrante */
+        }
+
+        /* Estilos para las tarjetas y sus cabeceras */
+        .card {
+            border-radius: 0.5rem; /* Bordes más redondeados */
+            border: 1px solid #e0e0e0; /* Borde más suave */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada */
+        }
+        .card-header {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            border-bottom: none; /* Eliminar borde inferior por defecto */
+            border-top-left-radius: calc(0.5rem - 1px);
+            border-top-right-radius: calc(0.5rem - 1px);
+            display: flex;
+            align-items: center;
+            color: white; /* Texto blanco para headers de color */
+        }
+        .card-header h4 {
+            margin-bottom: 0;
+            font-size: 1.25rem; /* Tamaño de fuente ligeramente más grande */
+        }
+        .card-header i {
+            margin-right: 10px;
+        }
+
+        /* Colores de cabeceras de tarjeta específicos */
+        .card-header.bg-primary { background-color: #007bff !important; } /* Azul Bootstrap */
+        .card-header.bg-info { background-color: #17a2b8 !important; } /* Cian Bootstrap */
+        .card-header.bg-success { background-color: #28a745 !important; } /* Verde Bootstrap */
+        .card-header.bg-warning { background-color: #ffc107 !important; color: #343a40 !important; } /* Amarillo Bootstrap con texto oscuro */
+
+        /* Estilos para el contenido de las tarjetas */
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Estilos para el buscador sutil */
+        .subtle-search-container {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .subtle-search-container .form-control {
+            border-radius: 0.25rem;
+            border: 1px solid #ced4da;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.9rem;
+        }
+        .subtle-search-container .btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        /* Estilos de tabla */
+        .table {
+            margin-bottom: 0; /* Eliminar margen inferior de la tabla */
+        }
+        .table thead th {
+            background-color: #495057; /* Gris oscuro para encabezados de tabla */
+            color: white;
+            border-bottom: 2px solid #007bff;
+            font-size: 0.9rem;
+            padding: 0.75rem;
+        }
+        .table tbody tr td {
+            font-size: 0.875rem; /* Tamaño de fuente ligeramente más pequeño para datos */
+            padding: 0.75rem;
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.03);
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,123,255,.08);
+        }
+        .table-responsive {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+
+        /* Estilos para las acciones en tablas */
+        .action-button {
+            margin-right: 5px;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Estilos para los badges de estado */
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.4em 0.6em;
+            border-radius: 0.25rem;
+        }
+
+        /* Optimización de espacio en la sección de información inicial */
+        .info-grid-item {
+            margin-bottom: 0.5rem; /* Espacio reducido entre elementos */
+            font-size: 0.95rem;
+        }
+        .info-grid-item strong {
+            color: #555;
+            min-width: 120px; /* Ancho mínimo para las etiquetas */
+            display: inline-block;
+        }
+        .info-grid-item i {
+            margin-right: 8px;
+            color: #6c757d; /* Color de icono más suave */
+        }
+
+        /* Estilos para el resumen de asistencia en cuadrícula */
+        .summary-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem; /* Espacio entre los elementos del resumen */
+            font-size: 0.95rem;
+        }
+        .summary-item i {
+            margin-right: 10px;
+            font-size: 1.2rem; /* Iconos ligeramente más grandes */
+            color: #007bff; /* Color para los iconos del resumen */
+        }
+        .summary-item strong {
+            color: #343a40;
+        }
+
+        /* Responsividad para tablas */
+        @media (max-width: 768px) {
+            .table thead {
+                display: none;
+            }
+            .table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 0.375rem;
+                padding: 1rem;
+            }
+            .table tbody td {
+                display: block;
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            .table tbody td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: calc(50% - 20px);
+                text-align: left;
+                font-weight: bold;
+            }
+            .table tbody td:last-child {
+                text-align: center;
+            }
+            .info-grid-item {
+                width: 100%; /* Una columna en móvil */
+            }
+        }
+    </style>
 </head>
 <body>
-    <section layout:fragment="content">
+    <div layout:fragment="content">
+        <h2 class="main-list-title"><i class="fas fa-user-tie"></i> Detalle de Empleado en Planilla</h2>
+        <hr class="mb-4">
+
         <div class="card shadow-sm mb-4">
-            <div class="card-header card-header-custom">
-                <h1 class="h4 mb-0"
-                    th:text="${'Detalle de Planilla para ' + detallePlanilla.empleado.nombres + ' ' + detallePlanilla.empleado.apellidos}">
-                    Detalle de Empleado
-                </h1>
-                <h2 class="h6 mb-0 text-white-75"
-                    th:text="${'Planilla: ' + detallePlanilla.planilla.tipoPlanilla + ' ' + detallePlanilla.planilla.mes + '/' + detallePlanilla.planilla.anio}"></h2>
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-info-circle"></i><h4 class="mb-0">Información General</h4>
             </div>
             <div class="card-body">
-
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
-                    <div class="col">
-                        <div class="card text-center bg-light border-info">
-                            <div class="card-body">
-                                <h5 class="card-title text-info">Sueldo Base:</h5>
-                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoBase, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
+                <div class="row">
+                    <!-- Columna 1: Datos de Planilla -->
+                    <div class="col-md-6 col-lg-4 d-flex flex-column">
+                        <div class="info-grid-item"><i class="fas fa-calendar-alt"></i><strong>Planilla:</strong> <span th:text="${T(java.time.Month).of(detallePlanilla.planilla.mes).getDisplayName(T(java.time.format.TextStyle).FULL, new java.util.Locale('es', 'ES'))}"></span>/<span th:text="${detallePlanilla.planilla.anio}"></span></div>
+                        <div class="info-grid-item"><i class="fas fa-calendar-check"></i><strong>Generada el:</strong> <span th:text="${#temporals.format(detallePlanilla.planilla.fechaGenerada, 'dd-MM-yyyy')}"></span></div>
                     </div>
-                    <div class="col">
-                        <div class="card text-center bg-light border-info">
-                            <div class="card-body">
-                                <h5 class="card-title text-info">Asignación Familiar:</h5>
-                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.asignacionFamiliar, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
+                    <!-- Columna 2: Datos de Empleado -->
+                    <div class="col-md-6 col-lg-4 d-flex flex-column">
+                        <div class="info-grid-item"><i class="fas fa-user"></i><strong>Empleado:</strong> <span th:text="${detallePlanilla.empleado.apellidos + ', ' + detallePlanilla.empleado.nombres}"></span></div>
+                        <div class="info-grid-item"><i class="fas fa-id-card"></i><strong>DNI:</strong> <span th:text="${detallePlanilla.empleado.numeroDocumento}"></span></div>
+                        <div class="info-grid-item"><i class="fas fa-briefcase"></i><strong>Puesto:</strong> <span th:text="${detallePlanilla.empleado.puesto != null ? detallePlanilla.empleado.puesto.nombrePuesto : 'N/A'}"></span></div>
                     </div>
-                    <div class="col">
-                        <div class="card text-center bg-light border-info">
-                            <div class="card-body">
-                                <h5 class="card-title text-info">Remuneración Computable Afecta:</h5>
-                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.remuneracionComputableAfecta, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
+                    <!-- Columna 3: Datos Financieros Clave -->
+                    <div class="col-md-12 col-lg-4 d-flex flex-column">
+                        <div class="info-grid-item"><i class="fas fa-money-bill-wave"></i><strong>Sueldo Bruto:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.sueldoBruto)}"></span></div>
+                        <div class="info-grid-item"><i class="fas fa-minus-circle"></i><strong>Total Descuentos:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.totalDescuentos)}"></span></div>
+                        <div class="info-grid-item"><i class="fas fa-hand-holding-usd"></i><strong>Sueldo Neto:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.sueldoNeto)}"></span></div>
                     </div>
-                    <div class="col">
-                        <div class="card text-center bg-light border-primary">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary">Total Ingresos Adicionales:</h5>
-                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalIngresosAdicionales, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
+                    <!-- Fila adicional para otros datos financieros si es necesario -->
+                    <div class="col-md-6 col-lg-4 d-flex flex-column">
+                        <div class="info-grid-item"><i class="fas fa-coins"></i><strong>Sueldo Base:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.sueldoBase)}"></span></div>
+                        <div class="info-grid-item"><i class="fas fa-child"></i><strong>Asignación Familiar:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.asignacionFamiliar)}"></span></div>
                     </div>
-                    <div class="col">
-                        <div class="card text-center bg-light border-danger">
-                            <div class="card-body">
-                                <h5 class="card-title text-danger">Total Descuentos:</h5>
-                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalDescuentos, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
+                    <div class="col-md-6 col-lg-4 d-flex flex-column">
+                        <div class="info-grid-item"><i class="fas fa-plus-circle"></i><strong>Ingresos Adicionales:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.totalIngresosAdicionales)}"></span></div>
+                        <div class="info-grid-item"><i class="fas fa-calculator"></i><strong>Rem. Computable:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.remuneracionComputableAfecta)}"></span></div>
                     </div>
-                    <div class="col">
-                        <div class="card text-center bg-light border-purple">
-                            <div class="card-body">
-                                <h5 class="card-title text-purple">Total Aportes Empleador (Essalud):</h5>
-                                <p class="card-text fs-4 fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalAportesEmpleador, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
+                    <div class="col-md-6 col-lg-4 d-flex flex-column">
+                        <div class="info-grid-item"><i class="fas fa-building"></i><strong>Aportes Empleador:</strong> <span th:text="${#numbers.formatCurrency(detallePlanilla.totalAportesEmpleador)}"></span></div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card text-center bg-primary text-white">
-                            <div class="card-body">
-                                <h5 class="card-title">Sueldo Bruto:</h5>
-                                <p class="card-text fs-3 fw-bolder" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoBruto, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card text-center bg-success text-white">
-                            <div class="card-body">
-                                <h5 class="card-title">Sueldo Neto:</h5>
-                                <p class="card-text fs-3 fw-bolder" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoNeto, 1, 'COMMA', 2, 'POINT')}"></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h2 class="h5 mb-3 text-gray-800">Desglose de Movimientos</h2>
-
-                <div class="row g-3">
-                    <!-- Ingresos -->
-                    <div class="col-md-4">
-                        <div class="card h-100 border-success">
-                            <div class="card-header bg-success text-white">
-                                <h3 class="h5 mb-0">Ingresos</h3>
-                            </div>
-                            <div class="card-body">
-                                <ul class="list-unstyled mb-0">
-                                    <!-- Iterar sobre los movimientos cuyo tipo de concepto sea INGRESO -->
-                                    <li th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'INGRESO']}"
-                                        class="py-1 border-bottom d-flex justify-content-between align-items-center">
-                                        <span th:text="${mov.concepto.nombreConcepto}"></span>
-                                        <span class="fw-semibold" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></span>
-                                    </li>
-                                    <li th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'INGRESO'])}" class="text-muted text-center py-2">
-                                        No hay ingresos detallados adicionales.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Descuentos -->
-                    <div class="col-md-4">
-                        <div class="card h-100 border-danger">
-                            <div class="card-header bg-danger text-white">
-                                <h3 class="h5 mb-0">Descuentos</h3>
-                            </div>
-                            <div class="card-body">
-                                <ul class="list-unstyled mb-0">
-                                    <!-- Iterar sobre los movimientos cuyo tipo de concepto sea DESCUENTO -->
-                                    <li th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'DESCUENTO']}"
-                                        class="py-1 border-bottom d-flex justify-content-between align-items-center">
-                                        <span th:text="${mov.concepto.nombreConcepto}"></span>
-                                        <span class="fw-semibold" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></span>
-                                    </li>
-                                    <li th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'DESCUENTO'])}" class="text-muted text-center py-2">
-                                        No hay descuentos detallados.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Aportes Empleador -->
-                    <div class="col-md-4">
-                        <div class="card h-100 border-purple">
-                            <div class="card-header bg-purple text-white">
-                                <h3 class="h5 mb-0">Aportes del Empleador</h3>
-                            </div>
-                            <div class="card-body">
-                                <ul class="list-unstyled mb-0">
-                                    <!-- Iterar sobre los movimientos cuyo tipo de concepto sea APORTE_EMPLEADOR -->
-                                    <li th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'APORTE_EMPLEADOR']}"
-                                        class="py-1 border-bottom d-flex justify-content-between align-items-center">
-                                        <span th:text="${mov.concepto.nombreConcepto}"></span>
-                                        <span class="fw-semibold" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></span>
-                                    </li>
-                                    <li th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'APORTE_EMPLEADOR'])}" class="text-muted text-center py-2">
-                                        No hay aportes del empleador detallados.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4 d-flex justify-content-start">
-                    <a th:href="@{/planillas/{id}/detalles(id=${detallePlanilla.planilla.idPlanilla})}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-2"></i> Volver a Detalles de Planilla
-                    </a>
                 </div>
             </div>
         </div>
-        <!-- Estilos CSS personalizados para los colores de las tarjetas -->
-        <style>
-            .border-purple { border-color: #6f42c1 !important; }
-            .bg-purple { background-color: #6f42c1 !important; }
-            .text-purple { color: #6f42c1 !important; }
-        </style>
-    </section>
+
+        <!-- Sección de Movimientos de Planilla -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-exchange-alt"></i><h4 class="mb-0">Movimientos de Planilla</h4>
+            </div>
+            <div class="card-body">
+                <!-- Buscador sutil para la tabla de movimientos de planilla -->
+                <div class="subtle-search-container">
+                    <input type="text" id="movimientosSearchInput" class="form-control" placeholder="Buscar por Concepto o Tipo">
+                    <button class="btn btn-outline-secondary" onclick="filterMovimientosPlanillaTable()"><i class="fas fa-search"></i></button>
+                </div>
+
+                <div th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla)}" class="alert alert-warning">
+                    No hay movimientos de planilla registrados para este empleado en esta planilla.
+                </div>
+                <div th:unless="${#lists.isEmpty(detallePlanilla.movimientosPlanilla)}">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="movimientosPlanillaTable">
+                            <thead>
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th>Tipo</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="movimiento : ${detallePlanilla.movimientosPlanilla}">
+                                    <td th:text="${movimiento.concepto != null ? movimiento.concepto.nombreConcepto : 'Concepto Desconocido'}" data-label="Concepto">Concepto X</td>
+                                    <td th:text="${movimiento.concepto != null ? movimiento.concepto.tipo.displayName : 'Tipo Desconocido'}" data-label="Tipo">Tipo X</td>
+                                    <td th:text="${#numbers.formatCurrency(movimiento.monto)}" data-label="Monto">100.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Resumen de Asistencia -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-clipboard-list"></i><h4 class="mb-0"> Resumen de Asistencia (<span th:text="${mesReporte}"></span> <span th:text="${anioReporte}"></span>)</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 col-sm-6 summary-item">
+                        <i class="fas fa-check-circle"></i><strong>Días Presentes :</strong> <span th:text="${diasPresentes}"></span>
+                    </div>
+                    <div class="col-md-4 col-sm-6 summary-item">
+                        <i class="fas fa-times-circle"></i><strong>Días Ausentes : </strong> <span th:text="${diasAusentes}"></span>
+                    </div>
+                    <div class="col-md-4 col-sm-6 summary-item">
+                        <i class="fas fa-clock"></i><strong>Minutos Tardanza : </strong> <span th:text="${ totalMinutosTardanza}"></span> min
+                    </div>
+                    <div class="col-md-4 col-sm-6 summary-item">
+                        <i class="fas fa-hourglass-half"></i><strong>Horas Extras (25%) : </strong> <span th:text="${ totalHorasExtras25}"></span> hrs
+                    </div>
+                    <div class="col-md-4 col-sm-6 summary-item">
+                        <i class="fas fa-hourglass-end"></i><strong>Horas Extras (35%) : </strong> <span th:text="${totalHorasExtras35}"></span> hrs
+                    </div>
+                    <div class="col-md-4 col-sm-6 summary-item">
+                        <i class="fas fa-business-time"></i><strong>Jornada Laboral : </strong> <span th:text="${#temporals.format(jornadaInicio, 'HH:mm')}"></span> - <span th:text="${#temporals.format(jornadaFin, 'HH:mm')}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Detalle de Asistencia -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-calendar-day"></i><h4 class="mb-0">Detalle de Asistencia</h4>
+            </div>
+            <div class="card-body">
+                <!-- Buscador sutil para la tabla de asistencia -->
+                <div class="subtle-search-container">
+                    <input type="text" id="asistenciaSearchInput" class="form-control" placeholder="Buscar por Fecha o Estado de Asistencia">
+                    <button class="btn btn-outline-secondary" onclick="filterAsistenciaTable()"><i class="fas fa-search"></i></button>
+                </div>
+
+                <div th:if="${#lists.isEmpty(asistencias)}" class="alert alert-info">
+                    No hay registros de asistencia para este período.
+                </div>
+                <div th:unless="${#lists.isEmpty(asistencias)}">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="asistenciaTable">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Hora Entrada</th>
+                                    <th>Hora Salida</th>
+                                    <th>Minutos Tardanza</th>
+                                    <th>Horas Extras 25%</th>
+                                    <th>Horas Extras 35%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="asistencia : ${asistencias}">
+                                    <td th:text="${#temporals.format(asistencia.fecha, 'dd-MM-yyyy')}" data-label="Fecha"></td>
+                                    <td th:text="${asistencia.estado.displayName}" data-label="Estado"></td>
+                                    <td th:text="${asistencia.horaEntrada != null ? #temporals.format(asistencia.horaEntrada, 'HH:mm') : 'N/A'}" data-label="Hora Entrada"></td>
+                                    <td th:text="${asistencia.horaSalida != null ? #temporals.format(asistencia.horaSalida, 'HH:mm') : 'N/A'}" data-label="Hora Salida"></td>
+                                    <td th:text="${asistencia.minutosTardanza}" data-label="Minutos Tardanza"></td>
+                                    <td th:text="${asistencia.horasExtras25}" data-label="Horas Extras 25%"></td>
+                                    <td th:text="${asistencia.horasExtras35}" data-label="Horas Extras 35%"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a th:href="@{/planillas/{id}/detalles(id=${detallePlanilla.planilla.idPlanilla})}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i> Volver a la Planilla</a>
+        </div>
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script>
+            // Función para filtrar la tabla de Movimientos de Planilla
+            function filterMovimientosPlanillaTable() {
+                const input = document.getElementById('movimientosSearchInput');
+                const filter = input.value.toLowerCase();
+                
+                const table = document.getElementById('movimientosPlanillaTable');
+                const tr = table.getElementsByTagName('tr');
+
+                for (let i = 1; i < tr.length; i++) { // Empezar en 1 para saltar el thead
+                    let rowVisible = false;
+                    const tdConcepto = tr[i].getElementsByTagName('td')[0]; // Columna Concepto
+                    const tdTipo = tr[i].getElementsByTagName('td')[1]; // Columna Tipo
+
+                    if (tdConcepto || tdTipo) {
+                        const textConcepto = tdConcepto ? tdConcepto.textContent || tdConcepto.innerText : '';
+                        const textTipo = tdTipo ? tdTipo.textContent || tdTipo.innerText : '';
+
+                        if (textConcepto.toLowerCase().indexOf(filter) > -1 || textTipo.toLowerCase().indexOf(filter) > -1) {
+                            rowVisible = true;
+                        }
+                    }
+                    tr[i].style.display = rowVisible ? '' : 'none';
+                }
+            }
+
+            // Función para filtrar la tabla de Asistencia
+            function filterAsistenciaTable() {
+                const input = document.getElementById('asistenciaSearchInput');
+                const filter = input.value.toLowerCase();
+                
+                const table = document.getElementById('asistenciaTable');
+                const tr = table.getElementsByTagName('tr');
+
+                for (let i = 1; i < tr.length; i++) { // Empezar en 1 para saltar el thead
+                    let rowVisible = false;
+                    const tdFecha = tr[i].getElementsByTagName('td')[0]; // Columna Fecha
+                    const tdEstado = tr[i].getElementsByTagName('td')[1]; // Columna Estado
+
+                    if (tdFecha || tdEstado) {
+                        const textFecha = tdFecha ? tdFecha.textContent || tdFecha.innerText : '';
+                        const textEstado = tdEstado ? tdEstado.textContent || tdEstado.innerText : '';
+
+                        if (textFecha.toLowerCase().indexOf(filter) > -1 || textEstado.toLowerCase().indexOf(filter) > -1) {
+                            rowVisible = true;
+                        }
+                    }
+                    tr[i].style.display = rowVisible ? '' : 'none';
+                }
+            }
+
+            // Añadir listeners para filtrar mientras el usuario escribe
+            document.addEventListener('DOMContentLoaded', function() {
+                const movimientosSearchInput = document.getElementById('movimientosSearchInput');
+                if (movimientosSearchInput) {
+                    movimientosSearchInput.addEventListener('keyup', filterMovimientosPlanillaTable);
+                }
+
+                const asistenciaSearchInput = document.getElementById('asistenciaSearchInput');
+                if (asistenciaSearchInput) {
+                    asistenciaSearchInput.addEventListener('keyup', filterAsistenciaTable);
+                }
+            });
+        </script>
+    </th:block>
 </body>
 </html>

@@ -69,9 +69,21 @@ public class ConceptoPago { // Se usa "ConceptoPago" en singular para la entidad
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Enum para el tipo de concepto
+     // Enum para el tipo de concepto
     public enum TipoConcepto {
-        INGRESO, DESCUENTO, APORTE_EMPLEADOR
+        INGRESO("Ingreso"),
+        DESCUENTO("Descuento"),
+        APORTE_EMPLEADOR("Aporte Empleador"); // <-- Aquí se añaden los nombres a mostrar
+
+        private final String displayName; // <-- Nueva propiedad
+
+        TipoConcepto(String displayName) { // <-- Nuevo constructor
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() { // <-- Nuevo método getter
+            return displayName;
+        }
     }
 
     // Enum para el método de cálculo
@@ -79,17 +91,5 @@ public class ConceptoPago { // Se usa "ConceptoPago" en singular para la entidad
         PORCENTAJE, MONTO_FIJO, FORMULA_ESPECIAL
     }
 
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se utilizan BigDecimal para valor_referencial para asegurar la precisión.
-     * - Se utilizan Enums para 'tipo' y 'metodo_calculo' para asegurar los valores permitidos y la legibilidad.
-     * - El campo 'descripcion' utiliza columnDefinition = "TEXT" para mapearse a un tipo TEXT en la BD,
-     * permitiendo descripciones más largas.
-     *
-     * Sugerencias adicionales:
-     * - Asegúrate de que los valores de afecto_onp, afecto_afp, y afecto_essalud estén
-     * correctamente configurados para cada concepto según la normativa laboral peruana.
-     * - El 'FORMULA_ESPECIAL' en metodo_calculo implica que la lógica de cálculo
-     * para estos conceptos debe ser manejada por la aplicación.
-     */
+    
 }

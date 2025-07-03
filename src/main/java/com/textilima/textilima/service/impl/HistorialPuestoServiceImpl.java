@@ -75,19 +75,16 @@ public class HistorialPuestoServiceImpl implements HistorialPuestoService {
      */
     @Override
     public Optional<HistorialPuesto> getCurrentPuestoByEmpleado(Empleado empleado) {
-        return historialPuestoRepository.findTopByEmpleadoAndFechaFinIsNullOrderByFechaInicioDesc(empleado);
+        return historialPuestoRepository.findByEmpleadoAndFechaFinIsNull(empleado);
     }
 
-    /**
-     * Searches for historical job records for an employee that were active on a specific date.
-     * @param empleado The employee.
-     * @param fecha The date for which the active job is sought.
-     * @return An Optional containing the HistorialPuesto active on that date, or empty.
+   /**
+     * Implementación que delega al repositorio para encontrar el puesto activo en una fecha dada.
      */
     @Override
-    public Optional<HistorialPuesto> getPuestoByEmpleadoAndDate(Empleado empleado, LocalDate fecha) {
-        return historialPuestoRepository.findByEmpleadoAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqualOrFechaFinIsNull(
-            empleado, fecha, fecha); // Pass 'fecha' twice for the OR condition
+    public Optional<HistorialPuesto> getPuestoByEmpleadoAndDate(Empleado empleado, LocalDate date) {
+        // Llama al método del repositorio con la anotación @Query
+        return historialPuestoRepository.findByEmpleadoAndDate(empleado, date);
     }
 
 }

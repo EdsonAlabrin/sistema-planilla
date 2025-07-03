@@ -3,7 +3,13 @@ package com.textilima.textilima.service.impl;
 
 // Importaciones de interfaces de repositorio
 import com.textilima.textilima.repository.PlanillaRepository;
+import com.textilima.textilima.repository.DetallePlanillaRepository;
+import com.textilima.textilima.repository.MovimientoPlanillaRepository;
+import com.textilima.textilima.repository.AsistenciaRepository;
+import com.textilima.textilima.repository.BoletaRepository;
+
 import com.textilima.textilima.model.Asistencia;
+import com.textilima.textilima.model.Asistencia.EstadoAsistencia;
 import com.textilima.textilima.model.ConceptoPago;
 import com.textilima.textilima.model.ConceptoPago.TipoConcepto;
 import com.textilima.textilima.model.DetallePlanilla;
@@ -14,6 +20,7 @@ import com.textilima.textilima.model.ParametroLegal;
 import com.textilima.textilima.model.Planilla;
 import com.textilima.textilima.model.Planilla.TipoPlanilla;
 import com.textilima.textilima.model.Puesto;
+import com.textilima.textilima.model.Boleta;
 
 // Importaciones de interfaces de servicio
 import com.textilima.textilima.service.AsistenciaService;
@@ -25,7 +32,7 @@ import com.textilima.textilima.service.MovimientoPlanillaService;
 import com.textilima.textilima.service.ParametroLegalService;
 import com.textilima.textilima.service.PlanillaService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 // Importaciones de Spring Framework
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +40,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,101 +52,80 @@ import java.util.Optional;
 public class PlanillaServiceImpl implements PlanillaService {
 
     @Autowired private PlanillaRepository planillaRepository;
+    @Autowired private DetallePlanillaRepository detallePlanillaRepository;
+    @Autowired private MovimientoPlanillaRepository movimientoPlanillaRepository;
+    @Autowired private AsistenciaRepository asistenciaRepository;
+    @Autowired private BoletaRepository boletaRepository;
+
     @Autowired private EmpleadoService empleadoService;
     @Autowired private ParametroLegalService parametroLegalService;
     @Autowired private ConceptoPagoService conceptoPagoService;
     @Autowired private AsistenciaService asistenciaService;
     @Autowired private DetallePlanillaService detallePlanillaService;
     @Autowired private MovimientoPlanillaService movimientoPlanillaService;
-    @Autowired private HistorialPuestoService historialPuestoService; // Para obtener el puesto en el periodo
+    @Autowired private HistorialPuestoService historialPuestoService;
 
-    /**
-     * Recupera una lista de todas las planillas.
-     * @return Una lista de objetos Planilla.
-     */
     @Override
     public List<Planilla> getAllPlanillas() {
         return planillaRepository.findAll();
     }
 
-    /**
-     * Recupera una planilla por su ID.
-     * @param id El ID de la planilla.
-     * @return Un Optional que contiene la Planilla si se encuentra, o vacío si no se encuentra.
-     */
     @Override
     public Optional<Planilla> getPlanillaById(Integer idPlanilla) {
         return planillaRepository.findById(idPlanilla);
     }
 
-    /**
-     * Guarda una nueva planilla o actualiza una existente.
-     * @param planilla El objeto Planilla a guardar/actualizar.
-     * @return La Planilla guardada/actualizada.
-     */
     @Override
     public Planilla savePlanilla(Planilla planilla) {
         return planillaRepository.save(planilla);
     }
 
-    /**
-     * Elimina una planilla por su ID.
-     * @param id El ID de la planilla a eliminar.
-     */
     @Override
-    public void deletePlanilla(Integer idPlanilla) {
-        planillaRepository.deleteById(idPlanilla);
+    @Transactional
+    public void eliminarPlanillaCompleta(Integer idPlanilla) {
+        Optional<Planilla> planillaOptional = planillaRepository.findById(idPlanilla);
+        if (planillaOptional.isPresent()) {
+            Planilla planillaToDelete = planillaOptional.get();
+
+            List<DetallePlanilla> detalles = detallePlanillaRepository.findByPlanilla(planillaToDelete);
+            for (DetallePlanilla detalle : detalles) {
+                Optional<Boleta> boletaExistente = boletaRepository.findByDetallePlanilla(detalle);
+                boletaExistente.ifPresent(boleta -> {
+                    boletaRepository.delete(boleta);
+                    System.out.println("DEBUG: Boleta con ID " + boleta.getIdBoleta() + " eliminada.");
+                });
+                movimientoPlanillaRepository.deleteAll(detalle.getMovimientosPlanilla());
+                System.out.println("DEBUG: Movimientos de planilla para DetallePlanilla ID " + detalle.getIdDetalle() + " eliminados.");
+            }
+
+            detallePlanillaRepository.deleteAll(detalles);
+            System.out.println("DEBUG: Detalles de planilla para Planilla ID " + idPlanilla + " eliminados.");
+
+            planillaRepository.delete(planillaToDelete);
+            System.out.println("DEBUG: Planilla con ID " + idPlanilla + " eliminada.");
+        } else {
+            throw new RuntimeException("Planilla no encontrada para eliminar con ID: " + idPlanilla);
+        }
     }
 
-    /**
-     * Busca una planilla por mes, año y tipo.
-     * @param mes El mes de la planilla.
-     * @param anio El año de la planilla.
-     * @param tipoPlanilla El tipo de planilla (ej. MENSUAL, CTS, GRATIFICACION).
-     * @return Un Optional que contiene la Planilla encontrada, o vacío si no se encuentra.
-     */
     @Override
     public Optional<Planilla> getPlanillaByMesAnioAndTipo(Integer mes, Integer anio, TipoPlanilla tipoPlanilla) {
         return planillaRepository.findByMesAndAnioAndTipoPlanilla(mes, anio, tipoPlanilla);
     }
 
-    /**
-     * Busca todas las planillas generadas en un rango de fechas.
-     * @param fechaInicio La fecha de inicio del rango (inclusive).
-     * @param fechaFin La fecha de fin del rango (inclusive).
-     * @return Una lista de planillas generadas en el rango especificado.
-     */
     @Override
     public List<Planilla> getPlanillasByFechaGeneradaBetween(LocalDate fechaInicio, LocalDate fechaFin) {
         return planillaRepository.findByFechaGeneradaBetween(fechaInicio, fechaFin);
     }
 
-    /**
-     * Busca todas las planillas de un tipo específico para un año dado.
-     * @param anio El año de la planilla.
-     * @param tipoPlanilla El tipo de planilla.
-     * @return Una lista de planillas que coinciden con el año y tipo.
-     */
     @Override
     public List<Planilla> getPlanillasByAnioAndTipo(Integer anio, TipoPlanilla tipoPlanilla) {
         return planillaRepository.findByAnioAndTipoPlanilla(anio, tipoPlanilla);
     }
 
-    /**
-     * Genera y calcula una nueva planilla para un mes, año y tipo específicos.
-     * Este es el método central para el cálculo de planillas, orquestando todas las dependencias.
-     *
-     * @param mes El mes de la planilla (1-12).
-     * @param anio El año de la planilla.
-     * @param tipoPlanilla El tipo de planilla a generar (MENSUAL, CTS, GRATIFICACION, LBS, VACACION).
-     * @return La Planilla generada con todos sus detalles.
-     * @throws IllegalStateException Si la planilla para el período y tipo ya existe.
-     * @throws RuntimeException Si ocurren errores durante el cálculo.
-     */
     @Override
-    @Transactional // Asegura que toda la operación sea atómica (commit o rollback)
+    @Transactional
     public Planilla generatePlanilla(Integer mes, Integer anio, TipoPlanilla tipoPlanilla) {
-        // 1. Validar si la planilla para ese mes/anio/tipo ya existe
         if (getPlanillaByMesAnioAndTipo(mes, anio, tipoPlanilla).isPresent()) {
             throw new IllegalStateException("Ya existe una planilla de tipo " + tipoPlanilla +
                                             " para el mes " + mes + " y año " + anio);
@@ -145,197 +135,292 @@ public class PlanillaServiceImpl implements PlanillaService {
         LocalDate fechaInicioPeriodo = LocalDate.of(anio, mes, 1);
         LocalDate fechaFinPeriodo = fechaInicioPeriodo.withDayOfMonth(fechaInicioPeriodo.lengthOfMonth());
 
-        // 2. Obtener los parámetros legales vigentes (RMV, UIT) para el periodo
-        // Usar getParametroLegalByCodigoAndFechaVigencia
         ParametroLegal rmv = parametroLegalService.getParametroLegalByCodigoAndFechaVigencia("RMV", fechaFinPeriodo)
-                                                     .orElseThrow(() -> new RuntimeException("RMV no encontrado para la fecha: " + fechaFinPeriodo));
+                                                   .orElseThrow(() -> new RuntimeException("RMV no encontrado para la fecha: " + fechaFinPeriodo));
         ParametroLegal uit = parametroLegalService.getParametroLegalByCodigoAndFechaVigencia("UIT", fechaFinPeriodo)
-                                                     .orElseThrow(() -> new RuntimeException("UIT no encontrado para la fecha: " + fechaFinPeriodo));
+                                                   .orElseThrow(() -> new RuntimeException("UIT no encontrado para la fecha: " + fechaFinPeriodo));
 
-        // 3. Crear la cabecera de la planilla
         Planilla nuevaPlanilla = new Planilla();
         nuevaPlanilla.setMes(mes);
         nuevaPlanilla.setAnio(anio);
         nuevaPlanilla.setTipoPlanilla(tipoPlanilla);
         nuevaPlanilla.setFechaGenerada(fechaActual);
-        nuevaPlanilla.setParamRmv(rmv); // Asociar la RMV vigente
-        nuevaPlanilla = planillaRepository.save(nuevaPlanilla); // Guardar para obtener el ID
+        nuevaPlanilla.setParamRmv(rmv);
+        nuevaPlanilla = planillaRepository.save(nuevaPlanilla);
 
-        // 4. Obtener todos los conceptos de pago (Ingresos, Descuentos, Aportes Empleador)
         List<ConceptoPago> conceptosIngresos = conceptoPagoService.getConceptosPagoByTipo(TipoConcepto.INGRESO);
         List<ConceptoPago> conceptosDescuentos = conceptoPagoService.getConceptosPagoByTipo(TipoConcepto.DESCUENTO);
         List<ConceptoPago> conceptosAportesEmpleador = conceptoPagoService.getConceptosPagoByTipo(TipoConcepto.APORTE_EMPLEADOR);
 
-        // 5. Obtener los empleados activos para el periodo
-        // Para una planilla mensual, consideramos los empleados activos en la fecha de generación
         List<Empleado> empleadosActivos = empleadoService.getActiveEmpleados();
 
         if (empleadosActivos.isEmpty()) {
-            // Considerar si esto es un error o simplemente no hay planilla que generar
             throw new RuntimeException("No hay empleados activos para generar la planilla.");
         }
 
-        // 6. Iterar sobre cada empleado para calcular su detalle de planilla
         for (Empleado empleado : empleadosActivos) {
-            // Lógica compleja para calcular el detalle de planilla para CADA EMPLEADO
             DetallePlanilla detalle = new DetallePlanilla();
             detalle.setPlanilla(nuevaPlanilla);
             detalle.setEmpleado(empleado);
 
-            // Obtener el puesto actual o histórico del empleado para el periodo de la planilla
             Optional<HistorialPuesto> puestoHistoricoOpt = historialPuestoService.getPuestoByEmpleadoAndDate(empleado, fechaFinPeriodo);
             Puesto puestoActual = puestoHistoricoOpt.map(HistorialPuesto::getPuesto)
-                                                   .orElseThrow(() -> new RuntimeException("No se encontró puesto para el empleado " + empleado.getNombres() + " " + empleado.getApellidos() + " para el periodo de planilla."));
+                                                 .orElseThrow(() -> new RuntimeException("No se encontró puesto para el empleado " + empleado.getNombres() + " " + empleado.getApellidos() + " para el periodo de planilla."));
 
-            // Sueldo Base (del puesto actual del empleado)
             BigDecimal sueldoBase = puestoActual.getSalarioBase();
             detalle.setSueldoBase(sueldoBase);
 
-            // Asignación Familiar (si aplica)
             BigDecimal asignacionFamiliar = BigDecimal.ZERO;
             if (empleado.getTieneHijosCalificados() != null && empleado.getTieneHijosCalificados()) {
-                // Asignación Familiar = 10% de la RMV en Perú
-                asignacionFamiliar = rmv.getValor().multiply(BigDecimal.valueOf(0.10));
+                asignacionFamiliar = rmv.getValor().multiply(BigDecimal.valueOf(0.10)).setScale(2, RoundingMode.HALF_UP);
             }
             detalle.setAsignacionFamiliar(asignacionFamiliar);
 
-            // Remuneración Computable Afecta (base para ONP/AFP, EsSalud)
-            // Esto es un cálculo complejo que depende de cada concepto de ingreso.
-            // Para simplificar, aquí se asume Sueldo Base + Asignación Familiar como base.
-            // La lógica real debe iterar sobre los MovimientosPlanilla de ingresos remunerativos.
-            BigDecimal remuneracionComputableAfecta = sueldoBase.add(asignacionFamiliar);
-            detalle.setRemuneracionComputableAfecta(remuneracionComputableAfecta);
-
-            // Inicializar totales
-            BigDecimal totalIngresos = sueldoBase.add(asignacionFamiliar); // Sueldo base y asignación familiar son ingresos iniciales
+            BigDecimal totalIngresosAdicionales = BigDecimal.ZERO;
             BigDecimal totalDescuentos = BigDecimal.ZERO;
             BigDecimal totalAportesEmpleador = BigDecimal.ZERO;
+            List<MovimientoPlanilla> movimientos = new ArrayList<>();
+
+            // --- CÁLCULO Y PERSISTENCIA DE ASISTENCIAS (TARDANZAS, HORAS EXTRAS, AUSENCIAS) ---
+            List<Asistencia> asistenciasDelMes = asistenciaService.getAsistenciasByEmpleadoAndFechaBetween(empleado, fechaInicioPeriodo, fechaFinPeriodo);
+
+            int totalMinutosTardanzaMes = 0;
+            BigDecimal totalHorasExtras25Mes = BigDecimal.ZERO;
+            BigDecimal totalHorasExtras35Mes = BigDecimal.ZERO;
+            int diasAusentesMes = 0;
+
+            LocalTime horaInicioJornada = puestoActual.getHoraInicioJornada();
+            LocalTime horaFinJornada = puestoActual.getHoraFinJornada();
+            int jornadaHoras = puestoActual.getJornadaLaboralHoras();
+
+            BigDecimal diasBaseCalculo = BigDecimal.valueOf(30);
+            BigDecimal valorDia = sueldoBase.divide(diasBaseCalculo, 4, RoundingMode.HALF_UP);
+            BigDecimal valorHora = sueldoBase.divide(diasBaseCalculo.multiply(BigDecimal.valueOf(jornadaHoras)), 4, RoundingMode.HALF_UP);
+            BigDecimal valorMinuto = valorHora.divide(BigDecimal.valueOf(60), 4, RoundingMode.HALF_UP);
+
+            for (Asistencia asistencia : asistenciasDelMes) {
+                // Reiniciar los valores para cada asistencia
+                asistencia.setMinutosTardanza(0);
+                asistencia.setHorasExtras25(BigDecimal.ZERO);
+                asistencia.setHorasExtras35(BigDecimal.ZERO);
+
+                if (asistencia.getEstado() == EstadoAsistencia.PRESENTE || asistencia.getEstado() == EstadoAsistencia.TARDANZA) {
+                    // Cálculo de Tardanzas por día
+                    if (asistencia.getHoraEntrada() != null && horaInicioJornada != null && asistencia.getHoraEntrada().isAfter(horaInicioJornada)) {
+                        Duration tardanzaDuration = Duration.between(horaInicioJornada, asistencia.getHoraEntrada());
+                        int minutosTardanzaCalculados = (int) tardanzaDuration.toMinutes();
+                        asistencia.setMinutosTardanza(minutosTardanzaCalculados);
+                        totalMinutosTardanzaMes += minutosTardanzaCalculados;
+                    }
+                    
+                    // Cálculo de Horas Extras por día
+                    if (asistencia.getHoraSalida() != null && horaFinJornada != null && asistencia.getHoraSalida().isAfter(horaFinJornada)) {
+                        Duration extraDuration = Duration.between(horaFinJornada, asistencia.getHoraSalida());
+                        BigDecimal horasExtrasDecimal = BigDecimal.valueOf(extraDuration.toMinutes()).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+
+                        BigDecimal horas25Calculadas = BigDecimal.ZERO;
+                        BigDecimal horas35Calculadas = BigDecimal.ZERO;
+
+                        if (horasExtrasDecimal.compareTo(BigDecimal.valueOf(2)) <= 0) {
+                            horas25Calculadas = horasExtrasDecimal;
+                        } else {
+                            horas25Calculadas = BigDecimal.valueOf(2);
+                            horas35Calculadas = horasExtrasDecimal.subtract(BigDecimal.valueOf(2));
+                        }
+                        asistencia.setHorasExtras25(horas25Calculadas);
+                        asistencia.setHorasExtras35(horas35Calculadas);
+                        totalHorasExtras25Mes = totalHorasExtras25Mes.add(horas25Calculadas);
+                        totalHorasExtras35Mes = totalHorasExtras35Mes.add(horas35Calculadas);
+                    }
+                } else if (asistencia.getEstado() == EstadoAsistencia.AUSENTE) {
+                    diasAusentesMes++;
+                    // Los campos ya se reiniciaron a 0/BigDecimal.ZERO al inicio del bucle,
+                    // así que no es necesario volver a establecerlos aquí.
+                }
+                // Persistir los cambios en cada asistencia después de calcular sus valores
+                asistenciaRepository.save(asistencia);
+            }
+
+            // Remuneración computable afecta (inicial)
+            BigDecimal remuneracionComputableAfecta = sueldoBase.add(asignacionFamiliar);
 
             // ***** Generar Movimientos de Planilla (Ingresos) *****
-            for (ConceptoPago concepto : conceptosIngresos) {
-                BigDecimal montoMovimiento = BigDecimal.ZERO;
-                // Lógica de cálculo específica para cada tipo de concepto de INGRESO
-
-                if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.MONTO_FIJO) {
-                    montoMovimiento = concepto.getValorReferencial() != null ? concepto.getValorReferencial() : BigDecimal.ZERO;
-                } else if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.PORCENTAJE) {
-                    // Si es un porcentaje del sueldo base u otro valor
-                    montoMovimiento = sueldoBase.multiply(concepto.getValorReferencial().divide(BigDecimal.valueOf(100), MathContext.DECIMAL64), MathContext.DECIMAL64);
-                } else if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.FORMULA_ESPECIAL) {
-                    // Ejemplo: Calcular Horas Extras de las Asistencias
-                    if (concepto.getNombreConcepto().equalsIgnoreCase("Horas Extras 25%")) {
-                        List<Asistencia> asistenciasHE = asistenciaService.getAsistenciasByEmpleadoAndFechaBetween(empleado, fechaInicioPeriodo, fechaFinPeriodo);
-                        BigDecimal totalHoras25 = asistenciasHE.stream()
-                            .map(Asistencia::getHorasExtras25)
-                            .filter(h -> h != null)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                        // Calcular tarifa por hora (Sueldo Base / (Jornada Laboral * 30 días))
-                        BigDecimal horasEnMes = BigDecimal.valueOf(puestoActual.getJornadaLaboralHoras()).multiply(BigDecimal.valueOf(30));
-                        BigDecimal hourlyRate = sueldoBase.divide(horasEnMes, MathContext.DECIMAL64);
-
-                        // Calcular monto de horas extras (total_horas * tarifa_por_hora * 1.25)
-                        montoMovimiento = totalHoras25.multiply(hourlyRate, MathContext.DECIMAL64)
-                                                     .multiply(BigDecimal.valueOf(1.25), MathContext.DECIMAL64);
-                    }
-                    // Añadir más lógica para otras fórmulas especiales
-                }
-
-                if (montoMovimiento.compareTo(BigDecimal.ZERO) > 0) {
-                    MovimientoPlanilla mov = new MovimientoPlanilla();
-                    mov.setDetallePlanilla(detalle); // El detalle se establecerá una vez guardado
-                    mov.setConcepto(concepto);
-                    mov.setMonto(montoMovimiento);
-                    // No guardar aquí, se guardarán en cascada o después de guardar el detalle
-                    totalIngresos = totalIngresos.add(montoMovimiento);
+            // (Se asume que los conceptos de Horas Extras son remunerativos y afectan la base imponible)
+            if (totalHorasExtras25Mes.compareTo(BigDecimal.ZERO) > 0) {
+                ConceptoPago horasExtras25Concepto = conceptoPagoService.getConceptoPagoByNombreAndTipo("Horas Extras 25%", TipoConcepto.INGRESO)
+                                                                        .orElse(null);
+                if (horasExtras25Concepto != null) {
+                    BigDecimal montoHorasExtras25 = totalHorasExtras25Mes
+                        .multiply(valorHora)
+                        .multiply(horasExtras25Concepto.getValorReferencial())
+                        .setScale(2, RoundingMode.HALF_UP);
+                    totalIngresosAdicionales = totalIngresosAdicionales.add(montoHorasExtras25);
+                    remuneracionComputableAfecta = remuneracionComputableAfecta.add(montoHorasExtras25); // Afecta la base
+                    movimientos.add(new MovimientoPlanilla(null, detalle, horasExtras25Concepto, montoHorasExtras25));
                 }
             }
-            detalle.setTotalIngresosAdicionales(totalIngresos.subtract(sueldoBase.add(asignacionFamiliar))); // Los ingresos adicionales son el total menos el sueldo base y la asignación familiar
-            detalle.setSueldoBruto(totalIngresos);
+            if (totalHorasExtras35Mes.compareTo(BigDecimal.ZERO) > 0) {
+                ConceptoPago horasExtras35Concepto = conceptoPagoService.getConceptoPagoByNombreAndTipo("Horas Extras 35%", TipoConcepto.INGRESO)
+                                                                        .orElse(null);
+                if (horasExtras35Concepto != null) {
+                    BigDecimal montoHorasExtras35 = totalHorasExtras35Mes
+                        .multiply(valorHora)
+                        .multiply(horasExtras35Concepto.getValorReferencial())
+                        .setScale(2, RoundingMode.HALF_UP);
+                    totalIngresosAdicionales = totalIngresosAdicionales.add(montoHorasExtras35);
+                    remuneracionComputableAfecta = remuneracionComputableAfecta.add(montoHorasExtras35); // Afecta la base
+                    movimientos.add(new MovimientoPlanilla(null, detalle, horasExtras35Concepto, montoHorasExtras35));
+                }
+            }
+            // Otros ingresos fijos o variables (bonos, etc.)
+            for (ConceptoPago concepto : conceptosIngresos) {
+                if (!concepto.getNombreConcepto().equalsIgnoreCase("Horas Extras 25%") &&
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Horas Extras 35%") &&
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Sueldo Base") && // Ya manejado
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Asignación Familiar")) { // Ya manejado
+                    
+                    BigDecimal montoMovimiento = BigDecimal.ZERO;
+                    if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.MONTO_FIJO) {
+                        montoMovimiento = concepto.getValorReferencial() != null ? concepto.getValorReferencial().setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                    } else if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.PORCENTAJE) {
+                        montoMovimiento = sueldoBase.multiply(concepto.getValorReferencial().divide(BigDecimal.valueOf(100), MathContext.DECIMAL64)).setScale(2, RoundingMode.HALF_UP);
+                    }
+                    // Aquí se pueden añadir más lógicas para otros tipos de ingresos especiales
+                    
+                    if (montoMovimiento.compareTo(BigDecimal.ZERO) > 0) {
+                        totalIngresosAdicionales = totalIngresosAdicionales.add(montoMovimiento);
+                        if (concepto.getEsRemunerativo()) {
+                            remuneracionComputableAfecta = remuneracionComputableAfecta.add(montoMovimiento);
+                        }
+                        movimientos.add(new MovimientoPlanilla(null, detalle, concepto, montoMovimiento));
+                    }
+                }
+            }
+            detalle.setTotalIngresosAdicionales(totalIngresosAdicionales);
+            detalle.setSueldoBruto(sueldoBase.add(asignacionFamiliar).add(totalIngresosAdicionales));
+            detalle.setRemuneracionComputableAfecta(remuneracionComputableAfecta);
 
 
             // ***** Generar Movimientos de Planilla (Descuentos) *****
-            for (ConceptoPago concepto : conceptosDescuentos) {
-                BigDecimal montoDescuento = BigDecimal.ZERO;
-                // Lógica de cálculo específica para cada tipo de concepto de DESCUENTO
-                if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.PORCENTAJE) {
-                    if (concepto.getNombreConcepto().equalsIgnoreCase("Aporte AFP") && empleado.getSistemaPensiones() == Empleado.SistemaPensiones.AFP) {
-                        // El porcentaje de AFP varía (fondo, comisión, seguro). Simplificando:
-                        montoDescuento = remuneracionComputableAfecta.multiply(concepto.getValorReferencial().divide(BigDecimal.valueOf(100), MathContext.DECIMAL64), MathContext.DECIMAL64);
-                    } else if (concepto.getNombreConcepto().equalsIgnoreCase("Aporte ONP") && empleado.getSistemaPensiones() == Empleado.SistemaPensiones.ONP) {
-                        montoDescuento = remuneracionComputableAfecta.multiply(concepto.getValorReferencial().divide(BigDecimal.valueOf(100), MathContext.DECIMAL64), MathContext.DECIMAL64); // Usualmente 13%
-                    }
-                } else if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.MONTO_FIJO) {
-                    montoDescuento = concepto.getValorReferencial() != null ? concepto.getValorReferencial() : BigDecimal.ZERO;
-                } else if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.FORMULA_ESPECIAL) {
-                    // Ejemplo: Descuento por Tardanza/Ausencia
-                    if (concepto.getNombreConcepto().equalsIgnoreCase("Descuento Tardanzas")) {
-                        List<Asistencia> asistenciasTardanzas = asistenciaService.getAsistenciasByEmpleadoAndFechaBetweenAndEstados(
-                            empleado, fechaInicioPeriodo, fechaFinPeriodo, List.of(Asistencia.EstadoAsistencia.TARDANZA, Asistencia.EstadoAsistencia.AUSENTE));
-
-                        // Lógica para calcular el descuento monetario basado en minutos de tardanza o días ausentes.
-                        // Calcular costo por minuto (Sueldo Base / (Jornada Laboral * 60 minutos * 30 días))
-                        BigDecimal minutosEnMes = BigDecimal.valueOf(puestoActual.getJornadaLaboralHoras()).multiply(BigDecimal.valueOf(60)).multiply(BigDecimal.valueOf(30));
-                        BigDecimal costPerMinute = sueldoBase.divide(minutosEnMes, MathContext.DECIMAL64);
-
-                        Integer totalMinutosTardanza = asistenciasTardanzas.stream()
-                            .map(Asistencia::getMinutosTardanza)
-                            .filter(m -> m != null)
-                            .reduce(0, Integer::sum);
-                        montoDescuento = BigDecimal.valueOf(totalMinutosTardanza).multiply(costPerMinute, MathContext.DECIMAL64);
-                    }
-                    // Lógica para otros descuentos especiales (adelantos, préstamos, Impuesto a la Renta - Quinta Categoría)
-                    // El cálculo del Impuesto a la Renta (Quinta Categoría) es muy complejo y requerirá su propia función,
-                    // considerando proyecciones anuales, deducciones y la UIT. Es el más complicado.
+            // Descuento por tardanza
+            if (totalMinutosTardanzaMes > 0) {
+                ConceptoPago descuentoTardanzaConcepto = conceptoPagoService.getConceptoPagoByNombreAndTipo("Descuento por Tardanza", TipoConcepto.DESCUENTO)
+                                                                            .orElse(null);
+                if (descuentoTardanzaConcepto != null) {
+                    BigDecimal montoDescuentoTardanza = BigDecimal.valueOf(totalMinutosTardanzaMes).multiply(valorMinuto).setScale(2, RoundingMode.HALF_UP);
+                    totalDescuentos = totalDescuentos.add(montoDescuentoTardanza);
+                    movimientos.add(new MovimientoPlanilla(null, detalle, descuentoTardanzaConcepto, montoDescuentoTardanza));
                 }
+            }
+            // Descuento por días de ausencia
+            if (diasAusentesMes > 0) {
+                ConceptoPago descuentoAusenciaConcepto = conceptoPagoService.getConceptoPagoByNombreAndTipo("Descuento por Ausencia", TipoConcepto.DESCUENTO)
+                                                                            .orElse(null);
+                if (descuentoAusenciaConcepto != null) {
+                    BigDecimal montoDescuentoAusencia = valorDia.multiply(BigDecimal.valueOf(diasAusentesMes)).setScale(2, RoundingMode.HALF_UP);
+                    totalDescuentos = totalDescuentos.add(montoDescuentoAusencia);
+                    movimientos.add(new MovimientoPlanilla(null, detalle, descuentoAusenciaConcepto, montoDescuentoAusencia));
+                } else {
+                    // Si no hay concepto específico para ausencia, el descuento se aplica directamente
+                    BigDecimal montoDescuentoAusencia = valorDia.multiply(BigDecimal.valueOf(diasAusentesMes)).setScale(2, RoundingMode.HALF_UP);
+                    totalDescuentos = totalDescuentos.add(montoDescuentoAusencia);
+                }
+            }
 
-                if (montoDescuento.compareTo(BigDecimal.ZERO) > 0) {
-                    MovimientoPlanilla mov = new MovimientoPlanilla();
-                    mov.setDetallePlanilla(detalle);
-                    mov.setConcepto(concepto);
-                    mov.setMonto(montoDescuento);
-                    // No guardar aquí
-                    totalDescuentos = totalDescuentos.add(montoDescuento);
+            // Descuentos de pensiones (ONP/AFP)
+            if (empleado.getSistemaPensiones() == Empleado.SistemaPensiones.ONP) {
+                ConceptoPago onpConcept = conceptoPagoService.getConceptoPagoByNombreAndTipo("Aporte ONP", TipoConcepto.DESCUENTO).orElse(null);
+                if (onpConcept != null) {
+                    BigDecimal onpMonto = remuneracionComputableAfecta.multiply(onpConcept.getValorReferencial()).setScale(2, RoundingMode.HALF_UP);
+                    totalDescuentos = totalDescuentos.add(onpMonto);
+                    movimientos.add(new MovimientoPlanilla(null, detalle, onpConcept, onpMonto));
+                }
+            } else if (empleado.getSistemaPensiones() == Empleado.SistemaPensiones.AFP) {
+                ConceptoPago afpFondoConcept = conceptoPagoService.getConceptoPagoByNombreAndTipo("Aporte AFP Fondo", TipoConcepto.DESCUENTO).orElse(null);
+                if (afpFondoConcept != null) {
+                    BigDecimal afpFondoMonto = remuneracionComputableAfecta.multiply(afpFondoConcept.getValorReferencial()).setScale(2, RoundingMode.HALF_UP);
+                    totalDescuentos = totalDescuentos.add(afpFondoMonto);
+                    movimientos.add(new MovimientoPlanilla(null, detalle, afpFondoConcept, afpFondoMonto));
+                }
+                ConceptoPago afpComisionConcept = conceptoPagoService.getConceptoPagoByNombreAndTipo("Comisión AFP", TipoConcepto.DESCUENTO).orElse(null);
+                if (afpComisionConcept != null) {
+                    BigDecimal afpComisionMonto = remuneracionComputableAfecta.multiply(afpComisionConcept.getValorReferencial()).setScale(2, RoundingMode.HALF_UP);
+                    totalDescuentos = totalDescuentos.add(afpComisionMonto);
+                    movimientos.add(new MovimientoPlanilla(null, detalle, afpComisionConcept, afpComisionMonto));
+                }
+                ConceptoPago afpPrimaConcept = conceptoPagoService.getConceptoPagoByNombreAndTipo("Prima Seguro AFP", TipoConcepto.DESCUENTO).orElse(null);
+                if (afpPrimaConcept != null) {
+                    BigDecimal afpPrimaMonto = remuneracionComputableAfecta.multiply(afpPrimaConcept.getValorReferencial()).setScale(2, RoundingMode.HALF_UP);
+                    totalDescuentos = totalDescuentos.add(afpPrimaMonto);
+                    movimientos.add(new MovimientoPlanilla(null, detalle, afpPrimaConcept, afpPrimaMonto));
+                }
+            }
+            // Otros descuentos (préstamos, adelantos, etc.)
+            for (ConceptoPago concepto : conceptosDescuentos) {
+                if (!concepto.getNombreConcepto().equalsIgnoreCase("Descuento por Tardanza") &&
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Descuento por Ausencia") &&
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Aporte ONP") &&
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Aporte AFP Fondo") &&
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Comisión AFP") &&
+                    !concepto.getNombreConcepto().equalsIgnoreCase("Prima Seguro AFP")) {
+                    
+                    BigDecimal montoDescuento = BigDecimal.ZERO;
+                    if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.MONTO_FIJO) {
+                        montoDescuento = concepto.getValorReferencial() != null ? concepto.getValorReferencial().setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                    } else if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.PORCENTAJE) {
+                        montoDescuento = remuneracionComputableAfecta.multiply(concepto.getValorReferencial().divide(BigDecimal.valueOf(100), MathContext.DECIMAL64)).setScale(2, RoundingMode.HALF_UP);
+                    }
+                    // Lógica para otros descuentos especiales
+                    
+                    if (montoDescuento.compareTo(BigDecimal.ZERO) > 0) {
+                        totalDescuentos = totalDescuentos.add(montoDescuento);
+                        movimientos.add(new MovimientoPlanilla(null, detalle, concepto, montoDescuento));
+                    }
                 }
             }
             detalle.setTotalDescuentos(totalDescuentos);
             detalle.setSueldoNeto(detalle.getSueldoBruto().subtract(totalDescuentos));
 
             // ***** Generar Movimientos de Planilla (Aportes del Empleador) *****
+            ConceptoPago essaludConcepto = conceptoPagoService.getConceptoPagoByNombreAndTipo("Essalud", TipoConcepto.APORTE_EMPLEADOR).orElse(null);
+            if (essaludConcepto != null) {
+                BigDecimal essaludMonto = remuneracionComputableAfecta.multiply(essaludConcepto.getValorReferencial()).setScale(2, RoundingMode.HALF_UP);
+                totalAportesEmpleador = totalAportesEmpleador.add(essaludMonto);
+                movimientos.add(new MovimientoPlanilla(null, detalle, essaludConcepto, essaludMonto));
+            }
+            // Otros aportes del empleador (SCTR, Senati, etc.)
             for (ConceptoPago concepto : conceptosAportesEmpleador) {
-                BigDecimal montoAporte = BigDecimal.ZERO;
-                if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.PORCENTAJE) {
-                    if (concepto.getNombreConcepto().equalsIgnoreCase("EsSalud")) {
-                        // EsSalud es el 9% de la remuneración computable afecta
-                        montoAporte = remuneracionComputableAfecta.multiply(concepto.getValorReferencial().divide(BigDecimal.valueOf(100), MathContext.DECIMAL64), MathContext.DECIMAL64);
+                if (!concepto.getNombreConcepto().equalsIgnoreCase("Essalud")) {
+                    BigDecimal montoAporte = BigDecimal.ZERO;
+                    if (concepto.getMetodoCalculo() == ConceptoPago.MetodoCalculo.PORCENTAJE) {
+                        montoAporte = remuneracionComputableAfecta.multiply(concepto.getValorReferencial().divide(BigDecimal.valueOf(100), MathContext.DECIMAL64)).setScale(2, RoundingMode.HALF_UP);
                     }
-                    // Otros aportes del empleador como SCTR, Senati, etc.
-                }
-
-                if (montoAporte.compareTo(BigDecimal.ZERO) > 0) {
-                    MovimientoPlanilla mov = new MovimientoPlanilla();
-                    mov.setDetallePlanilla(detalle);
-                    mov.setConcepto(concepto);
-                    mov.setMonto(montoAporte);
-                    // No guardar aquí
-                    totalAportesEmpleador = totalAportesEmpleador.add(montoAporte);
+                    if (montoAporte.compareTo(BigDecimal.ZERO) > 0) {
+                        totalAportesEmpleador = totalAportesEmpleador.add(montoAporte);
+                        movimientos.add(new MovimientoPlanilla(null, detalle, concepto, montoAporte));
+                    }
                 }
             }
             detalle.setTotalAportesEmpleador(totalAportesEmpleador);
 
-            // Guardar el DetallePlanilla (esto también guardará los MovimientosPlanilla si la cascada está configurada)
+            detalle.setMovimientosPlanilla(movimientos);
             detallePlanillaService.saveDetallePlanilla(detalle);
-
-            // IMPORTANTE: Los MovimientoPlanilla que creaste dentro de los bucles
-            // necesitan ser persistidos. Si no tienes cascada en DetallePlanilla
-            // para MovimientoPlanilla, necesitarías una lista de MovimientoPlanilla
-            // en DetallePlanilla y guardarlos junto con el detalle, o guardarlos aquí.
-            // Para simplificar, asumo que saveDetallePlanilla manejará la cascada
-            // si la relación OneToMany está configurada con CascadeType.ALL en DetallePlanilla.
-            // Si no, la lista de MovimientoPlanilla debería agregarse al detalle
-            // y luego se guarda el detalle.
         }
 
         return nuevaPlanilla;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Planilla getPlanillaWithDetails(Integer idPlanilla) {
+        Planilla planilla = planillaRepository.findById(idPlanilla)
+                .orElseThrow(() -> new RuntimeException("Planilla no encontrada con ID: " + idPlanilla));
+        
+        List<DetallePlanilla> detallesPlanilla = detallePlanillaRepository.findByPlanilla(planilla);
+        detallesPlanilla.forEach(dp -> {
+            dp.setMovimientosPlanilla(movimientoPlanillaRepository.findByDetallePlanilla(dp));
+        });
+        planilla.setDetallesPlanilla(detallesPlanilla); 
+        return planilla;
     }
 }

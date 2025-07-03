@@ -42,5 +42,6 @@ public interface ConceptoPagoRepository extends JpaRepository<ConceptoPago, Inte
      */
     List<ConceptoPago> findByAfectoOnpOrAfectoAfpOrAfectoEssalud(Boolean afectoOnp, Boolean afectoAfp, Boolean afectoEssalud);
 
-    // The findByDetallePlanillaId method was moved to MovimientoPlanillaRepository.
+    // Nuevo método para buscar por nombre y tipo
+  
 }

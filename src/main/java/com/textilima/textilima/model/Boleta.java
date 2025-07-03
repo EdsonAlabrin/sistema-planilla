@@ -8,13 +8,15 @@ import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate; // Importar LocalDate para fechas sin hora
 
 /**
  * Entidad que representa la boleta de pago generada.
  * Mapea a la tabla `boletas`.
- * Contiene información sobre la emisión, ruta del PDF, y estados de firma y envío.
+ * Contiene información sobre la emisión, ruta del PDF, y estados de firma y
+ * envío.
  */
 @Entity
 @Table(name = "boletas")
@@ -29,11 +31,28 @@ public class Boleta { // Se usa "Boleta" en singular para la entidad
     private Integer idBoleta;
 
     @OneToOne // Una boleta corresponde a un único detalle de planilla
-    @JoinColumn(name = "id_detalle", nullable = false) // Columna en `boletas` que referencia a `detalle_planilla`
+    @JoinColumn(name = "id_detalle", nullable = false, unique = true) // Columna en `boletas` que referencia a `detalle_planilla`
     private DetallePlanilla detallePlanilla;
 
     @Column(name = "fecha_emision", nullable = false)
     private LocalDate fechaEmision;
+
+    // --- ¡CAMPOS FALTANTES AÑADIDOS AQUÍ! ---
+    @Column(name = "periodo_mes", nullable = false)
+    private Integer periodoMes;
+
+    @Column(name = "periodo_anio", nullable = false)
+    private Integer periodoAnio;
+
+    @Column(name = "sueldo_bruto", nullable = false, precision = 10, scale = 2)
+    private BigDecimal sueldoBruto;
+
+    @Column(name = "total_descuentos", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalDescuentos;
+
+    @Column(name = "sueldo_neto", nullable = false, precision = 10, scale = 2)
+    private BigDecimal sueldoNeto;
+    // --- FIN CAMPOS FALTANTES ---
 
     @Column(name = "ruta_pdf", length = 255)
     private String rutaPdf; // Ruta o URL al archivo PDF de la boleta
@@ -53,16 +72,15 @@ public class Boleta { // Se usa "Boleta" en singular para la entidad
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-   
-    // Este constructor permite crear una Boleta con los campos mínimos necesarios.
-    // Lombok generará el constructor sin argumentos gracias a @NoArgsConstructor.
-    // Si necesitas el constructor con TODOS los campos para otras operaciones, puedes dejar @AllArgsConstructor
-    // o crear un constructor manual que incluya todos los campos.
-    public Boleta(DetallePlanilla detallePlanilla, LocalDate fechaEmision, String rutaPdf) {
+    // Constructor adicional para facilitar la creación en el servicio/controlador
+    // Este constructor debe coincidir con la llamada en PlanillaController
+    public Boleta(DetallePlanilla detallePlanilla, LocalDate fechaEmision, Integer periodoMes, Integer periodoAnio, BigDecimal sueldoBruto, BigDecimal totalDescuentos, BigDecimal sueldoNeto) {
         this.detallePlanilla = detallePlanilla;
         this.fechaEmision = fechaEmision;
-        this.rutaPdf = rutaPdf;
-        // Los campos 'firmada' y 'enviada' se inicializan con sus valores por defecto (false)
-        // 'createdAt' y 'updatedAt' serán manejados por @CreationTimestamp/@UpdateTimestamp
+        this.periodoMes = periodoMes; // Asignación del parámetro al campo
+        this.periodoAnio = periodoAnio; // Asignación del parámetro al campo
+        this.sueldoBruto = sueldoBruto;
+        this.totalDescuentos = totalDescuentos;
+        this.sueldoNeto = sueldoNeto;
     }
 }

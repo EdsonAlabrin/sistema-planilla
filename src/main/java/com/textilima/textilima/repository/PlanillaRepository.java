@@ -38,5 +38,14 @@ public interface PlanillaRepository extends JpaRepository<Planilla, Integer> {
      */
     List<Planilla> findByAnioAndTipoPlanilla(Integer anio, TipoPlanilla tipoPlanilla);
 
+    /**
+     * Busca una planilla por mes y año.
+     * Útil para verificar si existe alguna planilla para un período dado,
+     * sin importar el tipo de planilla.
+     * @param mes El mes de la planilla.
+     * @param anio El año de la planilla.
+     * @return Un Optional que contiene la primera Planilla encontrada para ese mes y año, o vacío si no existe.
+     */
+    Optional<Planilla> findByMesAndAnio(Integer mes, Integer anio);
 }
 

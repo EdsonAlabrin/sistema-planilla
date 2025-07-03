@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.time.LocalDate; // Importar LocalDate para fechas sin hora
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "planillas")
-@Data // Genera getters, setters, toString, equals, hashCode
+@Data// Genera getters, setters, toString, equals, hashCode
 @NoArgsConstructor // Genera constructor sin argumentos
 @AllArgsConstructor // Genera constructor con todos los argumentos
 public class Planilla { // Se usa "Planilla" en singular para la entidad
@@ -54,8 +55,8 @@ public class Planilla { // Se usa "Planilla" en singular para la entidad
     // DetallePlanilla asociadas.
     // orphanRemoval = true asegura que si un DetallePlanilla es desvinculado de la
     // lista, sea eliminado.
-    @OneToMany(mappedBy = "planilla", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetallePlanilla> detallePlanillaList;
+    @OneToMany(mappedBy = "planilla", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<DetallePlanilla> detallesPlanilla = new ArrayList<>();
 
     // Campos de auditoría automática
     @CreationTimestamp

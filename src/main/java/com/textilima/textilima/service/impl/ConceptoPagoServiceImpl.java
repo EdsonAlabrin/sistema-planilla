@@ -86,4 +86,13 @@ public class ConceptoPagoServiceImpl implements ConceptoPagoService {
     public List<ConceptoPago> getConceptosPagoByAfectacion(Boolean afectoOnp, Boolean afectoAfp, Boolean afectoEssalud) {
         return conceptoPagoRepository.findByAfectoOnpOrAfectoAfpOrAfectoEssalud(afectoOnp, afectoAfp, afectoEssalud);
     }
+
+    /**
+     * Implementación del método para buscar un ConceptoPago por su nombre y tipo.
+     * Se delega la búsqueda al repositorio.
+     */
+    @Override
+    public Optional<ConceptoPago> getConceptoPagoByNombreAndTipo(String nombreConcepto, TipoConcepto tipo) {
+        return conceptoPagoRepository.findByNombreConceptoAndTipo(nombreConcepto, tipo);
+    }
 }

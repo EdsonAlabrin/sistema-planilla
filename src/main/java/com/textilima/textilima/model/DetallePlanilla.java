@@ -10,7 +10,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Entidad que representa el detalle de una planilla por empleado.
@@ -62,11 +64,16 @@ public class DetallePlanilla {
     @Column(name = "sueldo_neto", nullable = false, precision = 10, scale = 2)
     private BigDecimal sueldoNeto;
 
-    // Relación OneToMany con MovimientoPlanilla: Un detalle puede tener varios movimientos (ingresos/descuentos).
-    // mappedBy indica que la relación es bidireccional y la columna FK está en MovimientoPlanilla.
-    // CascadeType.ALL significa que operaciones como guardar o eliminar se propagarán.
+    /// Relación OneToMany con MovimientoPlanilla
+    // mappedBy indica el campo en la entidad MovimientoPlanilla que es el propietario de la relación (el ManyToOne)
+    // CascadeType.ALL significa que si eliminas un DetallePlanilla, se eliminarán sus movimientos asociados
+    // orphanRemoval = true asegura que si un MovimientoPlanilla se desvincula de este detalle, también se elimine de la BD
     @OneToMany(mappedBy = "detallePlanilla", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<MovimientoPlanilla> movimientosPlanilla;
+    private List<MovimientoPlanilla> movimientosPlanilla = new ArrayList<>(); // Inicializar para evitar NullPointerException
+
+    // Campo transitorio para indicar si se generó la boleta (no se persiste en BD)
+    @Transient
+    private boolean boletaGenerada;
 
     // --- NUEVA RELACIÓN OneToOne con Boleta ---
     // mappedBy indica que la columna de clave foránea reside en la tabla 'boletas'.
@@ -83,7 +90,34 @@ public class DetallePlanilla {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // PROPIEDAD TRANSITORIA para saber si ya se generó una boleta (NO SE MAPEA A LA BD)
-    @Transient
-    private Boolean boletaGenerada = false;
+    // --- Métodos de conveniencia para manejar la lista de movimientos ---
+    // Estos son los métodos que faltaban y causaban el error.
+    public void addMovimientoPlanilla(MovimientoPlanilla movimiento) {
+        if (this.movimientosPlanilla == null) {
+            this.movimientosPlanilla = new ArrayList<>();
+        }
+        this.movimientosPlanilla.add(movimiento);
+        movimiento.setDetallePlanilla(this); // Asegura la relación bidireccional
+    }
+
+    public void removeMovimientoPlanilla(MovimientoPlanilla movimiento) {
+        if (this.movimientosPlanilla != null) {
+            this.movimientosPlanilla.remove(movimiento);
+            movimiento.setDetallePlanilla(null); // Rompe la relación bidireccional
+        }
+    }
+
+    // Getter para boleta que devuelve Optional para un manejo más seguro
+    public Optional<Boleta> getBoleta() {
+        return Optional.ofNullable(boleta);
+    }
+
+    // Setter para boleta
+    public void setBoleta(Boleta boleta) {
+        this.boleta = boleta;
+        if (boleta != null && boleta.getDetallePlanilla() != this) {
+            boleta.setDetallePlanilla(this); // Asegura la relación bidireccional
+        }
+    }
+
 }

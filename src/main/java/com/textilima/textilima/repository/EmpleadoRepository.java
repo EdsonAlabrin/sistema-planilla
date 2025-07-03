@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.Empleado;
@@ -40,4 +42,15 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Integer> {
      */
     List<Empleado> findByFechaIngresoBetween(LocalDate startDate, LocalDate endDate);
 
+    /**
+     * Busca empleados por DNI, nombres o apellidos, ignorando mayúsculas/minúsculas.
+     * Si el parámetro 'query' es nulo o vacío, devuelve todos los empleados.
+     * @param query La cadena de texto a buscar en DNI, nombres o apellidos.
+     * @return Una lista de empleados que coinciden con la búsqueda.
+     */
+    @Query("SELECT e FROM Empleado e WHERE " +
+           "(:query IS NULL OR :query = '' OR LOWER(e.numeroDocumento) LIKE LOWER(CONCAT('%', :query, '%'))) OR " +
+           "(:query IS NULL OR :query = '' OR LOWER(e.nombres) LIKE LOWER(CONCAT('%', :query, '%'))) OR " +
+           "(:query IS NULL OR :query = '' OR LOWER(e.apellidos) LIKE LOWER(CONCAT('%', :query, '%')))")
+    List<Empleado> searchByDniOrNameOrLastName(@Param("query") String query);
 }

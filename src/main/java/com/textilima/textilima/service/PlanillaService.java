@@ -34,7 +34,7 @@ public interface PlanillaService {
      * Elimina una planilla por su ID.
      * @param id El ID de la planilla a eliminar.
      */
-    void deletePlanilla(Integer idPlanilla);
+    void eliminarPlanillaCompleta(Integer idPlanilla); 
 
     /**
      * Busca una planilla por mes, año y tipo.
@@ -72,5 +72,15 @@ public interface PlanillaService {
      * @throws RuntimeException Si ocurren errores durante el cálculo.
      */
     Planilla generatePlanilla(Integer mes, Integer anio, TipoPlanilla tipoPlanilla);
+    /**
+     * Obtiene una planilla por su ID, cargando explícitamente sus detalles de planilla
+     * y los movimientos de cada detalle.
+     * @param idPlanilla El ID de la planilla a cargar.
+     * @return La Planilla completa con sus detalles y movimientos.
+     * @throws RuntimeException si la planilla no es encontrada.
+     */
+    Planilla getPlanillaWithDetails(Integer idPlanilla);
+
+    
 }
 

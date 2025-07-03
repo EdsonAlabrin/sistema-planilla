@@ -21,7 +21,6 @@
             <table class="table table-striped table-bordered">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
                         <th>Nombre del Puesto</th>
                         <th>Salario Base</th>
                         <th>Jornada Laboral (horas)</th>
@@ -30,7 +29,6 @@
                 </thead>
                 <tbody>
                     <tr th:each="puesto : ${puestos}">
-                        <td th:text="${puesto.idPuesto}"></td>
                         <td th:text="${puesto.nombrePuesto}"></td>
                         <td th:text="${#numbers.formatCurrency(puesto.salarioBase)}"></td>
                         <td th:text="${puesto.jornadaLaboralHoras}"></td>

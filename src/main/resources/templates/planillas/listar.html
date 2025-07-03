@@ -44,7 +44,6 @@
                         <caption>Planillas registradas en el sistema.</caption>
                         <thead class="table-dark">
                             <tr>
-                                <th>ID</th>
                                 <th>Mes</th>
                                 <th>Año</th>
                                 <th>Tipo</th>
@@ -54,7 +53,6 @@
                         </thead>
                         <tbody>
                             <tr th:each="planilla : ${planillas}">
-                                <td th:text="${planilla.idPlanilla}"></td>
                                 <td th:text="${T(java.time.Month).of(planilla.mes).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).getDefault())}"></td>
                                 <td th:text="${planilla.anio}"></td>
                                 <td th:text="${planilla.tipoPlanilla.displayName}"></td>

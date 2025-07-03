@@ -58,4 +58,12 @@ public interface ConceptoPagoService {
      * @return Una lista de ConceptoPago que cumplen con las condiciones de afectación.
      */
     List<ConceptoPago> getConceptosPagoByAfectacion(Boolean afectoOnp, Boolean afectoAfp, Boolean afectoEssalud);
+
+    /**
+     * Busca un ConceptoPago por su nombre y tipo.
+     * @param nombreConcepto El nombre del concepto de pago.
+     * @param tipo El tipo de concepto (INGRESO, DESCUENTO, APORTE_EMPLEADOR).
+     * @return Un Optional que contiene el ConceptoPago si se encuentra, o vacío si no.
+     */
+    Optional<ConceptoPago> getConceptoPagoByNombreAndTipo(String nombreConcepto, TipoConcepto tipo);
 }

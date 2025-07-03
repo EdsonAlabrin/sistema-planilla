@@ -55,7 +55,7 @@
             <table class="table table-bordered table-hover">
                 <thead class="text-center">
                     <tr>
-                        <th>ID</th>
+                       
                         <th>Empleado</th>
                         <th>Mes / Año</th>
                         <th>Sueldo Neto</th>
@@ -64,7 +64,7 @@
                 </thead>
                 <tbody>
                     <tr th:each="boleta : ${boletas}">
-                        <td th:text="${boleta.idDetalle}"></td>
+                        
                         <td th:text="${boleta.empleado.nombres + ' ' + boleta.empleado.apellidos}"></td>
                         <td th:text="${boleta.planilla.mes + ' / ' + boleta.planilla.anio}"></td>
                         <td th:text="'S/ ' + ${boleta.sueldoNeto}"></td>
