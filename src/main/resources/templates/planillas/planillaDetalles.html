@@ -156,9 +156,9 @@
                                 <tr>
                                     <th>Empleado</th>
                                     <th>Puesto</th>
-                                    <th>Sueldo Bruto</th>
-                                    <th>Total Descuentos</th>
-                                    <th>Sueldo Neto</th>
+                                    <th>Sueldo Bruto (S/)</th>
+                                    <th>Total Descuentos (S/)</th>
+                                    <th>Sueldo Neto (S/)</th>
                                     
                                     <th>Acciones</th>
                                 </tr>
@@ -169,9 +169,9 @@
                                     <td th:text="${detalle.empleado.apellidos + ', ' + detalle.empleado.nombres}"
                                         th:attr="data-dni=${detalle.empleado.numeroDocumento}" data-label="Empleado"></td>
                                     <td th:text="${detalle.empleado.puesto != null ? detalle.empleado.puesto.nombrePuesto : 'N/A'}" data-label="Puesto"></td>
-                                    <td th:text="${#numbers.formatCurrency(detalle.sueldoBruto)}" data-label="Sueldo Bruto"></td>
-                                    <td th:text="${#numbers.formatCurrency(detalle.totalDescuentos)}" data-label="Total Descuentos"></td>
-                                    <td th:text="${#numbers.formatCurrency(detalle.sueldoNeto)}" data-label="Sueldo Neto"></td>
+                                    <td th:text="${#numbers.formatDecimal(detalle.sueldoBruto, 1, 'COMMA', 2,'POINT')}" data-label="Sueldo Bruto"></td>
+                                    <td th:text="${#numbers.formatDecimal(detalle.totalDescuentos, 1, 'COMMA', 2,'POINT')}" data-label="Total Descuentos"></td>
+                                    <td th:text="${#numbers.formatDecimal(detalle.sueldoNeto, 1, 'COMMA', 2,'POINT')}" data-label="Sueldo Neto"></td>
                                    
                                     <td class="text-nowrap" data-label="Acciones">
                                         <a th:href="@{/planillas/empleados/detalles-planilla/{id}(id=${detalle.idDetalle})}" class="btn btn-sm btn-info action-button" title="Ver Detalle">

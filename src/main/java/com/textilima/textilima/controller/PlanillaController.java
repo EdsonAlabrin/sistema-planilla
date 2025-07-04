@@ -250,7 +250,7 @@ public class PlanillaController {
             model.addAttribute("jornadaInicio", horaInicioJornada);
             model.addAttribute("jornadaFin", horaFinJornada);
             // CORRECCIÓN: Usar sintaxis Java estándar para Month y TextStyle
-            model.addAttribute("mesReporte", Month.of(planilla.getMes()).getDisplayName(TextStyle.FULL, new Locale("es", "ES")));
+            model.addAttribute("mesReporte", Month.of(planilla.getMes()).getDisplayName(TextStyle.FULL, new Locale("es", "PE")));
             model.addAttribute("anioReporte", planilla.getAnio());
 
 

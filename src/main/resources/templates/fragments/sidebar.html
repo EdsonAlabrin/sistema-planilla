@@ -1,34 +1,34 @@
-<!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!-- src/main/resources/templates/fragments/sidebar.html -->
+<!-- ¡IMPORTANTE! Este archivo NO debe contener las etiquetas <html>, <head>, <body> -->
+<!-- Solo debe contener el fragmento HTML que será incluido en otras páginas. -->
 
-<head>
-    <!-- Los enlaces a CSS y scripts de layout irán en la plantilla base, no aquí directamente -->
-</head>
+<!-- Menú para roles administrativos o de RRHH (ej. ROL_ADMIN, ROL_RRHH) -->
+<nav class="sidebar" th:fragment="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <h3>🧵 TextiLima</h3>
 
-<body>
-
-    <nav class="sidebar" th:fragment="sidebar">
-        <h3>🧵 TextiLima</h3>
-
-        <a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a>
-        <a th:href="@{/asistencias/registro}"><i class="fas fa-calendar-check"></i> Asistencia</a>
-        <a th:href="@{/empleados/listar}"><i class="fas fa-users"></i> Empleados</a>
-        <a th:href="@{/puestos/listar}"><i class="fas fa-briefcase"></i> Puestos</a>
-        <a th:href="@{/bancos/listar}"><i class="fas fa-university"></i> Bancos</a>
-        <a th:href="@{/conceptos}"><i class="fas fa-tags"></i> Conceptos de Pago</a>
-        <a th:href="@{/planillas/listar}"><i class="fas fa-file-invoice"></i> Planillas</a>
-
-        <!-- Los siguientes enlaces se han comentado/eliminado temporalmente hasta que se implementen sus controladores y vistas -->
-        <!-- <a th:href="@{/descripcion}"><i class="fas fa-info-circle"></i> Nosotros</a> -->
+    <div class="nav-links"> <!-- Asegúrate de que este div envuelva los enlaces -->
+        <a th:href="@{/dashboard}"><i class="fas fa-home"></i> Inicio</a>
         
-        <!-- <a th:href="@{/boletas}"><i class="fas fa-receipt"></i> Boletas</a> -->
+        <a th:href="@{/asistencias/registro}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-calendar-check"></i> Asistencia</a>
+        <a th:href="@{/empleados/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-users"></i> Empleados</a>
+        <a th:href="@{/puestos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-briefcase"></i> Puestos</a>
+        <a th:href="@{/bancos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-university"></i> Bancos</a>
+        <a th:href="@{/conceptos}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-tags"></i> Conceptos de Pago</a>
+        <a th:href="@{/planillas/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-file-invoice"></i> Planillas</a>
+
+        <!-- Enlace exclusivo para ROL_ADMIN -->
+        <a th:href="@{/usuarios/listar}" sec:authorize="hasAuthority('ROL_ADMIN')"><i class="fas fa-user-shield"></i> Gestión de Usuarios</a> 
         
-        <a th:href="@{/usuarios}"><i class="fas fa-user-cog"></i> Usuarios</a> 
-    </nav>
+        <!-- Otros enlaces si los tienes -->
+    </div>
+</nav>
 
-    <nav class="sidebar" th:fragment="sidebar-user">
-        <a href="@{/asisitencia/marcar}"><i class="fas fa-calendar-check">Asistencia</i></a>
-    </nav>
-</body>
-
-</html>
+<!-- Menú para usuarios con rol de empleado (ej. ROL_EMPLEADO) -->
+<nav class="sidebar" th:fragment="sidebar-user" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <h3>🧵 TextiLima</h3>
+    <div class="nav-links"> <!-- Asegúrate de que este div envuelva los enlaces -->
+        <a th:href="@{/dashboard}"><i class="fas fa-home"></i> Inicio</a>
+        <a th:href="@{/asistencia/marcar}" sec:authorize="hasAuthority('ROL_EMPLEADO')"><i class="fas fa-calendar-check"></i> Marcar Asistencia</a>
+        <!-- Podrías añadir un enlace para ver su propia planilla o detalles de empleado aquí -->
+    </div>
+</nav>

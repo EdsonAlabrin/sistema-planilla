@@ -21,7 +21,7 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Nombre del Puesto:</strong> <span th:text="${puesto.nombrePuesto}"></span></p>
-                    <p><strong>Salario Base:</strong> <span th:text="${#numbers.formatCurrency(puesto.salarioBase)}"></span></p>
+                    <p><strong>Salario Base:</strong> S/ <span th:text="${#numbers.formatDecimal(puesto.salarioBase, 1, 'COMMA', 2,'POINT')}"></span></p>
                     <p><strong>Jornada Laboral (horas):</strong> <span th:text="${puesto.jornadaLaboralHoras}"></span></p>
                     <p class="text-muted small"><strong>Fecha Creación:</strong> <span th:text="${#temporals.format(puesto.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
                     <p class="text-muted small"><strong>Última Actualización:</strong> <span th:text="${#temporals.format(puesto.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></span></p>

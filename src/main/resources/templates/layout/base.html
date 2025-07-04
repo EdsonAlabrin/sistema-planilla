@@ -1,125 +1,217 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Título dinámico: Usa el título de la página específica, o un fallback -->
-    <title layout:title-pattern="$CONTENT_TITLE | TextiLima">TextiLima</title>
+    <title layout:title-pattern="$CONTENT_TITLE | TextiLima SAC"></title>
 
-    <!-- Bootstrap CSS (via WebJars) - Versión 5.3.0 recomendada para consistencia -->
+    <!-- Google Fonts - Roboto (Fuente Profesional) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS (via WebJars) -->
     <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome para iconos (via CDN - más fácil de mantener actualizado) -->
+    <!-- Font Awesome para iconos (via CDN) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Tus estilos globales personalizados -->
-    <link rel="stylesheet" th:href="@{/css/global-layout.css}">
-    <!-- Tus estilos específicos para el menú lateral -->
-    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+          xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Fragmento para estilos específicos de cada página -->
     <th:block layout:fragment="page-styles"></th:block>
 
     <style>
-        /* INICIO DE LAS CORRECCIONES PARA EL FOOTER */
-        /* Asegura que html y body ocupen el 100% de la altura del viewport */
+        /* Estilos base para HTML y Body */
         html, body {
             height: 100%;
-            margin: 0; /* Elimina márgenes por defecto */
-            padding: 0; /* Elimina paddings por defecto */
-        }
-
-        /* Configura el body como un contenedor flexbox de columna */
-        /* Esto es CRUCIAL para que 'flex-grow' en main-content y 'mt-auto' en footer funcionen */
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh; /* Asegura que el body siempre ocupe al menos la altura completa del viewport */
-            font-family: 'Inter', sans-serif; /* Aplicar Inter a todo el cuerpo */
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif; /* Fuente Roboto */
             background-color: #f8f9fa; /* Fondo ligero de Bootstrap */
+            overflow-x: hidden; /* Evita el scroll horizontal no deseado */
         }
 
-        /* Hace que el contenido principal se "estire" y ocupe el espacio disponible, empujando el footer */
-        .main-content {
-            flex-grow: 1; /* Ocupa todo el espacio flexible restante */
-            padding: 1.5rem; /* Agregado para un padding estándar */
-            margin-left: 250px; /* Ajusta según el ancho de tu sidebar */
-            transition: margin-left 0.3s ease; /* Transición para el sidebar si es colapsable */
+        /* Contenedor principal que envuelve el sidebar y el contenido */
+        .page-wrapper {
+            display: flex; /* Habilita Flexbox para el layout lateral */
+            min-height: 100vh; /* Asegura que ocupe al menos el alto de la ventana */
+            width: 100%; /* Ocupa todo el ancho disponible */
         }
 
-        /* Asegura que el footer ocupe el 100% del ancho de su contenedor (el body) */
-        footer {
-            width: 100%; /* Fuerza al footer a ocupar todo el ancho disponible */
-        }
-
-        /* Centra el texto dentro del párrafo del footer (más específico que text-center de Bootstrap) */
-        footer p {
-            text-align: center;
-        }
-        /* FIN DE LAS CORRECCIONES PARA EL FOOTER */
-
-        /* Tus estilos originales para .sidebar, y media queries se mantienen */
+        /* Estilos del Sidebar */
         .sidebar {
-            width: 250px;
-            position: fixed;
+            width: 250px; /* Ancho fijo del sidebar */
+            background-color: #2c3e50; /* Fondo más oscuro y profesional */
+            color: white;
+            padding-top: 20px;
+            flex-shrink: 0; /* Evita que el sidebar se encoja */
+            box-shadow: 3px 0 10px rgba(0,0,0,0.2); /* Sombra más definida */
+            position: fixed; /* Hace que el sidebar sea fijo en la pantalla */
             top: 0;
             left: 0;
-            height: 100%;
-            background-color: #343a40; /* Color oscuro (Bootstrap `bg-dark`) */
-            color: #ffffff;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            z-index: 1030;
+            height: 100vh; /* Ocupa el 100% del viewport height */
+            overflow-y: auto; /* Permite scroll si el contenido del sidebar es muy largo */
+            z-index: 1030; /* Asegura que esté por encima de otros elementos */
+            border-right: 1px solid rgba(255,255,255,0.05); /* Borde sutil a la derecha */
         }
+        .sidebar h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #dde2e6; /* Un azul más claro para el título */
+            font-weight: 700;
+            font-size: 1.8em; /* Tamaño de fuente ligeramente más grande */
+            letter-spacing: 1px; /* Espaciado entre letras */
+        }
+        .sidebar .nav-links { /* Contenedor de enlaces dentro del sidebar */
+            display: flex;
+            flex-direction: column;
+            padding: 0 10px; /* Padding horizontal para los enlaces */
+        }
+        .sidebar a {
+            padding: 14px 15px; /* Más padding para un mejor toque */
+            text-decoration: none;
+            font-size: 1em; /* Tamaño de fuente estándar */
+            color: #ecf0f1; /* Color de texto más claro */
+            display: block;
+            transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease;
+            border-left: 5px solid transparent; /* Borde para indicar selección */
+            border-radius: 5px; /* Bordes ligeramente redondeados */
+            margin-bottom: 5px; /* Espacio entre enlaces */
+        }
+        .sidebar a:hover {
+            background-color: #307ac4; /* Fondo más oscuro al hover */
+            color: white;
+            border-left-color: #2aaa50; /* Azul vibrante al hover */
+        }
+        .sidebar a.active { /* Estilo para el enlace activo */
+            background-color: #257bb4; /* Azul vibrante para el activo */
+            color: white;
+            border-left-color: #0c456b; /* Borde más oscuro para el activo */
+            font-weight: 500; /* Ligeramente más negrita */
+        }
+        .sidebar a i {
+            margin-right: 12px; /* Más espacio para el icono */
+            width: 20px;
+            text-align: center;
+            font-size: 1.1em; /* Iconos ligeramente más grandes */
+        }
+
+        /* Estilos del Contenido Principal */
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #f8f9fa;
+            margin-left: 250px; /* Ajusta el margen izquierdo para dejar espacio al sidebar fijo */
+            transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Estilos para el footer */
+        footer {
+            background-color: #e9ecef;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: auto;
+            width: 100%;
+        }
+
+        /* Responsividad */
         @media (max-width: 768px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                padding-bottom: 10px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                border-right: none; /* Elimina el borde derecho en móvil */
+            }
+            .sidebar h3 {
+                display: block; /* Muestra el título en móvil si lo deseas, o cámbialo a 'none' */
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+            .sidebar .nav-links {
+                flex-direction: row; /* En móvil, los enlaces se organizan en fila */
+                justify-content: space-around;
+                padding: 0 5px; /* Reduce el padding horizontal */
+            }
+            .sidebar a {
+                text-align: center;
+                padding: 8px 5px; /* Reduce el padding para botones más pequeños */
+                border-left: none;
+                border-bottom: 3px solid transparent; /* Usa borde inferior para selección en móvil */
+                flex: 1;
+                margin-bottom: 0; /* Elimina el margen vertical entre enlaces */
+                font-size: 0.9em; /* Reduce el tamaño de fuente en móvil */
+            }
+            .sidebar a:hover, .sidebar a.active {
+                border-left-color: transparent;
+                border-bottom-color: #3498db; /* Borde inferior azul al hover/activo */
+            }
+            .sidebar a i {
+                margin-right: 0;
+                display: block;
+                margin-bottom: 3px; /* Pequeño espacio entre icono y texto */
+            }
             .main-content {
                 margin-left: 0;
+                padding: 15px;
             }
-        }
-        body.sidebar-collapsed .main-content {
-            margin-left: 0;
         }
     </style>
 </head>
 
 <body>
-    <!-- Barra lateral (Fragmento de Thymeleaf) -->
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div class="page-wrapper">
+        <!-- Sidebar (Fragmento de Thymeleaf) -->
+        <th:block sec:authorize="isAuthenticated()">
+            <th:block th:if="${#authorization.expression('hasAnyAuthority(''ROL_ADMIN'', ''ROL_RRHH'')')}">
+                <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+            </th:block>
+            <th:block th:unless="${#authorization.expression('hasAnyAuthority(''ROL_ADMIN'', ''ROL_RRHH'')')}" 
+                      th:if="${#authorization.expression('hasAuthority(''ROL_EMPLEADO'')')}">
+                <div th:replace="~{fragments/sidebar :: sidebar-user}"></div>
+            </th:block>
+        </th:block>
 
-    <!-- Contenido principal (donde se inyectarán las vistas específicas) -->
-    <div class="main-content">
-        <!-- Mensajes de éxito/error flash, asumidos aquí o en un fragmento incluido -->
-        <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <span th:text="${success}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <!-- Contenido principal (donde se inyectarán las vistas específicas) -->
+        <div class="main-content">
+            <!-- Mensajes flash de éxito/error -->
+            <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
 
-        <div layout:fragment="content">
-            <!-- El contenido específico de cada vista va aquí -->
+            <div layout:fragment="content">
+                <!-- El contenido específico de cada vista va aquí -->
+            </div>
+
+            <!-- Footer dentro del main-content -->
+            <footer class="text-dark py-4 text-center mt-auto">
+                <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> Textilima SAC. Todos los derechos reservados.</p>
+            </footer>
         </div>
     </div>
 
-    <!-- Bootstrap JS y jQuery (via WebJars, asegúrate de que jQuery esté antes de Bootstrap si lo necesitas) -->
+    <!-- Bootstrap JS y jQuery (via WebJars) -->
     <script src="/webjars/jquery/3.7.0/jquery.min.js"></script>
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Tu JavaScript global (para el toggle de submenú) -->
-    <script th:src="@{/js/sidebar.js}"></script>
-
     <!-- Fragmento para scripts específicos de cada página -->
     <th:block layout:fragment="page-scripts"></th:block>
-
-    <!-- Footer dentro del body -->
-    <footer class=" text-dark py-4 text-center mt-auto">
-        <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> Textilima. Todos los derechos reservados.</p>
-    </footer>
 
 </body>
 </html>

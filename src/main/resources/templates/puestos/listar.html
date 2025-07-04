@@ -22,7 +22,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Nombre del Puesto</th>
-                        <th>Salario Base</th>
+                        <th>Salario Base (S/)</th>
                         <th>Jornada Laboral (horas)</th>
                         <th>Acciones</th>
                     </tr>
@@ -30,7 +30,7 @@
                 <tbody>
                     <tr th:each="puesto : ${puestos}">
                         <td th:text="${puesto.nombrePuesto}"></td>
-                        <td th:text="${#numbers.formatCurrency(puesto.salarioBase)}"></td>
+                        <td th:text="${#numbers.formatDecimal(puesto.salarioBase, 1, 'COMMA', 2,'POINT')}"></td>
                         <td th:text="${puesto.jornadaLaboralHoras}"></td>
                         <td>
                             <a th:href="@{/puestos/detalles/{id}(id=${puesto.idPuesto})}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> </a>

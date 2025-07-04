@@ -59,7 +59,7 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item"><strong>ID Parámetro:</strong> <span th:text="${parametro.idParametro}"></span></li>
                         <li class="list-group-item"><strong>Código:</strong> <span th:text="${parametro.codigo}"></span></li>
-                        <li class="list-group-item"><strong>Valor:</strong> <span th:text="${#numbers.formatCurrency(parametro.valor)}"></span></li>
+                        <li class="list-group-item"><strong>Valor:</strong> <span th:text="${#numbers.formatDecimal(parametro.valor, 1, 'COMMA', 2,'POINT')}"></span></li>
                         <li class="list-group-item"><strong>Vigencia Inicio:</strong> <span th:text="${#temporals.format(parametro.fechaVigenciaInicio, 'dd-MM-yyyy')}"></span></li>
                         <li class="list-group-item">
                             <strong>Vigencia Fin:</strong>

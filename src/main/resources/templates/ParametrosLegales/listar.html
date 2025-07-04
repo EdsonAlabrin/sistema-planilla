@@ -93,7 +93,7 @@
                             <td th:text="${parametro.idParametro}"></td>
                             <td th:text="${parametro.codigo}"></td>
                             <td th:text="${parametro.descripcion}"></td>
-                            <td th:text="${#numbers.formatCurrency(parametro.valor)}"></td>
+                            <td th:text="${#numbers.formatDecimal(parametro.valor, 1, 'COMMA', 2,'POINT')}"></td>
                             <td th:text="${#temporals.format(parametro.fechaVigenciaInicio, 'dd-MM-yyyy')}"></td>
                             <td>
                                 <span th:if="${parametro.fechaVigenciaFin}" th:text="${#temporals.format(parametro.fechaVigenciaFin, 'dd-MM-yyyy')}"></span>

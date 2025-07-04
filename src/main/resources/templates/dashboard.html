@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/base}"> 
+<head>
+    <title>Dashboard - TextiLima SAC</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2 class="mb-4 text-center">Bienvenido a tu Dashboard</h2>
+            <hr class="mb-4">
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i> Información del Usuario</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nombre de Usuario:</strong> <span sec:authentication="name"></span></p>
+                    <p><strong>Roles:</strong> <span sec:authentication="authorities"></span></p>
+                    <p>
+                        <a th:href="@{/logout}" class="btn btn-danger mt-3">
+                            <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Sección de acceso rápido a módulos (ejemplos) -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-th-large me-2"></i> Acceso Rápido</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                        <!-- Enlace a Empleados (visible si el usuario tiene ROLE_ADMIN, ROLE_RRHH o ROLE_EMPLEADO) -->
+                        <div class="col" sec:authorize="hasAnyRole('ROL_ADMIN', 'ROL_RRHH', 'ROL_EMPLEADO')">
+                            <a th:href="@{/empleados/listar}" class="card text-decoration-none text-dark h-100">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-users fa-3x mb-3 text-primary"></i>
+                                    <h5 class="card-title">Gestión de Empleados</h5>
+                                    <p class="card-text text-muted">Administra la información de todos los empleados.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- Enlace a Planillas (visible si el usuario tiene ROLE_ADMIN o ROLE_RRHH) -->
+                        <div class="col" sec:authorize="hasAnyRole('ROL_ADMIN', 'ROL_RRHH')">
+                            <a th:href="@{/planillas/listar}" class="card text-decoration-none text-dark h-100">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-success"></i>
+                                    <h5 class="card-title">Gestión de Planillas</h5>
+                                    <p class="card-text text-muted">Genera y revisa las planillas de pago.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- Enlace a Usuarios (visible solo si el usuario tiene ROLE_ADMIN) -->
+                        <div class="col" sec:authorize="hasRole('ROL_ADMIN')">
+                            <a th:href="@{/usuarios/listar}" class="card text-decoration-none text-dark h-100">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-user-shield fa-3x mb-3 text-danger"></i>
+                                    <h5 class="card-title">Gestión de Usuarios</h5>
+                                    <p class="card-text text-muted">Administra las cuentas de usuario y sus roles.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- Puedes añadir más enlaces aquí con sus respectivas autorizaciones -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

@@ -4,89 +4,97 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.textilima.textilima.model.Empleado;
 import com.textilima.textilima.model.Rol;
 import com.textilima.textilima.model.Usuario;
+import com.textilima.textilima.repository.RolRepository;
 import com.textilima.textilima.repository.UsuarioRepository;
 import com.textilima.textilima.service.UsuarioService;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
-
-    @Autowired // Injects the UsuarioRepository dependency
+     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    /**
-     * Retrieves a list of all users.
-     * @return A list of Usuario objects.
-     */
+    @Autowired
+    private RolRepository rolRepository; // Para buscar y asignar roles
+
+    @Autowired
+    private PasswordEncoder passwordEncoder; // Inyectar el codificador de contraseñas
+
     @Override
     public List<Usuario> getAllUsuarios() {
         return usuarioRepository.findAll();
     }
 
-    /**
-     * Retrieves a user by their ID.
-     * @param id The ID of the user.
-     * @return An Optional containing the Usuario if found, or empty if not found.
-     */
     @Override
     public Optional<Usuario> getUsuarioById(Integer idUsuario) {
         return usuarioRepository.findById(idUsuario);
     }
 
-    /**
-     * Saves a new user or updates an existing one.
-     * @param usuario The Usuario object to save/update.
-     * @return The saved/updated Usuario.
-     */
     @Override
+    @Transactional
     public Usuario saveUsuario(Usuario usuario) {
-        // Here you could add additional business logic before saving,
-        // for example, password hashing or validation for unique username/employee association.
+        // Al guardar un usuario, si la contraseña no está encriptada, la encriptamos.
+        // Esto es importante si se actualiza un usuario sin cambiar la contraseña,
+        // o si se crea un usuario directamente sin pasar por registerNewUser.
+        if (usuario.getPassword() != null && !usuario.getPassword().startsWith("$2a$")) { // Verifica si ya está encriptada (BCrypt)
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
         return usuarioRepository.save(usuario);
     }
 
-    /**
-     * Deletes a user by their ID.
-     * @param id The ID of the user to delete.
-     */
     @Override
+    @Transactional
     public void deleteUsuario(Integer idUsuario) {
         usuarioRepository.deleteById(idUsuario);
     }
 
-    /**
-     * Searches for a user by their username.
-     * @param username The username to search for.
-     * @return An Optional containing the found Usuario, or empty if not found.
-     */
     @Override
-    public Optional<Usuario> getUsuarioByUsername(String username) {
+    public Optional<Usuario> findByUsername(String username) {
         return usuarioRepository.findByUsername(username);
     }
 
-    /**
-     * Searches for a user by the associated employee.
-     * @param empleado The Empleado object associated with the user.
-     * @return An Optional containing the found Usuario, or empty if not found.
-     */
     @Override
-    public Optional<Usuario> getUsuarioByEmpleado(Empleado empleado) {
-        // Assuming your UsuarioRepository has findByEmpleadoIdEmpleado(Integer empleadoId)
-        // You would use empleado.getIdEmpleado() here.
-        return usuarioRepository.findByEmpleadoIdEmpleado(empleado.getIdEmpleado());
+    public Optional<Usuario> findByEmail(String email) {
+        return usuarioRepository.findByEmail(email);
     }
 
-    /**
-     * Searches for all users who have a specific role.
-     * @param rol The role of the users to search for.
-     * @return A list of users who have the specified role.
-     */
     @Override
-    public List<Usuario> getUsuariosByRol(Rol rol) {
+    public List<Usuario> findByRol(Rol rol) {
         return usuarioRepository.findByRol(rol);
+    }
+
+    @Override
+    @Transactional
+    public Usuario registerNewUser(Usuario usuario) {
+        // Asegurarse de que la contraseña esté encriptada antes de guardar
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        // Asegurarse de que el usuario esté habilitado por defecto
+        usuario.setEnabled(true);
+        // La fecha de creación se establece automáticamente por @PrePersist
+        return usuarioRepository.save(usuario);
+    }
+
+    @Override
+    @Transactional
+    public Usuario updatePassword(Integer idUsuario, String newPassword) {
+        return usuarioRepository.findById(idUsuario).map(usuario -> {
+            usuario.setPassword(passwordEncoder.encode(newPassword));
+            return usuarioRepository.save(usuario);
+        }).orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+    }
+
+    @Override
+    @Transactional
+    public Usuario changeUserEnabledStatus(Integer idUsuario, boolean enabled) {
+        return usuarioRepository.findById(idUsuario).map(usuario -> {
+            usuario.setEnabled(enabled);
+            return usuarioRepository.save(usuario);
+        }).orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
     }
 }

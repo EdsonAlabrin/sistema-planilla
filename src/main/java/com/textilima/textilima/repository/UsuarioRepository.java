@@ -21,7 +21,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     /**
      * Busca un usuario por el ID de empleado asociado.
      * Esto es útil para verificar si un empleado ya tiene una cuenta de usuario.
-     * @param empleadoId El ID del empleado asociado.
+     * @param idEmpleado El ID del empleado asociado.
      * @return Un Optional que contiene el Usuario encontrado, o vacío si no existe.
      */
     Optional<Usuario> findByEmpleadoIdEmpleado(Integer idEmpleado);
@@ -32,4 +32,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
      * @return Una lista de usuarios que tienen el rol especificado.
      */
     List<Usuario> findByRol(Rol rol);
+
+    /**
+     * Busca un usuario por su correo electrónico.
+     * @param email El correo electrónico a buscar.
+     * @return Un Optional que contiene el Usuario encontrado, o vacío si no existe.
+     */
+    Optional<Usuario> findByEmail(String email);
 }

@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * Entidad que representa a los usuarios del sistema.
@@ -16,8 +17,8 @@ import java.time.Instant;
  * Relaciona un usuario con un rol y, opcionalmente, con un empleado.
  */
 @Entity
-@Table(name = "usuarios")
-@Data // Genera getters, setters, toString, equals, hashCode
+@Table(name = "usuarios") // Nombre de la tabla en la base de datos
+@Data // Genera getters, setters, toString, equals y hashCode
 @NoArgsConstructor // Genera constructor sin argumentos
 @AllArgsConstructor // Genera constructor con todos los argumentos
 public class Usuario { // Se usa "Usuario" en singular para la entidad
@@ -31,15 +32,24 @@ public class Usuario { // Se usa "Usuario" en singular para la entidad
     private String username;
 
     @Column(name = "password", nullable = false, length = 255)
-    private String password; // Se recomienda almacenar hashes seguros de contraseñas
+    private String password; // Se recomienda almacenar hashes seguros de contraseñas (BCrypt)
 
-    @ManyToOne // Muchos usuarios pueden tener un mismo rol
+    @Column(name = "email", unique = true, nullable = false, length = 100) // Añadido: Campo de email
+    private String email;
+
+    @Column(name = "enabled", nullable = false) // Añadido: Estado de habilitación para Spring Security
+    private boolean enabled;
+
+    @Column(name = "last_login") // Añadido: Último inicio de sesión
+    private LocalDateTime lastLogin;
+
+    @ManyToOne(fetch = FetchType.EAGER) // Muchos usuarios pueden tener un mismo rol
     @JoinColumn(name = "id_rol", nullable = false) // Columna en `usuarios` que referencia a `roles`
-    private Rol rol;
+    private Rol rol; // Un usuario tiene UN rol. Considera ManyToMany si un usuario puede tener varios roles.
 
-    @OneToOne // Un usuario puede estar asociado a un solo empleado (y viceversa)
+    @OneToOne(fetch = FetchType.LAZY) // Un usuario puede estar asociado a un solo empleado (y viceversa)
     @JoinColumn(name = "id_empleado", unique = true) // Columna en `usuarios` que referencia a `empleados` (puede ser nulo)
-    private Empleado empleado;
+    private Empleado empleado; // Opcional: un usuario puede no estar directamente ligado a un empleado (ej. usuario admin)
 
     // Campos de auditoría automática
     @CreationTimestamp
@@ -50,10 +60,10 @@ public class Usuario { // Se usa "Usuario" en singular para la entidad
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    /*
-     * Observaciones de la revisión de la base de datos aplicadas:
-     * - Se mapea la relación ManyToOne con Rol y OneToOne con Empleado.
-     * - El campo 'password' debe almacenar hashes de contraseñas, no texto plano.
-     * - El campo 'id_empleado' es único, asegurando que un empleado solo tenga una cuenta de usuario.
-     */
+    // Método @PrePersist para establecer valores por defecto al crear una entidad
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        enabled = true; // Por defecto, el usuario está habilitado al crearse
+    }
 }
