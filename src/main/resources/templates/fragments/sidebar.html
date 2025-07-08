@@ -13,12 +13,12 @@
         <a th:href="@{/empleados/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-users"></i> Empleados</a>
         <a th:href="@{/puestos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-briefcase"></i> Puestos</a>
         <a th:href="@{/bancos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-university"></i> Bancos</a>
-        <a th:href="@{/conceptos}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-tags"></i> Conceptos de Pago</a>
+        <a th:href="@{/conceptos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-tags"></i> Conceptos de Pago</a>
         <a th:href="@{/planillas/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-file-invoice"></i> Planillas</a>
 
         <!-- Enlace exclusivo para ROL_ADMIN -->
         <a th:href="@{/usuarios/listar}" sec:authorize="hasAuthority('ROL_ADMIN')"><i class="fas fa-user-shield"></i> Gestión de Usuarios</a> 
-        
+        <a th:href="@{/roles/listar}" sec:authorize="hasAuthority('ROL_ADMIN')"><i class="fas fa-user-tag"></i> Gestión de Roles</a>
         <!-- Otros enlaces si los tienes -->
     </div>
 </nav>
@@ -28,7 +28,7 @@
     <h3>🧵 TextiLima</h3>
     <div class="nav-links"> <!-- Asegúrate de que este div envuelva los enlaces -->
         <a th:href="@{/dashboard}"><i class="fas fa-home"></i> Inicio</a>
-        <a th:href="@{/asistencia/marcar}" sec:authorize="hasAuthority('ROL_EMPLEADO')"><i class="fas fa-calendar-check"></i> Marcar Asistencia</a>
+        <a th:href="@{/asistencias/registro}" sec:authorize="hasAuthority('ROL_EMPLEADO')"><i class="fas fa-calendar-check"></i> Marcar Asistencia</a>
         <!-- Podrías añadir un enlace para ver su propia planilla o detalles de empleado aquí -->
     </div>
 </nav>

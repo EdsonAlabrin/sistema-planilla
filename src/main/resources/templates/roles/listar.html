@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/base}">  
+<head>
+    <title>Listado de Roles</title>
+    <style>
+        /* Estilos similares a listarUsuarios.html para consistencia */
+        .main-list-title {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .main-list-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        .card {
+            border-radius: 0.5rem;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .card-header {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            border-bottom: none;
+            border-top-left-radius: calc(0.5rem - 1px);
+            border-top-right-radius: calc(0.5rem - 1px);
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+        .card-header h4 {
+            margin-bottom: 0;
+            font-size: 1.25rem;
+        }
+        .card-header i {
+            margin-right: 10px;
+        }
+        .card-header.bg-primary { background-color: #007bff !important; }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .table thead th {
+            background-color: #495057;
+            color: white;
+            border-bottom: 2px solid #007bff;
+            font-size: 0.9rem;
+            padding: 0.75rem;
+        }
+        .table tbody tr td {
+            font-size: 0.875rem;
+            padding: 0.75rem;
+        }
+        .table-responsive {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+        .action-button {
+            margin-right: 5px;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+        }
+        /* Modal de confirmación */
+        .modal-header.bg-danger {
+            background-color: #dc3545 !important; /* Rojo de peligro */
+            color: white;
+        }
+        .modal-header .btn-close-white {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        /* Responsividad para tablas */
+        @media (max-width: 768px) {
+            .table thead { display: none; }
+            .table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 0.375rem;
+                padding: 1rem;
+            }
+            .table tbody td {
+                display: block;
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            .table tbody td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: calc(50% - 20px);
+                text-align: left;
+                font-weight: bold;
+            }
+            .table tbody td:last-child { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h2 class="main-list-title"><i class="fas fa-user-tag"></i> Gestión de Roles</h2>
+            <hr class="mb-4">
+
+            <!-- Mensajes flash de éxito/error -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i> <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-times-circle me-2"></i> <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Botón para crear nuevo rol -->
+            <div class="mb-4 text-end">
+                <a th:href="@{/roles/nuevo}" class="btn btn-success">
+                    <i class="fas fa-plus-circle me-2"></i> Crear Nuevo Rol
+                </a>
+            </div>
+
+            <!-- Mensaje si no hay roles registrados -->
+            <div th:if="${roles.empty}" class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle me-2"></i> No se encontraron roles.
+            </div>
+
+            <!-- Tabla de roles -->
+            <div th:unless="${roles.empty}" class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0" id="rolesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre del Rol</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha de Creación</th>
+                                    <th>Última Actualización</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="rol : ${roles}">
+                                    <td th:text="${rol.idRol}" data-label="ID"></td>
+                                    <td th:text="${rol.nombreRol}" data-label="Nombre del Rol"></td>
+                                    <td th:text="${rol.description}" data-label="Descripción"></td>
+                                    <td th:text="${#temporals.format(rol.createdAt, 'dd-MM-yyyy HH:mm')}" data-label="Fecha Creación"></td>
+                                    <td th:text="${#temporals.format(rol.updatedAt, 'dd-MM-yyyy HH:mm')}" data-label="Última Actualización"></td>
+                                    <td class="text-nowrap" data-label="Acciones">
+                                        <a th:href="@{/roles/editar/{id}(id=${rol.idRol})}" class="btn btn-warning btn-sm action-button" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <!-- Botón para eliminar (desencadena modal) -->
+                                        <button type="button"
+                                                class="btn btn-danger btn-sm action-button"
+                                                th:attr="data-id=${rol.idRol}, data-action='eliminar'"
+                                                data-bs-toggle="modal" data-bs-target="#confirmationModal"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmación (Bootstrap) -->
+        <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="confirmationModalLabel"><i class="fas fa-exclamation-triangle me-2"></i> Confirmar Eliminación</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalMessage">¿Estás seguro de que quieres eliminar este rol permanentemente? Esta acción no se puede deshacer y podría afectar a los usuarios asignados a este rol.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-2"></i> Cancelar</button>
+                        <button type="button" class="btn btn-danger" id="confirmActionButton"><i class="fas fa-trash-alt me-2"></i> Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <th:block layout:fragment="page-scripts">
+        <script>
+            // Lógica para el modal de confirmación de eliminación
+            document.addEventListener('DOMContentLoaded', function() {
+                const confirmationModal = document.getElementById('confirmationModal');
+                const confirmActionButton = document.getElementById('confirmActionButton');
+
+                let currentRolId = null;
+
+                confirmationModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    currentRolId = button.getAttribute('data-id');
+                    // Puedes personalizar el mensaje si lo deseas, aunque ya hay uno por defecto
+                });
+
+                confirmActionButton.addEventListener('click', function() {
+                    confirmationModal.querySelector('.btn-close').click(); // Cierra el modal
+
+                    if (currentRolId) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = /*[[@{/roles/eliminar}]]*/ ''; // URL de eliminación
+                        document.body.appendChild(form); // Añadir al DOM antes de submit
+
+                        let idInput = document.createElement('input');
+                        idInput.type = 'hidden';
+                        idInput.name = 'id';
+                        idInput.value = currentRolId;
+                        form.appendChild(idInput);
+                        
+                        form.submit();
+                    }
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

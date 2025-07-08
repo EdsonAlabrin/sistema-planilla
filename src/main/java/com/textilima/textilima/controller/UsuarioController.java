@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/usuarios") // Todas las rutas de este controlador comenzarán con /usuarios
-@PreAuthorize("hasRole('ROL_ADMIN')") // Solo usuarios con el rol ROL_ADMIN pueden acceder a este controlador
+@PreAuthorize("hasAuthority('ROL_ADMIN')") // Solo usuarios con el rol ROL_ADMIN pueden acceder a este controlador
 public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
@@ -47,7 +47,7 @@ public class UsuarioController {
     public String listarUsuarios(Model model) {
         List<Usuario> usuarios = usuarioService.getAllUsuarios();
         model.addAttribute("usuarios", usuarios);
-        return "usuarios/listarUsuarios";
+        return "usuarios/listar";
     }
 
     /**
@@ -62,7 +62,7 @@ public class UsuarioController {
         List<Rol> roles = rolRepository.findAll(); // Obtener todos los roles disponibles
         model.addAttribute("roles", roles);
         model.addAttribute("isEdit", false); // Indicador para la vista
-        return "usuarios/Form";
+        return "usuarios/form";
     }
 
     /**
@@ -83,7 +83,7 @@ public class UsuarioController {
             List<Rol> roles = rolRepository.findAll();
             model.addAttribute("roles", roles);
             model.addAttribute("isEdit", false);
-            return "usuarios/Form";
+            return "usuarios/form";
         }
 
         // Verificar si el username o email ya existen (solo para nuevos usuarios o si se cambian en edición)
@@ -109,7 +109,7 @@ public class UsuarioController {
             List<Rol> roles = rolRepository.findAll();
             model.addAttribute("roles", roles);
             model.addAttribute("isEdit", usuario.getIdUsuario() != null);
-            return "usuarios/Form";
+            return "usuarios/form";
         }
 
         try {
@@ -125,20 +125,19 @@ public class UsuarioController {
     /**
      * Muestra el formulario para editar un usuario existente.
      *
-     * @param id El ID del usuario a editar.
-     * @param model El objeto Model para pasar atributos a la vista.
+     * @param idUsuario el El objeto Model para pasar atributos a la vista.
      * @param redirectAttributes Atributos para redirigir con mensajes flash si el usuario no se encuentra.
-     * @return El nombre de la vista (usuarioForm.html) o redirección a la lista.
+     * @return El nombre de la vista (form.html) o redirección a la lista.
      */
     @GetMapping("/editar/{id}")
-    public String editarUsuarioForm(@PathVariable Integer idUsuario, Model model, RedirectAttributes redirectAttributes) {
+    public String editarUsuarioForm(@PathVariable("id") Integer idUsuario, Model model, RedirectAttributes redirectAttributes) {
         Optional<Usuario> usuarioOptional = usuarioService.getUsuarioById(idUsuario);
         if (usuarioOptional.isPresent()) {
             model.addAttribute("usuario", usuarioOptional.get());
             List<Rol> roles = rolRepository.findAll();
             model.addAttribute("roles", roles);
             model.addAttribute("isEdit", true); // Indicador para la vista
-            return "usuarios/usuarioForm";
+            return "usuarios/form";
         } else {
             redirectAttributes.addFlashAttribute("error", "Usuario no encontrado.");
             return "redirect:/usuarios/listar";

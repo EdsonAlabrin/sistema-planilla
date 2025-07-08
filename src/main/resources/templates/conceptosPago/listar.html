@@ -44,7 +44,7 @@
                                     <th>Nombre del Concepto</th>
                                     <th>Tipo</th>
                                     <th>Método de Cálculo</th>
-                                    <th>Valor Ref.</th>
+                                    <th>Valor Ref. (S/)</th>
                                     <th>¿Remunerativo?</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -60,7 +60,7 @@
                                     </td>
                                     <td th:text="${concepto.metodoCalculo.name().replace('_', ' ')}" data-label="Método de Cálculo"></td>
                                     <td data-label="Valor Ref.">
-                                        <span th:if="${concepto.valorReferencial != null}" th:text="${#numbers.formatCurrency(concepto.valorReferencial)}"></span>
+                                        <span th:if="${concepto.valorReferencial != null}" th:text="${#numbers.formatDecimal(concepto.valorReferencial, 1,'COMMA', 2,'POINT' )}"></span>
                                         <span th:unless="${concepto.valorReferencial != null}">N/A</span>
                                     </td>
                                     <td data-label="¿Remunerativo?">

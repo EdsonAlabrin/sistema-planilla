@@ -78,21 +78,26 @@ public class SecurityConfig {
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/webjars/**")).permitAll()
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/")).permitAll()
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/index")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/conocenos")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/nosotros")).permitAll()
 
-                // CAMBIO CLAVE: Usar hasAuthority() o hasAnyAuthority()
+                // Páginas protegidas: /dashboard y todos los módulos
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/dashboard")).authenticated() // Dashboard requiere autenticación
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAuthority("ROL_ADMIN")
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/empleados/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH", "ROL_EMPLEADO")
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/planillas/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH")
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/usuarios/**")).hasAuthority("ROL_ADMIN")
-                // ... otras reglas
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/roles/**")).hasAuthority("ROL_ADMIN")
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/puestos/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH") // Agregado Puestos
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/bancos/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH")   // Agregado Bancos
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/conceptos/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH") // Agregado Conceptos
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/asistencias/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH", "ROL_EMPLEADO") // Agregado Asistencias
 
-                .anyRequest().authenticated()
+                .anyRequest().authenticated() // Cualquier otra solicitud requiere autenticación
             )
             .formLogin(form -> form
                 .loginPage("/login")
                 .permitAll()
-                .defaultSuccessUrl("/dashboard", true)
+                .defaultSuccessUrl("/dashboard", true) // Redirige al dashboard después de login exitoso
                 .failureUrl("/login?error=true")
             )
             .logout(logout -> logout

@@ -1,204 +1,139 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/base}"> <!-- ASUMIDO: fragments/baseLayout.html -->
+      >
 <head>
     <title>Bienvenida - TextiLima SAC</title>
-    <!-- Font Awesome para iconos (si no está ya en baseLayout.html) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Roboto (Consistencia con el resto de la app) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <style>
         /* Estilos generales para el cuerpo y el contenedor */
         body {
             background-color: #f8f9fa; /* Fondo claro para toda la página */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', sans-serif; /* Usar Roboto */
             color: #343a40;
         }
+        /* El contenedor de Bootstrap ya centra el contenido horizontalmente */
         .container {
             max-width: 1200px; /* Ancho máximo para el contenido */
         }
 
-        /* Sección Hero (Bienvenida) */
+        /* Sección Hero (Bienvenida Principal) */
         .hero-section {
-            background: linear-gradient(135deg, #2668af, #032141); /* Degradado de azul */
-            color: white;
-            padding: 80px 0; /* Más padding para un efecto más impactante */
-            text-align: center;
+            /* Degradado de azul más profesional y vibrante */
+            background: linear-gradient(135deg, #022942 0%, #2c3e50 100%);
+            color: white; /* Texto blanco para toda la sección */
+            padding: 80px 0;
+            text-align: center; /* Centra el texto y elementos inline-block */
             border-bottom-left-radius: 15px;
             border-bottom-right-radius: 15px;
-            margin-bottom: 3rem;
+            margin-bottom: 0; /* No necesita margen inferior si es la única sección */
             position: relative;
             overflow: hidden; /* Para contener los elementos flotantes */
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2); /* Sombra para el hero */
+            /* Asegura que ocupe al menos la altura de la ventana si es la única sección */
+            min-height: calc(100vh - var(--navbar-height, 0px) - var(--footer-height, 0px)); /* Ajusta según tu layout/base */
+            display: flex;
+            align-items: center; /* Centra verticalmente el contenido */
+            justify-content: center; /* Centra horizontalmente el contenido si no hay container */
+        }
+        /* Elementos decorativos de fondo (formas semitransparentes) */
+        .hero-section::before, .hero-section::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.08); /* Blanco semitransparente */
+            border-radius: 50%;
+            z-index: 0;
         }
         .hero-section::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+            top: -60px;
+            left: -60px;
+            width: 220px;
+            height: 220px;
             transform: rotate(45deg);
-            z-index: 0;
         }
         .hero-section::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            right: -50px;
-            width: 250px;
-            height: 250px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+            bottom: -70px;
+            right: -70px;
+            width: 280px;
+            height: 280px;
             transform: rotate(-30deg);
-            z-index: 0;
         }
 
         .hero-content {
             position: relative;
             z-index: 1; /* Asegura que el contenido esté por encima de los fondos */
+            max-width: 900px; /* Ancho máximo para el contenido del hero */
+            margin: 0 auto; /* Centra el div hero-content */
         }
 
         .hero-section h1 {
-            font-size: 3.5rem; /* Título más grande */
+            font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.3); /* Sombra de texto más suave */
+        }
+        .hero-section h1 span {
+            color: #f0f8ff; /* Un blanco azulado para el nombre de la empresa */
         }
         .hero-section p {
             font-size: 1.25rem;
             margin-bottom: 2rem;
             line-height: 1.6;
-            color: #2c3e50;
+            color: rgba(255, 255, 255, 0.9); /* Texto ligeramente transparente para el blanco */
         }
         .hero-section .logo-hero {
-            max-width: 180px; /* Tamaño más grande para el logo en el hero */
+            max-width: 2000px;
             height: auto;
             margin-bottom: 2rem;
-            border-radius: 10px; /* Bordes redondeados para el logo */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4); /* Sombra más oscura para el logo */
             transition: transform 0.3s ease;
         }
         .hero-section .logo-hero:hover {
             transform: scale(1.05);
         }
 
-        /* Botones */
-        .btn-primary-hero {
-            background-color: #28a745; /* Verde para el botón principal */
-            border-color: #28a745;
-            font-size: 1.1rem;
+        /* Botones en la sección Hero */
+        .btn-hero {
+            font-size: 1.8rem;
             padding: 12px 30px;
             border-radius: 50px; /* Botón pill-shaped */
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-weight: 500;
         }
-        .btn-primary-hero:hover {
+        .btn-hero-primary {
+            background-color: #28a745; /* Verde para el botón principal (Iniciar Sesión) */
+            border-color: #28a745;
+            color: white;
+        }
+        .btn-hero-primary:hover {
             background-color: #218838;
             border-color: #1e7e34;
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         }
-        .btn-secondary-hero {
+        .btn-hero-secondary {
             background-color: transparent;
             border: 2px solid white;
             color: white;
-            font-size: 1.1rem;
-            padding: 12px 30px;
-            border-radius: 50px;
-            transition: all 0.3s ease;
             margin-left: 15px;
         }
-        .btn-secondary-hero:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+        .btn-hero-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
-        }
-
-        /* Sección de Características */
-        .features-section {
-            padding: 3rem 0;
-            text-align: center;
-        }
-        .features-section h2 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 2.5rem;
-            color: #2c3e50;
-        }
-        .feature-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            height: 100%; /* Asegura que todas las tarjetas tengan la misma altura */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        .feature-card .icon {
-            font-size: 3.5rem;
-            color: #007bff;
-            margin-bottom: 1rem;
-        }
-        .feature-card h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: #343a40;
-        }
-        .feature-card p {
-            font-size: 1rem;
-            color: #6c757d;
-        }
-
-        /* Sección de "Conócenos" */
-        .about-section {
-            padding: 4rem 0;
-            text-align: center;
-            background-color: #e9ecef;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            margin-top: 3rem;
-        }
-        .about-section h2 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            color: #2c3e50;
-        }
-        .about-section p {
-            font-size: 1.1rem;
-            color: #555;
-            max-width: 800px;
-            margin: 0 auto 2rem auto;
-        }
-        .btn-info-about {
-            background-color: #17a2b8; /* Cian Bootstrap */
-            border-color: #17a2b8;
-            font-size: 1.1rem;
-            padding: 12px 30px;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        .btn-info-about:hover {
-            background-color: #138496;
-            border-color: #117a8b;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         }
 
         /* Responsividad */
         @media (max-width: 768px) {
             .hero-section {
                 padding: 60px 0;
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
             }
             .hero-section h1 {
                 font-size: 2.5rem;
@@ -209,16 +144,13 @@
             .hero-section .logo-hero {
                 max-width: 150px;
             }
-            .btn-primary-hero, .btn-secondary-hero, .btn-info-about {
+            .btn-hero {
                 width: 100%;
                 margin-left: 0;
                 margin-top: 15px;
             }
-            .features-section h2, .about-section h2 {
-                font-size: 2rem;
-            }
-            .feature-card {
-                margin-bottom: 1.5rem;
+            .btn-hero-secondary {
+                margin-left: 0; /* Elimina el margen izquierdo en móvil */
             }
         }
     </style>
@@ -228,73 +160,21 @@
         <!-- Sección Hero (Bienvenida Principal) -->
         <div class="hero-section">
             <div class="container hero-content">
-                <img th:src="@{/images/logo1.png}" alt="Logo TextiLima" class="logo-hero" />
-                <h1>Bienvenido a <span style="color: #634c0a;">TextiLima SAC</span></h1>
-                <p>Tu solución integral para la gestión de recursos humanos y nóminas.</p>
-                <p>Optimiza la administración de empleados, puestos, planillas, asistencias y más, todo en un solo lugar.</p>
-                <div class="d-flex flex-column flex-md-row justify-content-center align-items-center mt-4">                   
+                <!-- Asegúrate de que la ruta de la imagen sea correcta, por ejemplo, /images/logoTextilima.png -->
+                <img th:src="@{/images/logoTextilima.png}" alt="Logo TextiLima" class="logo-hero" />
+                <h1>Bienvenido a <span style="color: #f0f8ff;">TextiLima SAC</span></h1>
+                <p>Tu solución integral para la gestión de recursos humanos y nóminas. Optimiza la administración de empleados, puestos, planillas, asistencias y más, todo en un solo lugar.</p>
+                <div class="d-flex flex-column flex-md-row justify-content-center align-items-center mt-4">
+                    <a th:href="@{/login}" class="btn btn-hero btn-hero-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+                    </a>
+                    <!-- Asegúrate de que la ruta /conocenos esté mapeada en tu controlador -->
+                    <a th:href="@{/nosotros}" class="btn btn-hero btn-hero-secondary">
+                        <i class="fas fa-info-circle me-2"></i> Conócenos
+                    </a>
                 </div>
             </div>
         </div>
-
-        <!-- Sección de Características / Módulos -->
-        <div class="container features-section">
-            <h2>Módulos Principales</h2>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                <div class="col">
-                    <div class="feature-card">
-                        <i class="fas fa-user-friends icon"></i>
-                        <h3>Gestión de Empleados</h3>
-                        <p>Administra la información completa de tus empleados, incluyendo datos personales, laborales y contractuales.</p>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="feature-card">
-                        <i class="fas fa-file-invoice-dollar icon"></i>
-                        <h3>Gestión de Planillas</h3>
-                        <p>Genera y gestiona las planillas de pago de forma eficiente, calculando sueldos, descuentos y aportes.</p>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="feature-card">
-                        <i class="fas fa-clock icon"></i>
-                        <h3>Control de Asistencia</h3>
-                        <p>Registra y monitorea la asistencia de tus empleados, gestionando tardanzas y horas extras.</p>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="feature-card">
-                        <i class="fas fa-briefcase icon"></i>
-                        <h3>Puestos y Cargos</h3>
-                        <p>Define y asigna puestos de trabajo, con sus respectivos salarios y horarios.</p>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="feature-card">
-                        <i class="fas fa-chart-line icon"></i>
-                        <h3>Reportes y Análisis</h3>
-                        <p>Accede a reportes detallados y análisis para una mejor toma de decisiones.</p>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="feature-card">
-                        <i class="fas fa-cogs icon"></i>
-                        <h3>Configuración Flexible</h3>
-                        <p>Personaliza parámetros legales, conceptos de pago y otros ajustes del sistema.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Sección "Conócenos" (Botón Sobre Nosotros) -->
-        <div class="about-section">
-            <div class="container">
-                <h2>¿Quiénes Somos?</h2>
-                <a th:href="@{/conocenos}" class="btn btn-info-about">
-                    <i class="fas fa-info-circle me-2"></i> Conoce Más Sobre Nosotros
-                </a>
-            </div>
-        </div>
-        
     </div>
 </body>
 </html>

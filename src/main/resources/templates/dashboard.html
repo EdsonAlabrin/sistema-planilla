@@ -1,75 +1,296 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layout/base}"> 
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout/base}">
+
 <head>
     <title>Dashboard - TextiLima SAC</title>
+    <style>
+        /* Estilos específicos para el dashboard */
+        .info-card {
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            text-align: center;
+            padding: 25px;
+            height: 100%; /* Asegura que todas las tarjetas tengan la misma altura en la fila */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .info-card .icon-circle {
+            background-color: #e3f2fd; /* Fondo azul claro por defecto */
+            color: #2196f3; /* Icono azul por defecto */
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            font-size: 2.5em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra para el círculo del icono */
+        }
+
+        .info-card h5 {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .welcome-header {
+            /* Gradiente más suave y profesional */
+            background: linear-gradient(135deg, #1d5f8b 0%, #021324 100%);
+            color: white; /* Texto blanco para mejor contraste */
+            padding: 40px 20px;
+            border-radius: 0.75rem;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+            position: relative; /* Para el icono flotante */
+            overflow: hidden; /* Para asegurar que el gradiente no se desborde */
+        }
+        /* Icono de bienvenida flotante */
+        .welcome-header .welcome-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 4em;
+            color: rgba(255, 255, 255, 0.2); /* Icono semitransparente */
+            transform: rotate(-15deg);
+            z-index: 0;
+        }
+
+        .welcome-header h1, .welcome-header p {
+            position: relative; /* Asegura que el texto esté por encima del icono flotante */
+            z-index: 1;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .welcome-header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Nueva sección para información del usuario */
+        .user-info-section {
+            margin-top: 30px;
+            margin-bottom: 50px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .user-info-section h4 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .user-info-section .info-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 1.05em;
+            color: #555;
+        }
+        .user-info-section .info-item i {
+            margin-right: 10px;
+            color: #3498db;
+            font-size: 1.2em;
+        }
+        .user-info-section .btn-logout {
+            background-color: #e74c3c; /* Rojo para cerrar sesión */
+            border-color: #e74c3c;
+            color: white;
+            padding: 10px 25px;
+            font-size: 1em;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 20px;
+        }
+        .user-info-section .btn-logout:hover {
+            background-color: #c0392b;
+            border-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        /* Ajustes para el título de Acceso Rápido */
+        .dashboard-section-title {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.8em;
+        }
+
+        /* Colores de iconos y fondos para las tarjetas de módulo */
+        .icon-empleados { background-color: #e3f2fd; color: #2196f3; } /* Azul */
+        .icon-planillas { background-color: #e8f5e9; color: #4caf50; } /* Verde */
+        .icon-usuarios { background-color: #ffebee; color: #f44336; } /* Rojo */
+        .icon-roles { background-color: #fff3e0; color: #ff9800; } /* Naranja */
+        .icon-asistencia { background-color: #e0f7fa; color: #00bcd4; } /* Cian */
+        .icon-puestos { background-color: #f3e5f5; color: #9c27b0; } /* Púrpura */
+        .icon-bancos { background-color: #e0f2f7; color: #03a9f4; } /* Azul claro */
+        .icon-conceptos { background-color: #fbe9e7; color: #ff5722; } /* Naranja oscuro */
+
+        /* Responsividad */
+        @media (max-width: 768px) {
+            .welcome-header {
+                padding: 30px 15px;
+                margin-bottom: 20px;
+            }
+            .welcome-header h1 {
+                font-size: 1.8em;
+            }
+            .welcome-header p {
+                font-size: 1em;
+            }
+            .welcome-header .welcome-icon {
+                font-size: 3em;
+                top: 10px;
+                right: 10px;
+            }
+            .user-info-section {
+                padding: 15px;
+                margin-bottom: 30px;
+            }
+            .user-info-section h4 {
+                font-size: 1.2em;
+            }
+            .user-info-section .info-item {
+                font-size: 0.95em;
+            }
+            .dashboard-section-title {
+                font-size: 1.5em;
+                margin-bottom: 20px;
+            }
+            .info-card {
+                padding: 20px;
+            }
+            .info-card .icon-circle {
+                width: 60px;
+                height: 60px;
+                font-size: 2em;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <div layout:fragment="content">
         <div class="container mt-5">
-            <h2 class="mb-4 text-center">Bienvenido a tu Dashboard</h2>
-            <hr class="mb-4">
-
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i> Información del Usuario</h4>
-                </div>
-                <div class="card-body">
-                    <p><strong>Nombre de Usuario:</strong> <span sec:authentication="name"></span></p>
-                    <p><strong>Roles:</strong> <span sec:authentication="authorities"></span></p>
-                    <p>
-                        <a th:href="@{/logout}" class="btn btn-danger mt-3">
-                            <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                        </a>
-                    </p>
-                </div>
+            <!-- Encabezado de Bienvenida -->
+            <div class="welcome-header">
+                <i class="fas fa-handshake welcome-icon"></i> <!-- Icono de bienvenida -->
+                <h1>Hola, <span sec:authentication="name"></span>!</h1>
+                <p>Bienvenido al panel de control de TextiLima SAC. Aquí tienes un resumen rápido y acceso a tus módulos.</p>
+                <!-- La línea de depuración de roles se movió a la sección de información del usuario -->
             </div>
 
-            <!-- Sección de acceso rápido a módulos (ejemplos) -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0"><i class="fas fa-th-large me-2"></i> Acceso Rápido</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                        <!-- Enlace a Empleados (visible si el usuario tiene ROLE_ADMIN, ROLE_RRHH o ROLE_EMPLEADO) -->
-                        <div class="col" sec:authorize="hasAnyRole('ROL_ADMIN', 'ROL_RRHH', 'ROL_EMPLEADO')">
-                            <a th:href="@{/empleados/listar}" class="card text-decoration-none text-dark h-100">
-                                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                                    <i class="fas fa-users fa-3x mb-3 text-primary"></i>
-                                    <h5 class="card-title">Gestión de Empleados</h5>
-                                    <p class="card-text text-muted">Administra la información de todos los empleados.</p>
-                                </div>
-                            </a>
+            <!-- Sección de Información del Usuario -->
+            <div class="user-info-section">
+                <h4 class="mb-3"><i class="fas fa-user-circle me-2"></i> Información de tu Cuenta</h4>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <i class="fas fa-user"></i> <strong>Nombre de Usuario:</strong> <span sec:authentication="name"></span>
                         </div>
-                        <!-- Enlace a Planillas (visible si el usuario tiene ROLE_ADMIN o ROLE_RRHH) -->
-                        <div class="col" sec:authorize="hasAnyRole('ROL_ADMIN', 'ROL_RRHH')">
-                            <a th:href="@{/planillas/listar}" class="card text-decoration-none text-dark h-100">
-                                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                                    <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-success"></i>
-                                    <h5 class="card-title">Gestión de Planillas</h5>
-                                    <p class="card-text text-muted">Genera y revisa las planillas de pago.</p>
-                                </div>
-                            </a>
+                        <div class="info-item">
+                            <i class="fas fa-tags"></i> <strong>Tus Roles:</strong> <span sec:authentication="authorities"></span>
                         </div>
-                        <!-- Enlace a Usuarios (visible solo si el usuario tiene ROLE_ADMIN) -->
-                        <div class="col" sec:authorize="hasRole('ROL_ADMIN')">
-                            <a th:href="@{/usuarios/listar}" class="card text-decoration-none text-dark h-100">
-                                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                                    <i class="fas fa-user-shield fa-3x mb-3 text-danger"></i>
-                                    <h5 class="card-title">Gestión de Usuarios</h5>
-                                    <p class="card-text text-muted">Administra las cuentas de usuario y sus roles.</p>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- Puedes añadir más enlaces aquí con sus respectivas autorizaciones -->
                     </div>
                 </div>
+                <a th:href="@{/logout}" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </a>
             </div>
 
+            <!-- Título de Acceso Rápido a Módulos -->
+            <h3 class="dashboard-section-title">Acceso Rápido a Módulos</h3>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+                <!-- Gestión de Empleados -->
+                <div class="col" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')">
+                    <a th:href="@{/empleados/listar}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-empleados"><i class="fas fa-users"></i></div>
+                        <h5>Empleados</h5>
+                        <p>Administra la información de tu personal.</p>
+                    </a>
+                </div>
+                <!-- Gestión de Planillas -->
+                <div class="col" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')">
+                    <a th:href="@{/planillas/listar}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-planillas"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <h5>Planillas</h5>
+                        <p>Genera y gestiona las planillas de pago.</p>
+                    </a>
+                </div>
+                <!-- Gestión de Usuarios -->
+                <div class="col" sec:authorize="hasAuthority('ROL_ADMIN')">
+                    <a th:href="@{/usuarios/listar}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-usuarios"><i class="fas fa-user-shield"></i></div>
+                        <h5>Usuarios</h5>
+                        <p>Administra las cuentas de usuario y sus roles.</p>
+                    </a>
+                </div>
+                <!-- Gestión de Roles -->
+                <div class="col" sec:authorize="hasAuthority('ROL_ADMIN')">
+                    <a th:href="@{/roles/listar}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-roles"><i class="fas fa-user-tag"></i></div>
+                        <h5>Roles</h5>
+                        <p>Define y gestiona los roles del sistema.</p>
+                    </a>
+                </div>
+                <!-- Registro de Asistencia (para Empleados) -->
+                <div class="col" sec:authorize="hasAuthority('ROL_EMPLEADO')">
+                    <a th:href="@{/asistencias/registro}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-asistencia"><i class="fas fa-calendar-check"></i></div>
+                        <h5>Marcar Asistencia</h5>
+                        <p>Registra tu entrada y salida.</p>
+                    </a>
+                </div>
+                <!-- Puestos -->
+                <div class="col" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')">
+                    <a th:href="@{/puestos/listar}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-puestos"><i class="fas fa-briefcase"></i></div>
+                        <h5>Puestos</h5>
+                        <p>Gestiona los puestos de trabajo.</p>
+                    </a>
+                </div>
+                <!-- Bancos -->
+                <div class="col" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')">
+                    <a th:href="@{/bancos/listar}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-bancos"><i class="fas fa-university"></i></div>
+                        <h5>Bancos</h5>
+                        <p>Administra la información de bancos.</p>
+                    </a>
+                </div>
+                <!-- Conceptos de Pago -->
+                <div class="col" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')">
+                    <a th:href="@{/conceptos/listar}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-conceptos"><i class="fas fa-tags"></i></div>
+                        <h5>Conceptos de Pago</h5>
+                        <p>Configura los tipos de ingresos y descuentos.</p>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </body>
+
 </html>
