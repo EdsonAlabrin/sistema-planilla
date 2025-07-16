@@ -83,7 +83,7 @@ public class PuestoServiceImpl implements PuestoService {
      */
     @Override
     public Optional<Puesto> getPuestoByNombrePuesto(String nombrePuesto) {
-        return Optional.ofNullable(puestoRepository.findByNombrePuesto(nombrePuesto));
+        return puestoRepository.findByNombrePuesto(nombrePuesto);
     }
 
     /**

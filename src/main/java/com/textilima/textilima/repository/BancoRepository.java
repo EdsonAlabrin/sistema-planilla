@@ -1,5 +1,7 @@
 package com.textilima.textilima.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +15,7 @@ public interface BancoRepository extends JpaRepository<Banco, Integer> {
      * @param nombreBanco El nombre del banco a buscar.
      * @return El banco encontrado o null si no existe.
      */
-    Banco findByNombreBanco(String nombreBanco);
+    Optional<Banco> findByNombreBanco(String nombreBanco);
 
     /**
      * Busca un banco por su código.

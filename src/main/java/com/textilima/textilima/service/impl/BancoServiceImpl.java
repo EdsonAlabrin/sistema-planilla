@@ -61,7 +61,7 @@ public class BancoServiceImpl implements BancoService { // Implementa la interfa
      */
     @Override
     public Optional<Banco> getBancoByNombreBanco(String nombreBanco) {
-        return Optional.ofNullable(bancoRepository.findByNombreBanco(nombreBanco));
+        return bancoRepository.findByNombreBanco(nombreBanco);
     }
 
     /**

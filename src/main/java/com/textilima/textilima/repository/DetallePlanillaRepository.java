@@ -3,6 +3,7 @@ package com.textilima.textilima.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.DetallePlanilla;
@@ -23,7 +24,9 @@ public interface DetallePlanillaRepository extends JpaRepository<DetallePlanilla
      * @return Un Optional que contiene el DetallePlanilla encontrado, o vacío si no existe.
      */
     Optional<DetallePlanilla> findByPlanillaAndEmpleado(Planilla planilla, Empleado empleado);
-
+    // ESTE ES EL MÉTODO MODIFICADO (ASEGÚRATE DE QUE ESTÉ ASÍ EN TU CÓDIGO)
+    @Query("SELECT dp FROM DetallePlanilla dp LEFT JOIN FETCH dp.movimientosPlanilla mp LEFT JOIN FETCH mp.concepto WHERE dp.idDetalle = :idDetalle")
+    Optional<DetallePlanilla> findByIdWithMovimientos(@Param("idDetalle") Integer idDetalle);
     /**
      * Busca todos los detalles de una planilla específica.
      * @param planilla La planilla de la cual se desean obtener los detalles.

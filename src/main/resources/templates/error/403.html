@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Denegado - 403</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .image-animation {
+            animation: floatAndZoom 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatAndZoom {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-10px) scale(1.02);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="fade-in flex flex-col items-center justify-center text-center p-4">
+        
+        <div class="relative mb-8 w-full max-w-4xl">
+            <img 
+                th:src="@{/images/error403.jpg}" 
+                onerror="this.onerror=null; this.src='https://placehold.co/700x450/FCD34D/111111?text=Acceso+Denegado';" 
+                alt="Acceso Denegado" 
+                class="w-full h-auto rounded-xl shadow-2xl image-animation border-4 border-yellow-400"
+            >
+        </div>
+
+        <p class="text-2xl md:text-3xl font-semibold text-gray-800 mb-4">
+            ¡Oops! No tienes permisos para acceder a esta sección.
+        </p>
+        <p class="text-gray-600 mb-8 max-w-lg">
+            Si crees que esto es un error, contacta al administrador o intenta volver al inicio.
+        </p>
+        
+        <a th:href="@{/}" class="inline-flex items-center px-8 py-4 bg-yellow-500 text-white font-semibold rounded-full shadow-lg hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+            <i class="fas fa-arrow-left mr-3 text-xl"></i> Volver al Inicio
+        </a>
+    </div>
+</body>
+</html>

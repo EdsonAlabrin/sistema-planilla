@@ -17,7 +17,8 @@ import java.time.LocalTime; // Importar LocalTime para horas sin fecha
 /**
  * Entidad que registra la información de asistencia de los empleados.
  * Mapea a la tabla `asistencias`.
- * Incluye estado de asistencia, horas de entrada/salida y cálculos de tardanzas/horas extras.
+ * Incluye estado de asistencia, horas de entrada/salida y cálculos de
+ * tardanzas/horas extras.
  */
 @Entity
 @Table(name = "asistencias")
@@ -57,6 +58,9 @@ public class Asistencia { // Se usa "Asistencia" en singular para la entidad
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoAsistencia estado = EstadoAsistencia.PRESENTE; // Estado de la asistencia
 
+    @Column(name = "justificacion", length = 255)
+    private String justificacion;
+
     // Campos de auditoría automática
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -70,7 +74,11 @@ public class Asistencia { // Se usa "Asistencia" en singular para la entidad
     public enum EstadoAsistencia {
         PRESENTE("Presente"),
         TARDANZA("Tardanza"),
-        AUSENTE("Ausente");
+        AUSENTE("Ausente"),
+        FALTA_JUSTIFICADA("Falta Justificada"),
+        PERMISO("Permiso"),
+        TARDANZA_JUSTIFICADA("Tardanza Justificada"),
+        LICENCIA("Licencia");
 
         private final String displayName;
 
@@ -86,6 +94,7 @@ public class Asistencia { // Se usa "Asistencia" en singular para la entidad
     /**
      * Método transitorio para calcular las horas trabajadas en formato HH:mm:ss.
      * No se mapea a una columna en la base de datos.
+     * 
      * @return String con las horas trabajadas formateadas.
      */
     @Transient // Indica que este campo no se mapea a una columna de BD

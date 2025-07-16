@@ -17,14 +17,19 @@ import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.YearMonth; // Necesario para YearMonth
+import java.time.LocalTime; // Necesario para YearMonth
 import java.time.Month; // <-- ¡Asegúrate de que esta importación exista!
 import java.time.format.TextStyle; // <-- ¡Asegúrate de que esta importación exista!
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.Comparator;
 import java.util.Locale; // <-- ¡Asegúrate de que esta importación exista!
 
@@ -41,8 +46,6 @@ public class PlanillaController {
     private DetallePlanillaRepository detallePlanillaRepository;
     @Autowired
     private MovimientoPlanillaRepository movimientoPlanillaRepository;
-    @Autowired
-    private AsistenciaRepository asistenciaRepository;
 
     // Servicios inyectados
     @Autowired
@@ -53,6 +56,8 @@ public class PlanillaController {
     private EmpresaService empresaService;
     @Autowired
     private AsistenciaService asistenciaService;
+    @Autowired
+    private ConceptoPagoService conceptoPagoService;
 
     @GetMapping
     public String redirectToPlanillasList() {
@@ -264,6 +269,7 @@ public class PlanillaController {
     @PostMapping("/generar-boleta/{idDetalle}")
     public String generarBoleta(@PathVariable Integer idDetalle, RedirectAttributes redirectAttributes) {
         Optional<DetallePlanilla> detalleOptional = detallePlanillaRepository.findById(idDetalle);
+        
         if (detalleOptional.isPresent()) {
             DetallePlanilla detalle = detalleOptional.get();
 
@@ -301,30 +307,309 @@ public class PlanillaController {
     @GetMapping("/ver-boleta/{idBoleta}")
     public String verBoleta(@PathVariable Integer idBoleta, Model model, RedirectAttributes redirectAttributes) {
         Optional<Boleta> boletaOptional = boletaService.getBoletaById(idBoleta);
-        if (boletaOptional.isPresent()) {
-            Boleta boleta = boletaOptional.get();
-            DetallePlanilla detalle = boleta.getDetallePlanilla();
-            
-            if (detalle.getMovimientosPlanilla() == null || detalle.getMovimientosPlanilla().isEmpty()) {
-                 detalle.setMovimientosPlanilla(movimientoPlanillaRepository.findByDetallePlanillaId(detalle.getIdDetalle()));
-            }
-            
-            model.addAttribute("boleta", boleta);
-            model.addAttribute("detallePlanilla", detalle);
-
-            Optional<Empresa> empresaOptional = empresaService.getOneCompany();
-            if (empresaOptional.isPresent()) {
-                model.addAttribute("empresa", empresaOptional.get());
-            } else {
-                model.addAttribute("empresa", null);
-            }
-            
-            return "boletas/verBoleta";
-        } else {
+        if (boletaOptional.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Boleta no encontrada.");
             return "redirect:/planillas/listar";
         }
+        Boleta boleta = boletaOptional.get();
+        if (boleta.getDetallePlanilla() == null) {
+            redirectAttributes.addFlashAttribute("error", "Error: La boleta no tiene un detalle de planilla asociado.");
+            return "redirect:/planillas/listar";
+        }
+        Integer idDetalle = boleta.getDetallePlanilla().getIdDetalle();
+
+        Optional<DetallePlanilla> loadedDetalleOptional = detallePlanillaRepository.findByIdWithMovimientos(idDetalle);
+
+        if (loadedDetalleOptional.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Error: El detalle de planilla (con movimientos) no pudo ser cargado.");
+            return "redirect:/planillas/listar";
+        }
+        DetallePlanilla detalle = loadedDetalleOptional.get();
+
+        if (detalle.getPlanilla().getTipoPlanilla() == TipoPlanilla.CTS) {
+            int mes = detalle.getPlanilla().getMes();
+            int anio = detalle.getPlanilla().getAnio();
+            LocalDate fechaIngreso = detalle.getEmpleado().getFechaIngreso();
+            BigDecimal sueldoBase = detalle.getSueldoBase();
+            BigDecimal asignacionFamiliar = detalle.getAsignacionFamiliar();
+            if(asignacionFamiliar == null) asignacionFamiliar = BigDecimal.ZERO;
+
+            if (mes != 5 && mes != 11) {
+                redirectAttributes.addFlashAttribute("error", "Error interno: Planilla de CTS con mes inválido.");
+                return "redirect:/planillas/listar";
+            }
+            
+            BigDecimal sextaParteGratificacion = BigDecimal.ZERO; 
+            int mesGratificacionAnterior = (mes == 5) ? 12 : 7; // Si es CTS de Mayo, busca Dic del año anterior; si es Nov, busca Julio
+            int anioGratificacionAnterior = (mes == 5) ? anio - 1 : anio; // Año para la gratificación a buscar
+
+            // Buscar la gratificación pagada en el semestre anterior (que afectará la CTS actual)
+            Optional<MovimientoPlanilla> gratificacionMovOpt = movimientoPlanillaRepository.findGratificacionByEmpleadoAndPeriodoAndConcepto(
+                detalle.getEmpleado().getIdEmpleado(), mesGratificacionAnterior, anioGratificacionAnterior, "Gratificación Ordinaria");
+
+            if(gratificacionMovOpt.isPresent()){
+                BigDecimal montoGratificacion = gratificacionMovOpt.get().getMonto();
+                sextaParteGratificacion = montoGratificacion.divide(BigDecimal.valueOf(6), 2, RoundingMode.HALF_UP);
+            }
+            // FIN CÁLCULO SEXTA PARTE GRATIFICACIÓN
+
+            BigDecimal remuneracionComputableCts = sueldoBase.add(asignacionFamiliar).add(sextaParteGratificacion);
+
+            LocalDate inicioPeriodoCTS;
+            LocalDate finPeriodoCTS;
+
+            if (mes == 5) { // Depósito de Mayo: Periodo Noviembre-Abril
+                inicioPeriodoCTS = LocalDate.of(anio - 1, 11, 1);
+                finPeriodoCTS = LocalDate.of(anio, 4, 30);
+            } else { // mes == 11 (Depósito de Noviembre: Periodo Mayo-Octubre)
+                inicioPeriodoCTS = LocalDate.of(anio, 5, 1);
+                finPeriodoCTS = LocalDate.of(anio, 10, 31);
+            }
+            
+            if (fechaIngreso.isAfter(inicioPeriodoCTS)) {
+                inicioPeriodoCTS = fechaIngreso;
+            }
+
+            int mesesComputables = 0;
+            int diasComputables = 0;
+            LocalDate currentDay = inicioPeriodoCTS;
+            while (!currentDay.isAfter(finPeriodoCTS)) {
+                LocalDate endOfMonth = currentDay.with(TemporalAdjusters.lastDayOfMonth());
+                if (endOfMonth.isAfter(finPeriodoCTS)) {
+                    endOfMonth = finPeriodoCTS;
+                }
+                long daysWorkedInMonth = Duration.between(currentDay.atStartOfDay(), endOfMonth.plusDays(1).atStartOfDay()).toDays();
+
+                if (daysWorkedInMonth >= 15) {
+                    mesesComputables++;
+                } else if (daysWorkedInMonth > 0) {
+                    diasComputables += daysWorkedInMonth;
+                }
+                currentDay = endOfMonth.plusDays(1);
+            }
+            mesesComputables += diasComputables / 30;
+            diasComputables = diasComputables % 30;
+            
+            BigDecimal montoCtsPorMes = remuneracionComputableCts.divide(BigDecimal.valueOf(12), 4, RoundingMode.HALF_UP);
+            BigDecimal montoCtsPorDia = remuneracionComputableCts.divide(BigDecimal.valueOf(360), 4, RoundingMode.HALF_UP);
+            
+            BigDecimal montoCTS = (montoCtsPorMes.multiply(BigDecimal.valueOf(mesesComputables)))
+                                        .add(montoCtsPorDia.multiply(BigDecimal.valueOf(diasComputables)))
+                                        .setScale(2, RoundingMode.HALF_UP);
+
+            model.addAttribute("inicioPeriodoCTS", inicioPeriodoCTS);
+            model.addAttribute("finPeriodoCTS", finPeriodoCTS);
+            model.addAttribute("mesesComputables", mesesComputables);
+            model.addAttribute("diasComputables", diasComputables);
+            model.addAttribute("remuneracionComputableCts", remuneracionComputableCts);
+            model.addAttribute("montoCtsPorMes", montoCtsPorMes);
+            model.addAttribute("montoCtsPorDia", montoCtsPorDia);
+            model.addAttribute("sextaParteGratificacion", sextaParteGratificacion);
+            
+            List<MovimientoPlanilla> ctsIngresos = new ArrayList<>();
+            Optional<ConceptoPago> conceptoCtsOpt = conceptoPagoService.getConceptoPagoByNombreAndTipo("CTS", TipoConcepto.INGRESO);
+            if(conceptoCtsOpt.isPresent()){
+                ctsIngresos.add(new MovimientoPlanilla(null, detalle, conceptoCtsOpt.get(), montoCTS));
+            } else {
+                System.err.println("Concepto 'CTS' no encontrado para la boleta de CTS.");
+            }
+            model.addAttribute("ingresos", ctsIngresos);
+            model.addAttribute("descuentos", new ArrayList<>());
+            model.addAttribute("aportesEmpleador", new ArrayList<>());
+
+            // Desactivar datos de asistencia para CTS
+            model.addAttribute("asistencias", new ArrayList<>()); 
+            model.addAttribute("totalMinutosTardanza", 0);
+            model.addAttribute("totalHorasExtras25", BigDecimal.ZERO);
+            model.addAttribute("totalHorasExtras35", BigDecimal.ZERO);
+            model.addAttribute("diasAusentes", 0);
+            model.addAttribute("diasPresentes", 0);
+            model.addAttribute("jornadaInicio", null); 
+            model.addAttribute("jornadaFin", null); 
+            
+            detalle.setSueldoBruto(montoCTS);
+            detalle.setSueldoNeto(montoCTS);
+            detalle.setTotalIngresosAdicionales(montoCTS);
+            detalle.setTotalDescuentos(BigDecimal.ZERO);
+            detalle.setTotalAportesEmpleador(BigDecimal.ZERO);
+
+        } else if (detalle.getPlanilla().getTipoPlanilla() == TipoPlanilla.GRATIFICACION) {
+            int mes = detalle.getPlanilla().getMes();
+            int anio = detalle.getPlanilla().getAnio();
+            LocalDate fechaIngreso = detalle.getEmpleado().getFechaIngreso();
+            LocalDate fechaCese = detalle.getEmpleado().getFechaCese(); // Obtener fecha de cese para ajustes
+            BigDecimal sueldoBase = detalle.getSueldoBase();
+            
+            // **Validación de Mes de Gratificación**
+            if (mes != 7 && mes != 12) {
+                redirectAttributes.addFlashAttribute("error", "Error interno: Planilla de Gratificación con mes inválido. Debe ser Julio o Diciembre.");
+                return "redirect:/planillas/listar"; 
+            }
+
+            // **Determinación del Periodo Computable de la Gratificación (Para la vista)**
+            LocalDate inicioPeriodoGratificacion;
+            LocalDate finPeriodoGratificacion;
+
+            if (mes == 7) { // Gratificación de Julio: Periodo Enero-Junio
+                inicioPeriodoGratificacion = LocalDate.of(anio, 1, 1);
+                finPeriodoGratificacion = LocalDate.of(anio, 6, 30);
+            } else { // mes == 12 (Gratificación de Diciembre: Periodo Julio-Diciembre)
+                inicioPeriodoGratificacion = LocalDate.of(anio, 7, 1);
+                finPeriodoGratificacion = LocalDate.of(anio, 12, 31);
+            }
+            
+            // **Ajustar el inicio y fin del periodo basándose en la fecha de ingreso y cese del empleado**
+            LocalDate periodoRealInicioGrat = fechaIngreso.isAfter(inicioPeriodoGratificacion) ? fechaIngreso : inicioPeriodoGratificacion;
+            // Considerar fecha de cese si existe y es anterior al fin del periodo teórico
+            LocalDate periodoRealFinGrat = (fechaCese != null && fechaCese.isBefore(finPeriodoGratificacion)) ? fechaCese : finPeriodoGratificacion;
+
+            // **Cálculo de Meses y Días Computables para la Vista (LÓGICA DUPLICADA DEL SERVICIO, IGUAL QUE EN CTS)**
+            int mesesComputablesGratificacion = 0;
+            int diasComputablesGratificacion = 0; 
+            
+            // Si el periodo real es inválido (ej. fecha de ingreso posterior a fecha de cese ajustada), no hay meses computables
+            if (periodoRealInicioGrat.isAfter(periodoRealFinGrat)) {
+                mesesComputablesGratificacion = 0;
+                diasComputablesGratificacion = 0;
+            } else {
+                LocalDate tempDay = periodoRealInicioGrat;
+                while (!tempDay.isAfter(periodoRealFinGrat)) {
+                    LocalDate endOfCurrentMonth = tempDay.with(TemporalAdjusters.lastDayOfMonth());
+                    LocalDate effectiveEndOfMonth = endOfCurrentMonth.isAfter(periodoRealFinGrat) ? periodoRealFinGrat : endOfCurrentMonth;
+
+                    long daysInMonthSegment = Duration.between(tempDay.atStartOfDay(), effectiveEndOfMonth.plusDays(1).atStartOfDay()).toDays();
+
+                    if (daysInMonthSegment >= 15) { // Si el segmento del mes tiene 15 días o más, cuenta como un mes completo.
+                        mesesComputablesGratificacion++;
+                    } else { // Si tiene menos de 15 días, esos días se acumulan.
+                        diasComputablesGratificacion += daysInMonthSegment;
+                    }
+                    
+                    tempDay = endOfCurrentMonth.plusDays(1); // Mover al inicio del siguiente mes
+                    if (tempDay.isAfter(periodoRealFinGrat)) {
+                        break;
+                    }
+                }
+            }
+            // Consolidar días sueltos en meses completos (cada 30 días es un mes para gratificación)
+            mesesComputablesGratificacion += diasComputablesGratificacion / 30;
+            // Los días restantes (diasComputablesGratificacion % 30) NO generan gratificación proporcional para gratificación.
+            
+            // Asegurar que el número de meses no sea negativo
+            if (mesesComputablesGratificacion < 0) mesesComputablesGratificacion = 0;
+
+            // **Obtener los montos de Gratificación y Bonificación Extraordinaria de los MovimientosPlanilla (Ya calculados por el servicio)**
+            BigDecimal montoGratificacionBase = detalle.getMovimientosPlanilla().stream()
+                .filter(mp -> "Gratificación Ordinaria".equals(mp.getConcepto().getNombreConcepto()) && mp.getConcepto().getTipo() == TipoConcepto.INGRESO)
+                .map(MovimientoPlanilla::getMonto)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            BigDecimal bonificacionExtraordinaria = detalle.getMovimientosPlanilla().stream()
+                .filter(mp -> "Bonificación Extraordinaria (Ley)".equals(mp.getConcepto().getNombreConcepto()) && mp.getConcepto().getTipo() == TipoConcepto.INGRESO)
+                .map(MovimientoPlanilla::getMonto)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // **Remuneración Computable (Solo Sueldo Base)**
+            BigDecimal remuneracionComputableGratificacion = sueldoBase; 
+
+            // **Añadir al modelo las variables específicas de Gratificación para la vista**
+            model.addAttribute("inicioPeriodoGratificacion", periodoRealInicioGrat); 
+            model.addAttribute("finPeriodoGratificacion", periodoRealFinGrat);     
+            model.addAttribute("mesesComputablesGratificacion", mesesComputablesGratificacion); 
+            // Si quisieras mostrar también los días restantes (aunque para gratificación no generen monto):
+            // model.addAttribute("diasComputablesGratificacionRestantes", diasComputablesGratificacion % 30);
+            model.addAttribute("remuneracionComputableGratificacion", remuneracionComputableGratificacion); 
+            model.addAttribute("montoGratificacionBase", montoGratificacionBase);
+            model.addAttribute("bonificacionExtraordinaria", bonificacionExtraordinaria);
+
+            // **Asegurarse de que los otros atributos de la boleta sean nulos o vacíos si no aplican, igual que en CTS**
+            model.addAttribute("asistencias", new ArrayList<>()); 
+            model.addAttribute("totalMinutosTardanza", 0);
+            model.addAttribute("totalHorasExtras25", BigDecimal.ZERO);
+            model.addAttribute("totalHorasExtras35", BigDecimal.ZERO);
+            model.addAttribute("diasAusentes", 0);
+            model.addAttribute("diasPresentes", 0);
+            model.addAttribute("jornadaInicio", null); 
+            model.addAttribute("jornadaFin", null); 
+
+        } else {
+            // --- Lógica existente para Planilla Mensual o Liquidación ---
+            LocalDate fechaInicioMes = LocalDate.of(detalle.getPlanilla().getAnio(), detalle.getPlanilla().getMes(), 1);
+            LocalDate fechaFinMes = fechaInicioMes.withDayOfMonth(fechaInicioMes.lengthOfMonth());
+            List<Asistencia> asistenciasDelMes = asistenciaService.getAsistenciasByEmpleadoAndFechaBetween(detalle.getEmpleado(), fechaInicioMes, fechaFinMes);
+            
+            int totalMinutosTardanza = asistenciasDelMes.stream()
+                                            .filter(a -> a.getMinutosTardanza() != null)
+                                            .mapToInt(Asistencia::getMinutosTardanza)
+                                            .sum();
+            BigDecimal totalHorasExtras25 = asistenciasDelMes.stream()
+                                                .filter(a -> a.getHorasExtras25() != null)
+                                                .map(Asistencia::getHorasExtras25)
+                                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalHorasExtras35 = asistenciasDelMes.stream()
+                                                .filter(a -> a.getHorasExtras35() != null)
+                                                .map(Asistencia::getHorasExtras35)
+                                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            long diasAusentes = asistenciasDelMes.stream()
+                                    .filter(a -> a.getEstado() == Asistencia.EstadoAsistencia.AUSENTE)
+                                    .count();
+            long diasPresentes = asistenciasDelMes.stream()
+                                    .filter(a -> a.getEstado() == Asistencia.EstadoAsistencia.PRESENTE || a.getEstado() == Asistencia.EstadoAsistencia.TARDANZA)
+                                    .count();
+            LocalTime horaInicioJornada = (detalle.getEmpleado().getPuesto() != null) ? detalle.getEmpleado().getPuesto().getHoraInicioJornada() : LocalTime.of(8, 0);
+            LocalTime horaFinJornada = (detalle.getEmpleado().getPuesto() != null) ? detalle.getEmpleado().getPuesto().getHoraFinJornada() : LocalTime.of(17, 0);
+
+            model.addAttribute("asistencias", asistenciasDelMes);
+            model.addAttribute("totalMinutosTardanza", totalMinutosTardanza);
+            model.addAttribute("totalHorasExtras25", totalHorasExtras25);
+            model.addAttribute("totalHorasExtras35", totalHorasExtras35);
+            model.addAttribute("diasAusentes", diasAusentes);
+            model.addAttribute("diasPresentes", diasPresentes);
+            model.addAttribute("jornadaInicio", horaInicioJornada);
+            model.addAttribute("jornadaFin", horaFinJornada);
+
+            // Asegúrate de que los ingresos, descuentos y aportesEmpleador se obtengan del detalle original para planillas no CTS
+            // (Esta sección se ejecutará si no es CTS ni Gratificación)
+            List<MovimientoPlanilla> ingresos = detalle.getMovimientosPlanilla().stream()
+                                                    .filter(mp -> mp.getConcepto().getTipo() == TipoConcepto.INGRESO)
+                                                    .collect(Collectors.toList());
+            List<MovimientoPlanilla> descuentos = detalle.getMovimientosPlanilla().stream()
+                                                        .filter(mp -> mp.getConcepto().getTipo() == TipoConcepto.DESCUENTO)
+                                                        .collect(Collectors.toList());
+            List<MovimientoPlanilla> aportesEmpleador = detalle.getMovimientosPlanilla().stream()
+                                                                .filter(mp -> mp.getConcepto().getTipo() == TipoConcepto.APORTE_EMPLEADOR)
+                                                                .collect(Collectors.toList());
+            model.addAttribute("ingresos", ingresos);
+            model.addAttribute("descuentos", descuentos);
+            model.addAttribute("aportesEmpleador", aportesEmpleador);
+        }
+
+        List<MovimientoPlanilla> ingresosFinal = detalle.getMovimientosPlanilla().stream()
+                .filter(mp -> mp.getConcepto().getTipo() == TipoConcepto.INGRESO)
+                .collect(Collectors.toList());
+        List<MovimientoPlanilla> descuentosFinal = detalle.getMovimientosPlanilla().stream()
+                .filter(mp -> mp.getConcepto().getTipo() == TipoConcepto.DESCUENTO)
+                .collect(Collectors.toList());
+        List<MovimientoPlanilla> aportesEmpleadorFinal = detalle.getMovimientosPlanilla().stream()
+                .filter(mp -> mp.getConcepto().getTipo() == TipoConcepto.APORTE_EMPLEADOR)
+                .collect(Collectors.toList());
+        
+
+        model.addAttribute("boleta", boleta);
+        model.addAttribute("detallePlanilla", detalle);
+        model.addAttribute("empleado", detalle.getEmpleado());
+        model.addAttribute("planillaPadre", detalle.getPlanilla());
+
+        model.addAttribute("mesReporte", Month.of(detalle.getPlanilla().getMes()).getDisplayName(TextStyle.FULL, new Locale("es", "PE")));
+        model.addAttribute("anioReporte", detalle.getPlanilla().getAnio());
+
+        Optional<Empresa> empresaOptional = empresaService.getOneCompany();
+        model.addAttribute("empresa", empresaOptional.orElse(null));
+
+        return "boletas/verBoleta";
     }
+        
+    
 
     @PostMapping("/eliminar-boleta/{idBoleta}")
     public String eliminarBoleta(@PathVariable("idBoleta") Integer idBoleta, RedirectAttributes redirectAttributes) {

@@ -2,6 +2,7 @@ package com.textilima.textilima.repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,7 +17,7 @@ public interface PuestoRepository extends JpaRepository<Puesto, Integer> {
      * @param nombrePuesto El nombre del puesto a buscar.
      * @return El puesto encontrado o null si no existe.
      */
-    Puesto findByNombrePuesto(String nombrePuesto);
+    Optional<Puesto> findByNombrePuesto(String nombrePuesto);
 
     /**
      * Busca todos los puestos con un salario base mayor o igual al valor especificado.

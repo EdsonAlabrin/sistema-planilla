@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout/base}">
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout/base}">
 
 <head>
     <title>Dashboard - TextiLima SAC</title>
@@ -13,7 +13,8 @@
             cursor: pointer;
             text-align: center;
             padding: 25px;
-            height: 100%; /* Asegura que todas las tarjetas tengan la misma altura en la fila */
+            height: 100%;
+            /* Asegura que todas las tarjetas tengan la misma altura en la fila */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -26,8 +27,10 @@
         }
 
         .info-card .icon-circle {
-            background-color: #e3f2fd; /* Fondo azul claro por defecto */
-            color: #2196f3; /* Icono azul por defecto */
+            background-color: #e3f2fd;
+            /* Fondo azul claro por defecto */
+            color: #2196f3;
+            /* Icono azul por defecto */
             border-radius: 50%;
             width: 70px;
             height: 70px;
@@ -36,7 +39,8 @@
             justify-content: center;
             margin: 0 auto 20px auto;
             font-size: 2.5em;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra para el círculo del icono */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            /* Sombra para el círculo del icono */
         }
 
         .info-card h5 {
@@ -53,28 +57,36 @@
         .welcome-header {
             /* Gradiente más suave y profesional */
             background: linear-gradient(135deg, #1d5f8b 0%, #021324 100%);
-            color: white; /* Texto blanco para mejor contraste */
+            color: white;
+            /* Texto blanco para mejor contraste */
             padding: 40px 20px;
             border-radius: 0.75rem;
             margin-bottom: 30px;
             text-align: center;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2); /* Sombra más pronunciada */
-            position: relative; /* Para el icono flotante */
-            overflow: hidden; /* Para asegurar que el gradiente no se desborde */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            /* Sombra más pronunciada */
+            position: relative;
+            /* Para el icono flotante */
+            overflow: hidden;
+            /* Para asegurar que el gradiente no se desborde */
         }
+
         /* Icono de bienvenida flotante */
         .welcome-header .welcome-icon {
             position: absolute;
             top: 20px;
             right: 20px;
             font-size: 4em;
-            color: rgba(255, 255, 255, 0.2); /* Icono semitransparente */
+            color: rgba(255, 255, 255, 0.2);
+            /* Icono semitransparente */
             transform: rotate(-15deg);
             z-index: 0;
         }
 
-        .welcome-header h1, .welcome-header p {
-            position: relative; /* Asegura que el texto esté por encima del icono flotante */
+        .welcome-header h1,
+        .welcome-header p {
+            position: relative;
+            /* Asegura que el texto esté por encima del icono flotante */
             z-index: 1;
             font-weight: 700;
             margin-bottom: 10px;
@@ -95,11 +107,13 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
+
         .user-info-section h4 {
             color: #2c3e50;
             font-weight: 600;
             margin-bottom: 20px;
         }
+
         .user-info-section .info-item {
             display: flex;
             align-items: center;
@@ -108,13 +122,16 @@
             font-size: 1.05em;
             color: #555;
         }
+
         .user-info-section .info-item i {
             margin-right: 10px;
             color: #3498db;
             font-size: 1.2em;
         }
+
         .user-info-section .btn-logout {
-            background-color: #e74c3c; /* Rojo para cerrar sesión */
+            background-color: #e74c3c;
+            /* Rojo para cerrar sesión */
             border-color: #e74c3c;
             color: white;
             padding: 10px 25px;
@@ -123,6 +140,7 @@
             transition: background-color 0.3s ease, transform 0.2s ease;
             margin-top: 20px;
         }
+
         .user-info-section .btn-logout:hover {
             background-color: #c0392b;
             border-color: #c0392b;
@@ -139,14 +157,54 @@
         }
 
         /* Colores de iconos y fondos para las tarjetas de módulo */
-        .icon-empleados { background-color: #e3f2fd; color: #2196f3; } /* Azul */
-        .icon-planillas { background-color: #e8f5e9; color: #4caf50; } /* Verde */
-        .icon-usuarios { background-color: #ffebee; color: #f44336; } /* Rojo */
-        .icon-roles { background-color: #fff3e0; color: #ff9800; } /* Naranja */
-        .icon-asistencia { background-color: #e0f7fa; color: #00bcd4; } /* Cian */
-        .icon-puestos { background-color: #f3e5f5; color: #9c27b0; } /* Púrpura */
-        .icon-bancos { background-color: #e0f2f7; color: #03a9f4; } /* Azul claro */
-        .icon-conceptos { background-color: #fbe9e7; color: #ff5722; } /* Naranja oscuro */
+        .icon-empleados {
+            background-color: #e3f2fd;
+            color: #2196f3;
+        }
+
+        /* Azul */
+        .icon-planillas {
+            background-color: #e8f5e9;
+            color: #4caf50;
+        }
+
+        /* Verde */
+        .icon-usuarios {
+            background-color: #ffebee;
+            color: #f44336;
+        }
+
+        /* Rojo */
+        .icon-roles {
+            background-color: #fff3e0;
+            color: #ff9800;
+        }
+
+        /* Naranja */
+        .icon-asistencia {
+            background-color: #e0f7fa;
+            color: #00bcd4;
+        }
+
+        /* Cian */
+        .icon-puestos {
+            background-color: #f3e5f5;
+            color: #9c27b0;
+        }
+
+        /* Púrpura */
+        .icon-bancos {
+            background-color: #e0f2f7;
+            color: #03a9f4;
+        }
+
+        /* Azul claro */
+        .icon-conceptos {
+            background-color: #fbe9e7;
+            color: #ff5722;
+        }
+
+        /* Naranja oscuro */
 
         /* Responsividad */
         @media (max-width: 768px) {
@@ -154,34 +212,43 @@
                 padding: 30px 15px;
                 margin-bottom: 20px;
             }
+
             .welcome-header h1 {
                 font-size: 1.8em;
             }
+
             .welcome-header p {
                 font-size: 1em;
             }
+
             .welcome-header .welcome-icon {
                 font-size: 3em;
                 top: 10px;
                 right: 10px;
             }
+
             .user-info-section {
                 padding: 15px;
                 margin-bottom: 30px;
             }
+
             .user-info-section h4 {
                 font-size: 1.2em;
             }
+
             .user-info-section .info-item {
                 font-size: 0.95em;
             }
+
             .dashboard-section-title {
                 font-size: 1.5em;
                 margin-bottom: 20px;
             }
+
             .info-card {
                 padding: 20px;
             }
+
             .info-card .icon-circle {
                 width: 60px;
                 height: 60px;
@@ -199,7 +266,8 @@
             <div class="welcome-header">
                 <i class="fas fa-handshake welcome-icon"></i> <!-- Icono de bienvenida -->
                 <h1>Hola, <span sec:authentication="name"></span>!</h1>
-                <p>Bienvenido al panel de control de TextiLima SAC. Aquí tienes un resumen rápido y acceso a tus módulos.</p>
+                <p>Bienvenido al panel de control de TextiLima SAC. Aquí tienes un resumen rápido y acceso a tus
+                    módulos.</p>
                 <!-- La línea de depuración de roles se movió a la sección de información del usuario -->
             </div>
 
@@ -209,10 +277,12 @@
                 <div class="row justify-content-center">
                     <div class="col-md-6">
                         <div class="info-item">
-                            <i class="fas fa-user"></i> <strong>Nombre de Usuario:</strong> <span sec:authentication="name"></span>
+                            <i class="fas fa-user"></i> <strong>Nombre de Usuario:</strong> <span
+                                sec:authentication="name"></span>
                         </div>
                         <div class="info-item">
-                            <i class="fas fa-tags"></i> <strong>Tus Roles:</strong> <span sec:authentication="authorities"></span>
+                            <i class="fas fa-tags"></i> <strong>Tus Roles:</strong> <span
+                                sec:authentication="authorities"></span>
                         </div>
                     </div>
                 </div>
@@ -286,6 +356,13 @@
                         <div class="icon-circle icon-conceptos"><i class="fas fa-tags"></i></div>
                         <h5>Conceptos de Pago</h5>
                         <p>Configura los tipos de ingresos y descuentos.</p>
+                    </a>
+                </div>
+                <div class="col" sec:authorize="hasAuthority('ROL_ADMIN')">
+                    <a th:href="@{/admin/data-seeder}" class="card info-card text-decoration-none">
+                        <div class="icon-circle icon-data-seeder"><i class="fas fa-database"></i></div>
+                        <h5>Generador de Datos Demo</h5>
+                        <p>Limpia y genera datos de prueba para el sistema.</p>
                     </a>
                 </div>
             </div>

@@ -8,7 +8,11 @@ import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
+import com.textilima.textilima.model.enums.EstadoCivil;
+import com.textilima.textilima.model.enums.RegimenLaboral;
+import com.textilima.textilima.model.enums.Sexo;
+import com.textilima.textilima.model.enums.TipoDocumento;
+
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -30,8 +34,9 @@ public class Empleado {
     @Column(name = "apellidos", nullable = false, length = 100)
     private String apellidos;
 
+    @Enumerated(EnumType.STRING) // ¡Asegúrate de que esta anotación esté aquí! Almacena el nombre del enum (e.g., "DNI")
     @Column(name = "tipo_documento", length = 10)
-    private String tipoDocumento;
+    private TipoDocumento tipoDocumento; // CAMBIADO a TipoDocumento
 
     @Column(name = "numero_documento", nullable = false, unique = true, length = 20)
     private String numeroDocumento; // CAMBIADO de 'dni' a 'numeroDocumento' para coincidir
@@ -39,11 +44,13 @@ public class Empleado {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
+    @Enumerated(EnumType.STRING) // ¡Asegúrate de esta anotación!
     @Column(name = "sexo", length = 1)
-    private String sexo;
+    private Sexo sexo;
 
+    @Enumerated(EnumType.STRING) // ¡Asegúrate de esta anotación!
     @Column(name = "estado_civil", length = 20)
-    private String estadoCivil;
+    private EstadoCivil estadoCivil;
 
     @Column(name = "nacionalidad", length = 50)
     private String nacionalidad;
@@ -77,14 +84,15 @@ public class Empleado {
     @JoinColumn(name = "id_puesto", nullable = false)
     private Puesto puesto;
 
+    @Enumerated(EnumType.STRING) // ¡Asegúrate de esta anotación!
     @Column(name = "regimen_laboral", nullable = false, length = 50)
-    private String regimenLaboral;
+    private RegimenLaboral regimenLaboral;
 
     @Column(name = "tiene_hijos_calificados", nullable = false) 
     private Boolean tieneHijosCalificados; 
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "sistema_pensiones", length = 3)
+    @Enumerated(EnumType.STRING) // ¡Asegúrate de esta anotación!
+    @Column(name = "sistema_pensiones", length = 10)
     private SistemaPensiones sistemaPensiones;
 
     @Column(name = "codigo_pension", length = 50)

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Asistencia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a2e0c6f3db.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="card shadow-lg rounded-4 border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center rounded-top-4">
+            <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Editar Asistencia</h5>
+            <a th:href="@{/asistencias/diario}" class="btn btn-sm btn-light">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="card-body">
+            <h6 class="mb-4 text-muted">
+                <i class="fas fa-user me-2"></i>
+                <strong th:text="${asistencia.empleado.apellidos + ', ' + asistencia.empleado.nombres}"></strong>
+                &nbsp;| DNI: <span th:text="${asistencia.empleado.numeroDocumento}"></span>
+            </h6>
+
+            <form th:action="@{/asistencias/editar/{id}(id=${asistencia.idAsistencia})}" method="post" class="needs-validation" novalidate>
+                
+                <div class="mb-3">
+                    <label for="estado" class="form-label"><i class="fas fa-clipboard-check me-1"></i> Estado de Asistencia</label>
+                    <select name="estado" id="estado" class="form-select" required>
+                        <option th:each="estado : ${estados}"
+                                th:value="${estado.name()}"
+                                th:text="${estado.displayName}"
+                                th:selected="${asistencia.estado.name() == estado.name()}">
+                        </option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Selecciona un estado válido.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="justificacion" class="form-label"><i class="fas fa-comment-dots me-1"></i> Justificación (opcional)</label>
+                    <textarea name="justificacion" id="justificacion" rows="3" class="form-control rounded-3"
+                              th:text="${asistencia.justificacion}" placeholder="Escribe una justificación si corresponde..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success me-2">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <a th:href="@{/asistencias/diario}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="card-footer text-muted small text-center rounded-bottom-4">
+            <i class="fas fa-clock me-1"></i> Última modificación: 
+            <span th:text="${#temporals.format(asistencia.updatedAt, 'dd/MM/yyyy HH:mm')}"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Bootstrap validation
+(() => {
+    'use strict';
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
+
+</body>
+</html>

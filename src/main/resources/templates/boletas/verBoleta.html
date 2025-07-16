@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${'Boleta de Pago - ' + detallePlanilla.empleado.nombres + ' ' + detallePlanilla.empleado.apellidos + ' (' + detallePlanilla.planilla.mes + '/' + detallePlanilla.planilla.anio + ')'}"></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -136,7 +137,46 @@
         .text-essalud { color: #6f42c1; } /* Purple for Essalud */
         .text-sueldobase { color: #0dcaf0; } /* Cyan for Sueldo Base */
         .text-asignacion { color: #ffc107; } /* Yellow for Asignacion Familiar */
-
+        .cts-calculation-summary {
+            background-color: #f8f9fa; /* Ligeramente más oscuro para diferenciar */
+            border-left: 5px solid #0d6efd; /* Barra lateral azul */
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        .cts-calculation-summary h5 {
+            color: #0d6efd;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .cts-calculation-summary p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        .cts-calculation-summary p strong {
+            color: #343a40;
+        }
+        .gratificacion-calculation-summary {
+            background-color: #f8f9fa; /* Color similar a CTS para coherencia */
+            border-left: 5px solid #28a745; /* Una barra lateral verde para diferenciar */
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        .gratificacion-calculation-summary h5 {
+            color: #28a745; /* Título en verde */
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .gratificacion-calculation-summary p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        .gratificacion-calculation-summary p strong {
+            color: #343a40;
+        }
         @media print {
             body {
                 background-color: #ffffff;
@@ -156,12 +196,20 @@
 </head>
 <body>
     <div class="boleta-container">
+        <div class="header-main-title text-center mb-4">
+            <h2 class="mb-0 text-primary">
+                <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'MENSUAL'}">BOLETA DE PAGO DE REMUNERACIONES</span>
+                <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'GRATIFICACION'}">BOLETA DE PAGO DE GRATIFICACIÓN</span>
+                <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'CTS'}">BOLETA DE PAGO DE COMPENSACIÓN POR TIEMPO DE SERVICIOS (CTS)</span>
+                <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'LIQUIDACION'}">BOLETA DE LIQUIDACIÓN DE BENEFICIOS SOCIALES</span>
+            </h2>
+        </div>
         <div class="header-section">
             <div class="company-info">
                 <!-- Logo de la empresa -->
-                <img th:if="${empresa != null}" th:src="@{/images/logoTextilima.png}" 
+                <!-- <img th:if="${empresa != null}" th:src="@{/images/logoTextilima.png}" 
                      onerror="this.onerror=null; this.src='https://placehold.co/150x50/E0E0E0/333333?text=Logo+Empresa';"
-                     alt="Logo de la Empresa" class="company-logo">
+                     alt="Logo de la Empresa" class="company-logo"> -->
                 <h2 class="mb-1" th:if="${empresa != null}" th:text="${empresa.razonSocial}">RAZÓN SOCIAL DE LA EMPRESA</h2>
                 <p class="mb-0 text-muted" th:if="${empresa != null}"><strong>RUC:</strong> <span th:text="${empresa.ruc}"></span></p>
                 <p class="mb-0 text-muted" th:if="${empresa != null}"><strong>Dirección:</strong> <span th:text="${empresa.direccion}"></span></p>
@@ -169,7 +217,6 @@
                 <p class="mb-0 text-muted" th:if="${empresa != null}"><strong>Correo:</strong> <span th:text="${empresa.correo}"></span></p>
             </div>
             <div class="period-info">
-                <h2 class="mb-0 text-primary">BOLETA DE PAGO</h2>
                 <p class="mb-0"><strong>Periodo:</strong> <span th:text="${T(java.time.Month).of(detallePlanilla.planilla.mes).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).getDefault())} + ' ' + ${detallePlanilla.planilla.anio}"></span></p>
                 <p class="mb-0"><strong>Fecha Emisión:</strong> <span th:text="${#temporals.format(boleta.fechaEmision, 'dd/MM/yyyy')}"></span></p>
             </div>
@@ -202,7 +249,57 @@
                 <span th:text="${detallePlanilla.planilla.paramRmv != null ? 'S/ ' + #numbers.formatDecimal(detallePlanilla.planilla.paramRmv.valor, 1, 'COMMA', 2, 'POINT') : 'N/A'}"></span>
             </div>
         </div>
+        <div th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'MENSUAL'}">
+            <div class="section-title">Resumen de Asistencia</div>
+            <div class="attendance-summary mb-4">
+                <div class="row">
+                    <div class="col-md-6"><strong>Días Trabajados:</strong> <span th:text="${diasPresentes}"></span></div>
+                    <div class="col-md-6"><strong>Días Ausentes:</strong> <span th:text="${diasAusentes}"></span></div>
+                    <div class="col-md-6"><strong>Minutos de Tardanza:</strong> <span th:text="${totalMinutosTardanza}"></span> min</div>
+                    <div class="col-md-6"><strong>Horas Extra (25%):</strong> <span th:text="${#numbers.formatDecimal(totalHorasExtras25, 1, 'COMMA', 2, 'POINT')}"></span> hrs</div>
+                    <div class="col-md-6"><strong>Horas Extra (35%):</strong> <span th:text="${#numbers.formatDecimal(totalHorasExtras35, 1, 'COMMA', 2, 'POINT')}"></span> hrs</div>
+                    <div class="col-md-6"><strong>Jornada:</strong> <span th:text="${jornadaInicio + ' - ' + jornadaFin}"></span></div>
+                </div>
+            </div>
+        </div>
+        <div th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'GRATIFICACION'}">
+            <div class="section-title">Detalle de Cálculo de Gratificación</div>
+            <div class="gratificacion-calculation-summary">
+                <h5>Periodo Computable para Gratificación:</h5>
+                <p><strong>Periodo:</strong> <span th:text="${#temporals.format(inicioPeriodoGratificacion, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(finPeriodoGratificacion, 'dd/MM/yyyy')}"></span></p>
+                <p><strong>Meses Completos Computables:</strong> <span th:text="${mesesComputablesGratificacion}"></span></p>
+                
+                <h5 class="mt-4">Remuneración Computable:</h5>
+                <p><strong>Sueldo Base:</strong> S/ <span th:text="${#numbers.formatDecimal(detallePlanilla.sueldoBase, 1, 'COMMA', 2, 'POINT')}"></span></p>
+                <p class="mt-2"><strong>TOTAL REMUNERACIÓN COMPUTABLE:</strong> S/ <span th:text="${#numbers.formatDecimal(detallePlanilla.remuneracionComputableAfecta, 1, 'COMMA', 2, 'POINT')}"></span></p>
+                <h5 class="mt-4">Conceptos de Gratificación:</h5>
+                <p><strong>Monto Base de Gratificación:</strong> S/ <span th:text="${#numbers.formatDecimal(montoGratificacionBase, 1, 'COMMA', 2, 'POINT')}"></span></p>
+                <p><strong>Bonificación Extraordinaria (Ley 30334):</strong> S/ <span th:text="${#numbers.formatDecimal(bonificacionExtraordinaria, 1, 'COMMA', 2, 'POINT')}"></span></p>
+            </div>
+        </div>
+        <div th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'CTS'}">
+            <div class="section-title">Detalle de Cálculo de CTS</div>
+            <div class="cts-calculation-summary">
+                <h5>Componentes de la Remuneración Computable:</h5>
+                <p><strong>Sueldo Base:</strong> S/ <span th:text="${#numbers.formatDecimal(detallePlanilla.sueldoBase, 1, 'COMMA', 2, 'POINT')}"></span></p>
+                <p th:if="${detallePlanilla.asignacionFamiliar != null and detallePlanilla.asignacionFamiliar.compareTo(new java.math.BigDecimal('0')) > 0}">
+                    <strong>Asignación Familiar:</strong> S/ <span th:text="${#numbers.formatDecimal(detallePlanilla.asignacionFamiliar, 1, 'COMMA', 2, 'POINT')}"></span>
+                </p>
+                <p th:if="${sextaParteGratificacion != null and sextaParteGratificacion.compareTo(new java.math.BigDecimal('0')) > 0}">
+                    <strong>1/6 Gratificación:</strong> S/ <span th:text="${#numbers.formatDecimal(sextaParteGratificacion, 1, 'COMMA', 2, 'POINT')}"></span>
+                </p>
+                <p class="mt-2"><strong>TOTAL REMUNERACIÓN COMPUTABLE:</strong> S/ <span th:text="${#numbers.formatDecimal(remuneracionComputableCts, 1, 'COMMA', 2, 'POINT')}"></span></p>
 
+                <h5 class="mt-4">Tiempo de Servicio Computable:</h5>
+                <p><strong>Periodo Computable:</strong> <span th:text="${#temporals.format(inicioPeriodoCTS, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(finPeriodoCTS, 'dd/MM/yyyy')}"></span></p>
+                <p><strong>Meses Computables:</strong> <span th:text="${mesesComputables}"></span></p>
+                <p><strong>Días Computables:</strong> <span th:text="${diasComputables}"></span></p>
+
+                <h5 class="mt-4">Valores Unitarios:</h5>
+                <p><strong>Monto CTS por Mes:</strong> S/ <span th:text="${#numbers.formatDecimal(montoCtsPorMes, 1, 'COMMA', 2, 'POINT')}"></span></p>
+                <p><strong>Monto CTS por Día:</strong> S/ <span th:text="${#numbers.formatDecimal(montoCtsPorDia, 1, 'COMMA', 2, 'POINT')}"></span></p>
+            </div>
+        </div>
         <div class="section-title">Detalle de Ingresos</div>
         <div class="table-responsive mb-4">
             <table class="table table-bordered table-sm">
@@ -213,19 +310,45 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Sueldo Base</td>
-                        <td class="text-end fw-semibold text-sueldobase" th:text="${#numbers.formatDecimal(detallePlanilla.sueldoBase, 1, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
-                    <tr th:if="${detallePlanilla.asignacionFamiliar != null and detallePlanilla.asignacionFamiliar.compareTo(new java.math.BigDecimal('0')) > 0}">
-                        <td>Asignación Familiar (10% RMV)</td>
-                        <td class="text-end fw-semibold text-asignacion" th:text="${#numbers.formatDecimal(detallePlanilla.asignacionFamiliar, 1, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
-                    <!-- Otros ingresos detallados por movimiento -->
-                    <tr th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'INGRESO' and concepto.nombreConcepto != 'Sueldo Base' and concepto.nombreConcepto != 'Asignación Familiar']}">
-                        <td th:text="${mov.concepto.nombreConcepto}"></td>
-                        <td class="text-end" th:text="${#numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
+                    <th:block th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'MENSUAL'}">
+                        <tr>
+                            <td>Sueldo Base</td>
+                            <td class="text-end fw-semibold text-sueldobase" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoBase, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                        <tr th:if="${detallePlanilla.asignacionFamiliar != null and detallePlanilla.asignacionFamiliar.compareTo(new java.math.BigDecimal('0')) > 0}">
+                            <td>Asignación Familiar (10% RMV)</td>
+                            <td class="text-end fw-semibold text-asignacion" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.asignacionFamiliar, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                        <tr th:each="mov : ${ingresos}">
+                            <td th:if="${mov.concepto.nombreConcepto != 'Sueldo Base' and mov.concepto.nombreConcepto != 'Asignación Familiar' and mov.concepto.nombreConcepto != 'Gratificación Ordinaria' and mov.concepto.nombreConcepto != 'Bonificación Extraordinaria (Ley)' and mov.concepto.nombreConcepto != 'Compensación por Tiempo de Servicios (CTS)'}" th:text="${mov.concepto.nombreConcepto}"></td>
+                            <td th:if="${mov.concepto.nombreConcepto != 'Sueldo Base' and mov.concepto.nombreConcepto != 'Asignación Familiar' and mov.concepto.nombreConcepto != 'Gratificación Ordinaria' and mov.concepto.nombreConcepto != 'Bonificación Extraordinaria (Ley)' and mov.concepto.nombreConcepto != 'Compensación por Tiempo de Servicios (CTS)'}" class="text-end" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                    </th:block>
+
+                    <th:block th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'GRATIFICACION'}">
+                        <tr th:each="mov : ${ingresos}">
+                            <td th:if="${mov.concepto.nombreConcepto == 'Gratificación Ordinaria' or mov.concepto.nombreConcepto == 'Bonificación Extraordinaria (Ley)'}" th:text="${mov.concepto.nombreConcepto}"></td>
+                            <td th:if="${mov.concepto.nombreConcepto == 'Gratificación Ordinaria' or mov.concepto.nombreConcepto == 'Bonificación Extraordinaria (Ley)'}" class="text-end" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                    </th:block>
+
+                    <th:block th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'CTS'}">
+                        <tr th:each="mov : ${ingresos}">
+                            <td th:if="${mov.concepto.nombreConcepto == 'Compensación por Tiempo de Servicios (CTS)'}" th:text="${mov.concepto.nombreConcepto}"></td>
+                            <td th:if="${mov.concepto.nombreConcepto == 'Compensación por Tiempo de Servicios (CTS)'}" class="text-end" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(ingresos)}" class="text-muted">
+                            <td colspan="2" class="text-center">No hay ingresos para este periodo.</td>
+                        </tr>
+                    </th:block>
+
+                    <th:block th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'LIQUIDACION'}">
+                        <tr th:each="mov : ${ingresos}">
+                            <td th:text="${mov.concepto.nombreConcepto}"></td>
+                            <td class="text-end" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                    </th:block>
+
                     <tr class="total-row">
                         <td><strong>Total Ingresos Brutos</strong></td>
                         <td class="text-end" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoBruto, 1, 'COMMA', 2, 'POINT')}"></td>
@@ -245,11 +368,11 @@
                 </thead>
                 <tbody>
                     <!-- Descuentos por movimientos -->
-                    <tr th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'DESCUENTO']}">
+                    <tr th:each="mov : ${descuentos}">
                         <td th:text="${mov.concepto.nombreConcepto}"></td>
-                        <td class="text-end" th:classappend="${mov.concepto.nombreConcepto.contains('ONP')} ? 'text-onp' : (${mov.concepto.nombreConcepto.contains('AFP')} ? 'text-afp' : '')" th:text="${#numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="text-end" th:classappend="${mov.concepto.nombreConcepto.contains('ONP')} ? 'text-onp' : (${mov.concepto.nombreConcepto.contains('AFP')} ? 'text-afp' : '')" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'DESCUENTO'])}" class="text-muted">
+                    <tr th:if="${#lists.isEmpty(descuentos)}" class="text-muted">
                         <td colspan="2" class="text-center">No hay descuentos para este periodo.</td>
                     </tr>
                     <tr class="total-row">
@@ -260,44 +383,51 @@
             </table>
         </div>
 
-        <div class="section-title">Aportes del Empleador</div>
-        <div class="table-responsive mb-4">
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th style="width: 70%;">Concepto</th>
-                        <th style="width: 30%;" class="text-end">Monto (S/)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Aportes del empleador por movimientos -->
-                    <tr th:each="mov : ${detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'APORTE_EMPLEADOR']}">
-                        <td th:text="${mov.concepto.nombreConcepto}"></td>
-                        <td class="text-end text-essalud" th:text="${#numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(detallePlanilla.movimientosPlanilla.?[concepto.tipo.name() == 'APORTE_EMPLEADOR'])}" class="text-muted">
-                        <td colspan="2" class="text-center">No hay aportes del empleador para este periodo.</td>
-                    </tr>
-                    <tr class="total-row">
-                        <td><strong>Total Aportes Empleador</strong></td>
-                        <td class="text-end" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalAportesEmpleador, 1, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'MENSUAL'}">
+            <div class="section-title">Aportes del Empleador</div>
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th style="width: 70%;">Concepto</th>
+                            <th style="width: 30%;" class="text-end">Monto (S/)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="mov : ${aportesEmpleador}">
+                            <td th:text="${mov.concepto.nombreConcepto}"></td>
+                            <td class="text-end text-essalud" th:text="${'S/ ' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(aportesEmpleador)}" class="text-muted">
+                            <td colspan="2" class="text-center">No hay aportes del empleador para este periodo.</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Total Aportes Empleador</strong></td>
+                            <td class="text-end" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.totalAportesEmpleador, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="summary-section">
             <div class="summary-row summary-total text-end">
-                <strong>SUELDO NETO A PAGAR:</strong>
+                <strong>
+                    <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'MENSUAL'}">SUELDO NETO A PAGAR:</span>
+                    <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'GRATIFICACION'}">MONTO NETO DE GRATIFICACIÓN:</span>
+                    <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'CTS'}">MONTO NETO DE CTS:</span>
+                    <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'LIQUIDACION'}">MONTO NETO DE LIQUIDACIÓN:</span>
+                    </strong>
                 <span class="total-neto" th:text="${'S/ ' + #numbers.formatDecimal(detallePlanilla.sueldoNeto, 1, 'COMMA', 2, 'POINT')}"></span>
             </div>
         </div>
 
         <div class="text-center mt-5 no-print">
             <button class="btn btn-primary me-2" onclick="window.print()">
-                <i class="fas fa-print me-1"></i> Imprimir Boleta
+                <i class="bi bi-printer"></i> Imprimir Boleta
             </button>
         </div>
     </div>
+    
 </body>
 </html>

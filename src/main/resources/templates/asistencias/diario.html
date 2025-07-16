@@ -166,11 +166,23 @@
                                         <span th:case="'PRESENTE'" class="badge-presente">Presente</span>
                                         <span th:case="'TARDANZA'" class="badge-tardanza">Tardanza</span>
                                         <span th:case="'AUSENTE'" class="badge-ausente">Ausente</span>
+                                        <span th:case="'TARDANZA_JUSTIFICADA'" class="badge-justificada">Tardanza
+                                            Justificada</span>
                                         <span th:case="'FALTA_JUSTIFICADA'" class="badge-justificada">Falta
                                             Justificada</span>
+                                        <span th:case="'PERMISO'" class="badge bg-info text-dark">Permiso</span>
+                                        <span th:case="'LICENCIA'" class="badge bg-warning text-dark">Licencia</span>
                                         <span th:case="''" class="badge bg-secondary">Sin Estado</span>
                                         <span th:case="*" class="badge bg-secondary">Desconocido</span>
+
+                                        <a th:href="@{/asistencias/editar/{id}(id=${asist.idAsistencia})}"
+                                            class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+
                                     </span>
+
+
                                 </td>
                                 <td>
                                     <span th:text="${asist.horasTrabajadasFormateadas}"></span>

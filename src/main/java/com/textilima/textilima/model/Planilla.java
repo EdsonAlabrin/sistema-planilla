@@ -69,7 +69,10 @@ public class Planilla { // Se usa "Planilla" en singular para la entidad
 
     // Enum para el tipo de planilla
     public enum TipoPlanilla {
-        MENSUAL("Mensual"); // Puedes añadir más si necesitas
+        MENSUAL("Mensual"), // Puedes añadir más si necesitas
+        CTS("CTS"), // Añadido
+        GRATIFICACION("Gratificación"), // Añadido
+        LIQUIDACION("Liquidación");
 
         private final String displayName; // Campo para el nombre legible
 

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de Datos Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px; /* Espacio entre los botones */
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4 text-center">Administración de Datos Demo</h2>
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <p class="text-center">Utiliza estos botones para gestionar los datos de demostración de la aplicación.</p>
+
+        <div class="btn-group">
+            <form th:action="@{/admin/data-seeder/clear}" method="post">
+                <button type="submit" class="btn btn-danger btn-lg" 
+                        onclick="return confirm('¿Estás seguro de que quieres LIMPIAR TODOS los datos? Esta acción es irreversible.');">
+                    <i class="fas fa-eraser"></i> Limpiar Todos los Datos
+                </button>
+            </form>
+
+            <form th:action="@{/admin/data-seeder/generate}" method="post">
+                <button type="submit" class="btn btn-primary btn-lg"
+                        onclick="return confirm('¿Estás seguro de que quieres GENERAR datos demo? Esto limpiará los datos existentes y creará nuevos.');">
+                    <i class="fas fa-database"></i> Generar Datos Demo
+                </button>
+            </form>
+        </div>
+
+        <hr class="my-4">
+        <p class="text-center">
+            <a th:href="@{/dashboard}" class="btn btn-secondary">Volver al Dashboard</a>
+        </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

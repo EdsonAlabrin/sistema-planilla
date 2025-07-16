@@ -184,7 +184,7 @@
                                         <span th:if="${empleado.puesto != null}" th:text="${empleado.puesto.nombrePuesto}"></span>
                                         <span th:unless="${empleado.puesto != null}">N/A</span>
                                     </td>
-                                    <td th:text="${empleado.regimenLaboral}" data-label="Reg. Laboral"></td>
+                                    <td th:text="${empleado.regimenLaboral.descripcion}" data-label="Reg. Laboral"></td>
                                     <td data-label="Asignación Familiar">
                                         <span th:if="${empleado.tieneHijosCalificados}" class="badge bg-success">Sí</span>
                                         <span th:unless="${empleado.tieneHijosCalificados}" class="badge bg-danger">No</span>
@@ -203,13 +203,7 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <!-- Botón para eliminar (desencadena modal) -->
-                                            <button type="button"
-                                                    class="btn btn-danger btn-sm action-button"
-                                                    th:attr="data-id=${empleado.idEmpleado}, data-action='eliminar'"
-                                                    data-bs-toggle="modal" data-bs-target="#confirmationModal"
-                                                    title="Eliminar">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
+                                           
                                             <!-- Botones de activar/desactivar (desencadenan modal) -->
                                             <button type="button"
                                                     th:if="${empleado.estado}"
@@ -343,7 +337,7 @@
                         if (currentAction === 'eliminar') {
                             const form = document.createElement('form');
                             form.method = 'POST';
-                            form.action = /*[[@{/empleados/eliminar}]]*/ '';
+                            form.action = /*[[@{/empleados/eliminar}]]*/ '/empleados/eliminar';
                             const input = document.createElement('input');
                             input.type = 'hidden';
                             input.name = 'id';
@@ -355,7 +349,7 @@
                         } else if (currentAction === 'desactivar' || currentAction === 'activar') {
                             const form = document.createElement('form');
                             form.method = 'POST';
-                            form.action = /*[[@{/empleados/cambiarEstado}]]*/ '';
+                            form.action = /*[[@{/empleados/cambiarEstado}]]*/ '/empleados/cambiarEstado';
                             
                             let idInput = document.createElement('input');
                             idInput.type = 'hidden';

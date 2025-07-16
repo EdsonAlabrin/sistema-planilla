@@ -23,7 +23,7 @@
 
             <!-- Botón para registrar nuevo concepto -->
             <div class="mb-4">
-                <a th:href="@{/conceptospago/nuevo}" class="btn btn-primary">
+                <a th:href="@{/conceptosPago/nuevo}" class="btn btn-primary">
                     <i class="fas fa-plus-circle me-2"></i> Registrar Nuevo Concepto
                 </a>
             </div>
@@ -68,10 +68,10 @@
                                         <span th:unless="${concepto.esRemunerativo}" class="badge bg-danger">No</span>
                                     </td>
                                     <td class="text-nowrap" data-label="Acciones">
-                                        <a th:href="@{/conceptospago/detalles/{id}(id=${concepto.idConcepto})}" class="btn btn-info btn-sm action-button" title="Ver Detalles">
+                                        <a th:href="@{/conceptosPago/detalles/{id}(id=${concepto.idConcepto})}" class="btn btn-info btn-sm action-button" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a th:href="@{/conceptospago/editar/{id}(id=${concepto.idConcepto})}" class="btn btn-warning btn-sm action-button" title="Editar">
+                                        <a th:href="@{/conceptosPago/editar/{id}(id=${concepto.idConcepto})}" class="btn btn-warning btn-sm action-button" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <!-- Botón para eliminar (desencadena modal de confirmación) -->
@@ -151,7 +151,7 @@
                     if (currentConceptoId && currentAction) {
                         let url = '';
                         if (currentAction === 'eliminar') {
-                            url = /*[[@{/conceptospago/eliminar/}]]*/ '' + currentConceptoId;
+                            url = /*[[@{/conceptosPago/eliminar/}]]*/ '' + currentConceptoId;
                         }
                         // Agrega más else if para otras acciones si es necesario
                         window.location.href = url; // Redirigir para ejecutar la acción

@@ -13,7 +13,7 @@
         <a th:href="@{/empleados/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-users"></i> Empleados</a>
         <a th:href="@{/puestos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-briefcase"></i> Puestos</a>
         <a th:href="@{/bancos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-university"></i> Bancos</a>
-        <a th:href="@{/conceptos/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-tags"></i> Conceptos de Pago</a>
+        <a th:href="@{/conceptosPago/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-tags"></i> Conceptos de Pago</a>
         <a th:href="@{/planillas/listar}" sec:authorize="hasAnyAuthority('ROL_ADMIN', 'ROL_RRHH')"><i class="fas fa-file-invoice"></i> Planillas</a>
 
         <!-- Enlace exclusivo para ROL_ADMIN -->

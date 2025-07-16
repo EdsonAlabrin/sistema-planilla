@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/conceptos") // Mapea todas las solicitudes que comienzan con /conceptos a este controlador
+@RequestMapping("/conceptosPago") // Mapea todas las solicitudes que comienzan con /conceptos a este controlador
 public class ConceptoPagoController {
 
      private final ConceptoPagoService conceptoPagoService;
@@ -26,34 +26,34 @@ public class ConceptoPagoController {
 
     /**
      * Muestra la lista de todos los conceptos de pago.
-     * GET /conceptospago/listar
+     * GET /conceptosPago/listar
      * @param model Objeto Model para pasar datos a la vista.
-     * @return El nombre de la vista Thymeleaf (conceptospago/listar.html).
+     * @return El nombre de la vista Thymeleaf (conceptosPago/listar.html).
      */
     @GetMapping("/listar")
-    public String listarConceptosPago(Model model) {
+    public String listarconceptosPago(Model model) {
         List<ConceptoPago> conceptosPago = conceptoPagoService.getAllConceptosPago();
         model.addAttribute("conceptosPago", conceptosPago);
-        return "conceptospago/listar"; // Nombre de la vista Thymeleaf
+        return "conceptosPago/listar"; // Nombre de la vista Thymeleaf
     }
 
     /**
      * Muestra el formulario para crear un nuevo concepto de pago.
-     * GET /conceptospago/nuevo
+     * GET /conceptosPago/nuevo
      * @param model Objeto Model para pasar un ConceptoPago vacío a la vista y listas para selects.
-     * @return El nombre de la vista Thymeleaf (conceptospago/form.html).
+     * @return El nombre de la vista Thymeleaf (conceptosPago/form.html).
      */
     @GetMapping("/nuevo")
     public String mostrarFormularioCrear(Model model) {
         model.addAttribute("conceptoPago", new ConceptoPago());
         model.addAttribute("tiposConcepto", TipoConcepto.values()); // Para el select de tipos
         model.addAttribute("metodosCalculo", MetodoCalculo.values()); // Para el select de métodos de cálculo
-        return "conceptospago/form"; // Nombre de la vista Thymeleaf
+        return "conceptosPago/form"; // Nombre de la vista Thymeleaf
     }
 
     /**
      * Procesa el envío del formulario para crear o actualizar un concepto de pago.
-     * POST /conceptospago/guardar
+     * POST /conceptosPago/guardar
      * @param conceptoPago El objeto ConceptoPago enviado desde el formulario.
      * @param redirectAttributes Para añadir mensajes flash que persisten en la redirección.
      * @return Una redirección a la lista de conceptos de pago o al formulario en caso de error.
@@ -65,7 +65,7 @@ public class ConceptoPagoController {
             Optional<ConceptoPago> existingConcepto = conceptoPagoService.getConceptoPagoByNombre(conceptoPago.getNombreConcepto());
             if (existingConcepto.isPresent() && (conceptoPago.getIdConcepto() == null || !existingConcepto.get().getIdConcepto().equals(conceptoPago.getIdConcepto()))) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Ya existe un concepto de pago con el nombre '" + conceptoPago.getNombreConcepto() + "'.");
-                return "redirect:/conceptospago/nuevo"; // O redirigir a editar si es un conflicto al editar
+                return "redirect:/conceptosPago/nuevo"; // O redirigir a editar si es un conflicto al editar
             }
 
             conceptoPagoService.saveConceptoPago(conceptoPago); // saveConceptoPago maneja creación y actualización
@@ -74,38 +74,38 @@ public class ConceptoPagoController {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al guardar el concepto de pago: " + e.getMessage());
             // En caso de error, volvemos al formulario para que el usuario corrija
             if (conceptoPago.getIdConcepto() != null) {
-                return "redirect:/conceptospago/editar/" + conceptoPago.getIdConcepto();
+                return "redirect:/conceptosPago/editar/" + conceptoPago.getIdConcepto();
             } else {
-                return "redirect:/conceptospago/nuevo";
+                return "redirect:/conceptosPago/nuevo";
             }
         }
-        return "redirect:/conceptospago/listar"; // Redirige a la lista después de guardar
+        return "redirect:/conceptosPago/listar"; // Redirige a la lista después de guardar
     }
 
     /**
      * Muestra el formulario para editar un concepto de pago existente.
-     * GET /conceptospago/editar/{id}
+     * GET /conceptosPago/editar/{id}
      * @param id El ID del concepto de pago a editar.
      * @param model Objeto Model para pasar el ConceptoPago a la vista y listas para selects.
      * @param redirectAttributes Para añadir mensajes flash si el concepto de pago no se encuentra.
-     * @return El nombre de la vista Thymeleaf (conceptospago/form.html) o una redirección.
+     * @return El nombre de la vista Thymeleaf (conceptosPago/form.html) o una redirección.
      */
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         Optional<ConceptoPago> conceptoPago = conceptoPagoService.getConceptoPagoById(id);
         if (conceptoPago.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Concepto de pago no encontrado.");
-            return "redirect:/conceptospago/listar";
+            return "redirect:/conceptosPago/listar";
         }
         model.addAttribute("conceptoPago", conceptoPago.get());
         model.addAttribute("tiposConcepto", TipoConcepto.values());
         model.addAttribute("metodosCalculo", MetodoCalculo.values());
-        return "conceptospago/form";
+        return "conceptosPago/form";
     }
 
     /**
      * Elimina un concepto de pago.
-     * GET /conceptospago/eliminar/{id}
+     * GET /conceptosPago/eliminar/{id}
      * Esta acción se desencadena desde el modal de confirmación en la vista listar.
      * @param id El ID del concepto de pago a eliminar.
      * @param redirectAttributes Para añadir mensajes flash.
@@ -119,25 +119,25 @@ public class ConceptoPagoController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el concepto de pago: " + e.getMessage());
         }
-        return "redirect:/conceptospago/listar";
+        return "redirect:/conceptosPago/listar";
     }
 
     /**
      * Muestra los detalles de un concepto de pago.
-     * GET /conceptospago/detalles/{id}
+     * GET /conceptosPago/detalles/{id}
      * @param id El ID del concepto de pago a mostrar.
      * @param model Objeto Model para pasar el ConceptoPago a la vista.
      * @param redirectAttributes Para añadir mensajes flash si el concepto de pago no se encuentra.
-     * @return El nombre de la vista Thymeleaf (conceptospago/detalles.html) o una redirección.
+     * @return El nombre de la vista Thymeleaf (conceptosPago/detalles.html) o una redirección.
      */
     @GetMapping("/detalles/{id}")
     public String verDetallesConceptoPago(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         Optional<ConceptoPago> conceptoPago = conceptoPagoService.getConceptoPagoById(id);
         if (conceptoPago.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Concepto de pago no encontrado.");
-            return "redirect:/conceptospago/listar";
+            return "redirect:/conceptosPago/listar";
         }
         model.addAttribute("conceptoPago", conceptoPago.get());
-        return "conceptospago/detalles";
+        return "conceptosPago/detalles";
     }
 }

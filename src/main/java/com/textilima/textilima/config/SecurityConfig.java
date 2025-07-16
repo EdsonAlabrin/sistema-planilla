@@ -82,6 +82,7 @@ public class SecurityConfig {
 
                 // Páginas protegidas: /dashboard y todos los módulos
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/dashboard")).authenticated() // Dashboard requiere autenticación
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/data-seeder/**")).hasAuthority("ROL_ADMIN")
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAuthority("ROL_ADMIN")
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/empleados/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH", "ROL_EMPLEADO")
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/planillas/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH")
@@ -90,7 +91,8 @@ public class SecurityConfig {
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/puestos/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH") // Agregado Puestos
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/bancos/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH")   // Agregado Bancos
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/conceptos/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH") // Agregado Conceptos
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/asistencias/**")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH", "ROL_EMPLEADO") // Agregado Asistencias
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/asistencias/diario")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH") // Agregado Asistencias
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/asistencias/registro")).hasAnyAuthority("ROL_ADMIN", "ROL_RRHH", "ROL_EMPLEADO") // Agregado Asistencias
 
                 .anyRequest().authenticated() // Cualquier otra solicitud requiere autenticación
             )

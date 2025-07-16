@@ -15,7 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import com.textilima.textilima.model.enums.*;
 import jakarta.validation.Valid; // Usar jakarta.validation.Valid
 import org.springframework.validation.BindingResult;
 
@@ -103,6 +103,9 @@ public class EmpleadoController {
         model.addAttribute("puestos", puestoService.listarTodosLosPuestos());
         model.addAttribute("bancos", bancoService.getAllBancos());
         model.addAttribute("sistemasPensiones", Empleado.SistemaPensiones.values());
+        model.addAttribute("regimenesLaborales", RegimenLaboral.values()); // Para el select de RegimenLaboral
+        model.addAttribute("estadosCiviles", EstadoCivil.values());
+        model.addAttribute("sexos", Sexo.values());
         return "empleados/form";
     }
 
@@ -121,6 +124,9 @@ public class EmpleadoController {
             model.addAttribute("puestos", puestoService.listarTodosLosPuestos());
             model.addAttribute("bancos", bancoService.getAllBancos());
             model.addAttribute("sistemasPensiones", Empleado.SistemaPensiones.values());
+            model.addAttribute("regimenesLaborales", RegimenLaboral.values());
+            model.addAttribute("estadosCiviles", EstadoCivil.values()); 
+            model.addAttribute("sexos", Sexo.values());
             return "empleados/form";
         }
         try {
@@ -146,6 +152,9 @@ public class EmpleadoController {
             model.addAttribute("puestos", puestoService.listarTodosLosPuestos());
             model.addAttribute("bancos", bancoService.getAllBancos());
             model.addAttribute("sistemasPensiones", Empleado.SistemaPensiones.values());
+            model.addAttribute("regimenesLaborales", RegimenLaboral.values());
+            model.addAttribute("estadosCiviles", EstadoCivil.values()); 
+            model.addAttribute("sexos", Sexo.values());
             return "empleados/form";
         }
         return "redirect:/empleados/listar";
@@ -170,6 +179,10 @@ public class EmpleadoController {
         model.addAttribute("puestos", puestoService.listarTodosLosPuestos());
         model.addAttribute("bancos", bancoService.getAllBancos());
         model.addAttribute("sistemasPensiones", Empleado.SistemaPensiones.values());
+        model.addAttribute("regimenesLaborales", RegimenLaboral.values()); // Para el select de RegimenLaboral
+        model.addAttribute("estadosCiviles", EstadoCivil.values()); 
+        model.addAttribute("sexos", Sexo.values());
+        
         return "empleados/form";
     }
 

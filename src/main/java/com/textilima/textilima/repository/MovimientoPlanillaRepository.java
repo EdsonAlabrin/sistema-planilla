@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.textilima.textilima.model.ConceptoPago;
@@ -44,4 +45,15 @@ public interface MovimientoPlanillaRepository extends JpaRepository<MovimientoPl
      */
     @Query("SELECT mp FROM MovimientoPlanilla mp WHERE mp.detallePlanilla.idDetalle = :idDetalle")
     List<MovimientoPlanilla> findByDetallePlanillaId(Integer idDetalle); // ID is Integer
+    
+    @Query("SELECT mp FROM MovimientoPlanilla mp " +
+           "WHERE mp.detallePlanilla.empleado.idEmpleado = :idEmpleado " +
+           "AND mp.detallePlanilla.planilla.mes = :mes " +
+           "AND mp.detallePlanilla.planilla.anio = :anio " +
+           "AND mp.concepto.nombreConcepto = :nombreConcepto")
+    Optional<MovimientoPlanilla> findGratificacionByEmpleadoAndPeriodoAndConcepto(
+        @Param("idEmpleado") Integer idEmpleado,
+        @Param("mes") int mes,
+        @Param("anio") int anio,
+        @Param("nombreConcepto") String nombreConcepto);
 }
