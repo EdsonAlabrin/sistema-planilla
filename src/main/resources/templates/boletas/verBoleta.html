@@ -197,19 +197,19 @@
 <body>
     <div class="boleta-container">
         <div class="header-main-title text-center mb-4">
-            <h2 class="mb-0 text-primary">
+            <h5 class="mb-0 text-primary">
                 <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'MENSUAL'}">BOLETA DE PAGO DE REMUNERACIONES</span>
                 <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'GRATIFICACION'}">BOLETA DE PAGO DE GRATIFICACIÓN</span>
                 <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'CTS'}">BOLETA DE PAGO DE COMPENSACIÓN POR TIEMPO DE SERVICIOS (CTS)</span>
                 <span th:if="${detallePlanilla.planilla.tipoPlanilla.name() == 'LIQUIDACION'}">BOLETA DE LIQUIDACIÓN DE BENEFICIOS SOCIALES</span>
-            </h2>
+            </h5>
         </div>
         <div class="header-section">
             <div class="company-info">
                 <!-- Logo de la empresa -->
-                <!-- <img th:if="${empresa != null}" th:src="@{/images/logoTextilima.png}" 
+                <img th:if="${empresa != null}" th:src="@{/images/logoTextilima.png}"
                      onerror="this.onerror=null; this.src='https://placehold.co/150x50/E0E0E0/333333?text=Logo+Empresa';"
-                     alt="Logo de la Empresa" class="company-logo"> -->
+                     alt="Logo de la Empresa" class="company-logo"> 
                 <h2 class="mb-1" th:if="${empresa != null}" th:text="${empresa.razonSocial}">RAZÓN SOCIAL DE LA EMPRESA</h2>
                 <p class="mb-0 text-muted" th:if="${empresa != null}"><strong>RUC:</strong> <span th:text="${empresa.ruc}"></span></p>
                 <p class="mb-0 text-muted" th:if="${empresa != null}"><strong>Dirección:</strong> <span th:text="${empresa.direccion}"></span></p>
